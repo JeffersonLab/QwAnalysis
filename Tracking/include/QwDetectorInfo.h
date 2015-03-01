@@ -4,13 +4,12 @@
 // System headers
 #include <cmath>
 #include <vector>
+#include <string>
 #include <iostream>
 #include <algorithm>
 
 // ROOT headers
-#include "TString.h"
 #include "TObject.h"
-#include "TMath.h"
 #include "TVector3.h"
 
 // Qweak headers
@@ -18,6 +17,7 @@
 #include "QwLog.h"
 
 // Forward declarations
+class QwParameterFile;
 class QwTrackingTreeRegion;
 
 ///
@@ -30,10 +30,11 @@ class QwDetectorInfo: public TObject {
 
   public:
 
-    /// Default constructor
-    QwDetectorInfo(): fIsActive(true),fTree(0) { };
+    /// Constructor with optional name
+    QwDetectorInfo(const std::string& name = "");
 
-    void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, double tilt, int totalwires, int detId);
+    // Load geometry information from parameter file
+    void LoadGeometryDefinition(QwParameterFile* map);
 
     // Get/set spatial resolution
     double GetSpatialResolution() const { return fSpatialResolution; };
@@ -58,22 +59,18 @@ class QwDetectorInfo: public TObject {
       fDetectorOriginX = x;
       fDetectorOriginY = y;
     };
-
-    void SetOctant(const int octant) { fOctant = octant;};
-    int  GetOctant() const {return fOctant; };
-
     void SetXYZPosition(const double x, const double y, const double z) {
       SetXYPosition(x,y);
       SetZPosition(z);
     };
 
-    double GetPlaneOffset() const {
-      return fPlaneOffset;
-    }
-    
-    void SetPlaneOffset (double x) {
-      fPlaneOffset = x;
-    }
+    // Get/set the octant
+    void SetOctant(const int octant) { fOctant = octant;};
+    int  GetOctant() const {return fOctant; };
+
+    // Get/set the plane offset
+    void SetPlaneOffset (double offset) { fPlaneOffset = offset; }
+    double GetPlaneOffset() const { return fPlaneOffset; }
 
     // Get/set active flag
     bool IsActive() const { return fIsActive; };
@@ -115,7 +112,7 @@ class QwDetectorInfo: public TObject {
     // Get/set element orientation
     double GetElementAngle() const { return fElementAngle; };
     double GetElementAngleInRad() const { return fElementAngle; };
-    double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
+    double GetElementAngleInDeg() const { return fElementAngle / Qw::deg; };
     double GetElementAngleCos() const { return fElementAngleCos; };
     double GetElementAngleSin() const { return fElementAngleSin; };
     void SetElementAngle(const double angle) {
@@ -131,28 +128,76 @@ class QwDetectorInfo: public TObject {
 
     // Get/set number of elements
     int GetNumberOfElements() const { return fNumberOfElements; };
-    void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
-    // Get/set detector rotation (in degrees)
-    double GetDetectorRotation() const { return fDetectorRotation; };
-    double GetDetectorRotationInRad() const { return fDetectorRotation; };
-    double GetDetectorRotationInDeg() const { return fDetectorRotation * TMath::RadToDeg(); };
-    double GetDetectorRotationCos() const { return fDetectorRotationCos; };
-    double GetDetectorRotationSin() const { return fDetectorRotationSin; };
-    void SetDetectorRotation(const double rotation) {
-      fDetectorRotation = rotation; // in degrees
-      fDetectorRotationCos = std::cos(fDetectorRotation);
-      fDetectorRotationSin = std::sin(fDetectorRotation);
+    void SetNumberOfElements(const int nelements) {
+      fNumberOfElements = nelements;
+      fEfficiency.assign(nelements + 1, 1.0); // wires are counted from 1
     };
-    // Get/set detector tilt (in degrees)
-    double GetDetectorTilt() const { return fDetectorTilt; };
-    double GetDetectorTiltInRad() const { return fDetectorTilt; };
-    double GetDetectorTiltInDeg() const { return fDetectorTilt * TMath::RadToDeg(); };
-    double GetDetectorTiltCos() const { return fDetectorTiltCos; };
-    double GetDetectorTiltSin() const { return fDetectorTiltSin; };
-    void SetDetectorTilt(const double tilting) {
-      fDetectorTilt = tilting; // in degrees
-      fDetectorTiltCos = std::cos(fDetectorTilt);
-      fDetectorTiltSin = std::sin(fDetectorTilt);
+
+    // Get/set detector pitch (in degrees)
+    double GetDetectorPitch() const { return fDetectorPitch; };
+    double GetDetectorPitchInRad() const { return fDetectorPitch / Qw::rad; };
+    double GetDetectorPitchInDeg() const { return fDetectorPitch / Qw::deg; };
+    double GetDetectorPitchCos() const { return fDetectorPitchCos; };
+    double GetDetectorPitchSin() const { return fDetectorPitchSin; };
+    void SetDetectorPitch(const double pitch) {
+      fDetectorPitch = pitch; // in radians
+      fDetectorPitchCos = std::cos(fDetectorPitch);
+      fDetectorPitchSin = std::sin(fDetectorPitch);
+    };
+    // Get/set detector yaw (in degrees)
+    double GetDetectorYaw() const { return fDetectorYaw; };
+    double GetDetectorYawInRad() const { return fDetectorYaw / Qw::rad; };
+    double GetDetectorYawInDeg() const { return fDetectorYaw / Qw::deg; };
+    double GetDetectorYawCos() const { return fDetectorYawCos; };
+    double GetDetectorYawSin() const { return fDetectorYawSin; };
+    void SetDetectorYaw(const double yaw) {
+      fDetectorYaw = yaw; // in radians
+      fDetectorYawCos = std::cos(fDetectorYaw);
+      fDetectorYawSin = std::sin(fDetectorYaw);
+    };
+    // Get/set detector roll (in degrees)
+    double GetDetectorRoll() const { return fDetectorRoll; };
+    double GetDetectorRollInRad() const { return fDetectorRoll / Qw::rad; };
+    double GetDetectorRollInDeg() const { return fDetectorRoll / Qw::deg; };
+    double GetDetectorRollCos() const { return fDetectorRollCos; };
+    double GetDetectorRollSin() const { return fDetectorRollSin; };
+    void SetDetectorRoll(const double roll) {
+      fDetectorRoll = roll; // in radians
+      fDetectorRollCos = std::cos(fDetectorRoll);
+      fDetectorRollSin = std::sin(fDetectorRoll);
+    };
+    // Get/set rotator pitch (in degrees)
+    double GetRotatorPitch() const { return fRotatorPitch; };
+    double GetRotatorPitchInRad() const { return fRotatorPitch / Qw::rad; };
+    double GetRotatorPitchInDeg() const { return fRotatorPitch / Qw::deg; };
+    double GetRotatorPitchCos() const { return fRotatorPitchCos; };
+    double GetRotatorPitchSin() const { return fRotatorPitchSin; };
+    void SetRotatorPitch(const double pitch) {
+    	fRotatorPitch = pitch; // in radians
+    	fRotatorPitchCos = std::cos(fRotatorPitch);
+    	fRotatorPitchSin = std::sin(fRotatorPitch);
+    };
+    // Get/set rotator yaw (in degrees)
+    double GetRotatorYaw() const { return fRotatorYaw; };
+    double GetRotatorYawInRad() const { return fRotatorYaw / Qw::rad; };
+    double GetRotatorYawInDeg() const { return fRotatorYaw / Qw::deg; };
+    double GetRotatorYawCos() const { return fRotatorYawCos; };
+    double GetRotatorYawSin() const { return fRotatorYawSin; };
+    void SetRotatorYaw(const double yaw) {
+    	fRotatorYaw = yaw; // in radians
+    	fRotatorYawCos = std::cos(fRotatorYaw);
+    	fRotatorYawSin = std::sin(fRotatorYaw);
+    };
+    // Get/set rotator roll (in degrees)
+    double GetRotatorRoll() const { return fRotatorRoll; };
+    double GetRotatorRollInRad() const { return fRotatorRoll / Qw::rad; };
+    double GetRotatorRollInDeg() const { return fRotatorRoll / Qw::deg; };
+    double GetRotatorRollCos() const { return fRotatorRollCos; };
+    double GetRotatorRollSin() const { return fRotatorRollSin; };
+    void SetRotatorRoll(const double roll) {
+    	fRotatorRoll = roll; // in radians
+    	fRotatorRollCos = std::cos(fRotatorRoll);
+    	fRotatorRollSin = std::sin(fRotatorRoll);
     };
 
     // Get/set tracking search tree
@@ -160,13 +205,46 @@ class QwDetectorInfo: public TObject {
     const QwTrackingTreeRegion* GetTrackingSearchTree() const { return fTree; };
     void SetTrackingSearchTree(QwTrackingTreeRegion* tree) { fTree = tree; };
 
-    // Get unique detector ID
-    int GetID() const { return fDetectorID; };
+    // Print function
+    void Print(Option_t *option = "") const;
 
     // Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det);
 
-    // Detector information
+    // Get detector information
+    EQwDetectorType GetType() const { return fType; };
+    EQwDetectorPackage GetPackage() const { return fPackage; };
+    EQwRegionID GetRegion() const { return fRegion; };
+    EQwDirectionID GetDirection() const { return fDirection; };
+    int GetPlane() const { return fPlane; };
+
+    // Get element efficiency
+    double GetElementEfficiency(int element) const {
+      try {
+        return fEfficiency.at(element);
+      } catch (std::exception& e) {
+        QwWarning << "Undefined efficiency for element " << element << " in "
+            << *this << QwLog::endl;
+        return 0.0;
+      }
+    }
+    // Set element efficiency
+    void SetElementEfficiency(int element, double efficiency) {
+      try {
+        fEfficiency.at(element) = efficiency;
+      } catch (std::exception& e) {
+        QwWarning << "Undefined element " << element << " in "
+            << *this << QwLog::endl;
+      }
+    }
+    // Set element efficiency for all elements
+    void SetElementEfficiency(double efficiency) {
+      fEfficiency.assign(fEfficiency.size(), efficiency);
+    }
+
+  private:
+
+    // Detector information variables
     EQwDetectorType fType;
     EQwDetectorPackage fPackage;
     EQwRegionID fRegion;
@@ -174,26 +252,35 @@ class QwDetectorInfo: public TObject {
     int fPlane;
     int fOctant;
 
-  private:
-
     // Identification info for readout channels. Filled at load time.
     int fCrate; //ROC number
     int fModule; //F1TDC slot number or module index
     int fChannel; //channel number
 
-    // Geometry information
+    // Detector position
     double fDetectorOriginX;	///< Detector position in x
     double fDetectorOriginY;	///< Detector position in y
     double fDetectorOriginZ;	///< Detector position in z
-    double fDetectorRotation;	///< Orientation of the detector around the
-      /// Y axis with respect to the X axis.  Region 2 has zero degrees here.
-      /// Region 3 is rotated around the Y axis over approximately 65 degrees.
-      /// \todo This is an inconsistent definition of coordinate frames.
-    double fDetectorRotationCos;	///< Cos of detector orientation
-    double fDetectorRotationSin;	///< Sin of detector orientation
-    double fDetectorTilt;               ///Tilt in XY of Detector
-    double fDetectorTiltCos;    	///< Cos of detector tilt
-    double fDetectorTiltSin;	        ///< Sin of detector tilt
+
+    // Detector orientation
+    double fDetectorPitch;              ///< Pitch of detector
+    double fDetectorPitchCos;           ///< Cos of detector pitch
+    double fDetectorPitchSin;           ///< Sin of detector pitch
+    double fDetectorYaw;                ///< Yaw of detector
+    double fDetectorYawCos;             ///< Cos of detector yaw
+    double fDetectorYawSin;             ///< Sin of detector yaw
+    double fDetectorRoll;               ///< Roll of detector
+    double fDetectorRollCos;    	///< Cos of detector roll
+    double fDetectorRollSin;	        ///< Sin of detector roll
+    double fRotatorPitch;		///< Pitch of rotator (rotation of rotator about global x-axis)
+    double fRotatorPitchCos;		///< Cos of rotator pitch
+    double fRotatorPitchSin;		///< Sin of rotator pitch
+    double fRotatorYaw;			///< Yaw of rotator (rotation of rotator about global y-axis)
+    double fRotatorYawCos;		///< Cos of rotator yaw
+    double fRotatorYawSin;		///< Sin of rotator yaw
+    double fRotatorRoll;		///< Roll of rotator (rotation of rotator about global z-axis)
+    double fRotatorRollCos;		///< Cos of rotator roll
+    double fRotatorRollSin;		///< Sin of rotator roll
 
 
     bool   fIsActive;		///< Is this detector activated in tracking
@@ -212,15 +299,16 @@ class QwDetectorInfo: public TObject {
     double fElementAngleSin;	///< Sin of the element orientation
     double fElementOffset;	///< Position of the first element (it is not
                                 ///  exactly clear to me what that exactly means)
-    double fPlaneOffset;        /// perpendicular distance from the first plane in the same direction
+    double fPlaneOffset;        ///< Perpendicular distance from the first plane in the same direction
     int fNumberOfElements;	///< Total number of elements in this detector
     
+    std::vector<double> fEfficiency;//! ///< Efficiency of all elements
 
     QwTrackingTreeRegion* fTree;        ///< Search tree for this detector
 
   public:
-    // Unique detector identifier
-    int fDetectorID;
+    // Detector name
+    std::string fName;
 
     // Reference channel index in list of reference channels (most prob. filled at load time)
     int fReferenceChannelIndex;
@@ -258,10 +346,10 @@ class QwDetectorInfo: public TObject {
 
 // Detectors could be sorted by package, region, z position
 inline bool operator< (const QwDetectorInfo& lhs, const QwDetectorInfo& rhs) {
-  if (lhs.fPackage < rhs.fPackage) return true;
-  else if (lhs.fPackage == rhs.fPackage) {
-    if (lhs.fRegion < rhs.fRegion) return true;
-    else if (lhs.fRegion == rhs.fRegion) {
+  if (lhs.GetPackage() < rhs.GetPackage()) return true;
+  else if (lhs.GetPackage() == rhs.GetPackage()) {
+    if (lhs.GetRegion() < rhs.GetRegion()) return true;
+    else if (lhs.GetRegion() == rhs.GetRegion()) {
       if (lhs.GetZPosition() < rhs.GetZPosition()) return true;
       else if (lhs.GetZPosition() == rhs.GetZPosition()) {
         return false;

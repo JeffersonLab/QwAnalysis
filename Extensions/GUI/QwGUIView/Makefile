@@ -53,14 +53,14 @@ QWANSOURCE = $(QWANALYSIS)/Analysis/src
 
 #QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwEvent.o
 ##QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwEventHeader.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwTrackingTreeLine.o
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwTreeLine.o
 #QWOBJECTS    += $(QWANALYSIS)/Tracking/src/VQwTrackingElement.o
 #QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwPartialTrack.o
 #QWOBJECTS    += $(QWANALYSIS)/Tracking/src/Det.o  # for QwPartialTrack
 
 #QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwEventDict.o
 #QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwEventHeaderDict.o
-#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwTrackingTreeLineDict.o
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwTreeLineDict.o
 #QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/VQwTrackingElementDict.o
 #QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwPartialTrackDict.o
 

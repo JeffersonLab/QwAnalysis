@@ -15,7 +15,7 @@
 // Qweak headers
 #include "QwTypes.h"
 #include "QwObjectCounter.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 
@@ -162,84 +162,25 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     // Event header (owned by QwEvent)
     QwEventHeader* fEventHeader;
 
-    #define QWHITS_IN_STL_VECTOR
     #define QWTREELINES_IN_STL_VECTOR
     #define QWPARTIALTRACKS_IN_STL_VECTOR
     #define QWTRACKS_IN_STL_VECTOR
 
+    // Hits
     Int_t fNQwHits; ///< Number of QwHits in the array
-    #ifdef QWHITS_IN_STATIC_TCLONESARRAY
-      #define QWEVENT_MAX_NUM_HITS 1000
-      static TClonesArray *gQwHits; ///< Static array of QwHits
-      TClonesArray        *fQwHits; ///< Array of QwHits
-    #endif // QWHITS_IN_STATIC_TCLONESARRAY
-    #ifdef QWHITS_IN_LOCAL_TCLONESARRAY
-      #define QWEVENT_MAX_NUM_HITS 1000
-      TClonesArray *gQwHits; ///< Local array of QwHits
-      TClonesArray *fQwHits; ///< Array of QwHits
-    #endif // QWHITS_IN_LOCAL_TCLONESARRAY
-    #ifdef QWHITS_IN_STL_VECTOR
-      std::vector<QwHit*> fQwHits; ///< Array of QwHits
-    #endif // QWHITS_IN_STL_VECTOR
-
+    std::vector<QwHit*> fQwHits; ///< Array of QwHits
 
     // Tree lines
     Int_t fNQwTreeLines; ///< Number of QwTreeLines in the array
-    #ifdef QWTREELINES_IN_STATIC_TCLONESARRAY
-      #define QWEVENT_MAX_NUM_TREELINES 1000
-      static TClonesArray *gQwTreeLines; ///< Static array of QwTreeLines
-      TClonesArray        *fQwTreeLines; ///< Array of QwTreeLines
-    #endif // QWTREELINES_IN_STATIC_TCLONESARRAY
-    #ifdef QWTREELINES_IN_LOCAL_TCLONESARRAY
-      #define QWEVENT_MAX_NUM_TREELINES 1000
-      TClonesArray *gQwTreeLines; ///< Local array of QwTreeLines
-      TClonesArray *fQwTreeLines; ///< Array of QwTreeLines
-    #endif // QWTREELINES_IN_LOCAL_TCLONESARRAY
-    #ifdef QWTREELINES_IN_STL_VECTOR
-      std::vector<QwTrackingTreeLine*> fQwTreeLines; ///< Array of QwTreeLines
-    #endif // QWTREELINES_IN_STL_VECTOR
-    #ifdef QWTREELINES_IN_TEMPLATED_LIST
-      QwTrackingTreeLineContainer fQwTreeLines;
-    #endif
+    std::vector<QwTreeLine*> fQwTreeLines; ///< Array of QwTreeLines
 
     // Partial tracks
     Int_t fNQwPartialTracks; ///< Number of QwPartialTracks in the array
-    #ifdef QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY
-      #define QWEVENT_MAX_NUM_PARTIALTRACKS 1000
-      static TClonesArray *gQwPartialTracks; ///< Static array of QwPartialTracks
-      TClonesArray        *fQwPartialTracks; ///< Array of QwPartialTracks
-    #endif // QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY
-    #ifdef QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-      #define QWEVENT_MAX_NUM_PARTIALTRACKS 1000
-      TClonesArray *gQwPartialTracks; ///< Local array of QwPartialTracks
-      TClonesArray *fQwPartialTracks; ///< Array of QwPartialTracks
-    #endif // QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-    #ifdef QWPARTIALTRACKS_IN_STL_VECTOR
-      std::vector<QwPartialTrack*> fQwPartialTracks; ///< Array of QwPartialTracks
-    #endif // QWPARTIALTRACKS_IN_STL_VECTOR
-    #ifdef QWPARTIALTRACKS_IN_TEMPLATED_LIST
-      QwPartialTrackContainer fQwPartialTracks;
-    #endif
-
+    std::vector<QwPartialTrack*> fQwPartialTracks; ///< Array of QwPartialTracks
 
     // Tracks
     Int_t fNQwTracks; ///< Number of QwTracks in the array
-    #ifdef QWTRACKS_IN_STATIC_TCLONESARRAY
-      #define QWEVENT_MAX_NUM_TRACKS 1000
-      static TClonesArray *gQwTracks; ///< Static array of QwTracks
-      TClonesArray        *fQwTracks; ///< Array of QwTracks
-    #endif // QWTRACKS_IN_STATIC_TCLONESARRAY
-    #ifdef QWTRACKS_IN_LOCAL_TCLONESARRAY
-      #define QWEVENT_MAX_NUM_TRACKS 1000
-      TClonesArray *gQwTracks; ///< Local array of QwTracks
-      TClonesArray *fQwTracks; ///< Array of QwTracks
-    #endif // QWTRACKS_IN_LOCAL_TCLONESARRAY
-    #ifdef QWTRACKS_IN_STL_VECTOR
-      std::vector<QwTrack*> fQwTracks; ///< Array of QwTracks
-    #endif // QWTRACKS_IN_STL_VECTOR
-    #ifdef QWTRACKS_IN_TEMPLATED_LIST
-      QwTrackContainer fQwTracks;
-    #endif
+    std::vector<QwTrack*> fQwTracks; ///< Array of QwTracks
 
 
   public:
@@ -290,12 +231,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Get the number of hits
     Int_t GetNumberOfHits() const { return fNQwHits; };
     //! \brief Get the list of hits
-    #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-      const TClonesArray* GetListOfHits() const { return fQwHits; };
-    #endif
-    #if defined QWHITS_IN_STL_VECTOR
-      const std::vector<QwHit*>& GetListOfHits() const { return fQwHits; };
-    #endif
+    const std::vector<QwHit*>& GetListOfHits() const { return fQwHits; };
     //! \brief Get the specified hit
     const QwHit* GetHit(const int hit) const;
     //! \brief Print the list of hits
@@ -305,13 +241,13 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \name Tree line list maintenance for output to ROOT files
     // @{
     //! \brief Create a new tree line
-    QwTrackingTreeLine* CreateNewTreeLine();
+    QwTreeLine* CreateNewTreeLine();
     //! \brief Add an existing tree line as a copy
-    void AddTreeLine(const QwTrackingTreeLine* treeline);
+    void AddTreeLine(const QwTreeLine* treeline);
     //! \brief Add a list of existing tree lines as a copy
-    void AddTreeLineList(const QwTrackingTreeLine* treelinelist);
+    void AddTreeLineList(const QwTreeLine* treelinelist);
     //! \brief Add a list of existing tree lines as a copy
-    void AddTreeLineList(const std::vector<QwTrackingTreeLine*>& treelinelist);
+    void AddTreeLineList(const std::vector<QwTreeLine*>& treelinelist);
     //! \brief Clear the list of tree lines
     void ClearTreeLines(Option_t *option = "");
     //! \brief Reset the list of tree lines
@@ -319,14 +255,11 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Get the number of tree lines
     Int_t GetNumberOfTreeLines() const { return fNQwTreeLines; };
     //! \brief Get the list of tree lines
-    #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
-      const TClonesArray* GetListOfTreeLines() const { return fQwTreeLines; };
-    #endif
-    #if defined QWTREELINES_IN_STL_VECTOR
-      const std::vector<QwTrackingTreeLine*>& GetListOfTreeLines() const { return fQwTreeLines; };
-    #endif
+    const std::vector<QwTreeLine*>& GetListOfTreeLines() const { return fQwTreeLines; };
+    //! \brief Get the list of tree lines in region and direction
+    const std::vector<QwTreeLine*> GetListOfTreeLines(EQwRegionID region, EQwDirectionID direction) const;
     //! \brief Get the specified tree line
-    const QwTrackingTreeLine* GetTreeLine(const int tl) const;
+    const QwTreeLine* GetTreeLine(const int tl) const;
     //! \brief Print the list of tree lines
     void PrintTreeLines(Option_t* option = "") const;
     // @}
@@ -338,8 +271,6 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Add an existing partial track as a copy
     void AddPartialTrack(const QwPartialTrack* partialtrack);
     //! \brief Add a list of existing partial tracks as a copy
-    void AddPartialTrackList(const QwPartialTrack* partialtracklist);
-    //! \brief Add a list of existing partial tracks as a copy
     void AddPartialTrackList(const std::vector<QwPartialTrack*>& partialtracklist);
     //! \brief Clear the list of partial tracks
     void ClearPartialTracks(Option_t *option = "");
@@ -347,13 +278,10 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     void ResetPartialTracks(Option_t *option = "");
     //! \brief Get the number of partial tracks
     Int_t GetNumberOfPartialTracks() const { return fNQwPartialTracks; };
+    //! \brief Get the list of partial tracks in region and direction
+    const std::vector<QwPartialTrack*> GetListOfPartialTracks(EQwRegionID region, EQwDetectorPackage package) const;
     //! \brief Get the list of partial tracks
-    #if defined QWPARTIALTRACKS_IN_STATIC_TCLONESARRAY || defined QWPARTIALTRACKS_IN_LOCAL_TCLONESARRAY
-      const TClonesArray* GetListOfPartialTracks() const { return fQwPartialTracks; };
-    #endif
-    #if defined QWPARTIALTRACKS_IN_STL_VECTOR
-      const std::vector<QwPartialTrack*>& GetListOfPartialTracks() const { return fQwPartialTracks; };
-    #endif
+    const std::vector<QwPartialTrack*>& GetListOfPartialTracks() const { return fQwPartialTracks; };
     //! \brief Get the specified partial track
     const QwPartialTrack* GetPartialTrack(const int pt) const;
     //! \brief Print the list of partial tracks
@@ -375,12 +303,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //! \brief Get the number of tracks
     Int_t GetNumberOfTracks() const { return fNQwTracks; };
     //! \brief Get the list of tracks
-    #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
-      const TClonesArray* GetListOfTracks() const { return fQwTracks; };
-    #endif
-    #if defined QWTRACKS_IN_STL_VECTOR
-      const std::vector<QwTrack*>& GetListOfTracks() const { return fQwTracks; };
-    #endif
+    const std::vector<QwTrack*>& GetListOfTracks() const { return fQwTracks; };
     //! \brief Get the specified track
     const QwTrack* GetTrack(const int t) const;
     //! \brief Print the list of tracks
@@ -402,6 +325,13 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
     static double fBeamEnergy;  ///< Electron beam energy
 
+    /// \name Main detector light yield
+    //@{
+    std::vector <float> fMD_LeftNbOfPEs;
+    std::vector <float> fMD_RightNbOfPEs;
+    std::vector <float> fMD_TotalNbOfPEs;
+    //@}
+    
     /// \name Generic kinematic variables
     //@{
     double fHydrogenEnergyLoss; ///< Pre-scattering target energy loss assuming LH2 target
@@ -424,19 +354,10 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     //@}
 
     ///< Momentum transfer Q^2 assuming elastic scattering with hydrogen energy loss
-    Double_t& fPrimaryQ2;
+    Double_t fPrimaryQ2;
 
-    /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
-    QwTrackingTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
-
-    /*! list of partial tracks [package][region][type] */
-    QwPartialTrack* fPartialTrack[kNumPackages][kNumRegions][kNumTypes]; //!
-
-    /*! list of complete tracks [package] */
-    QwTrack* track[kNumPackages]; //!
-
-    /*! list of vertices in this event */
-    //std::vector< QwVertex* > vertex; //!
+    /*! list of tree lines [upper/lower][region][u/v/x/y] */
+    QwTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumDirections]; //!
 
   #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
     ClassDef(QwEvent,3);

@@ -97,13 +97,25 @@ class QwRayTracer: public VQwBridgingMethod {
 
     /// Runge-Kutta method order
     int fIntegrationOrder;
-    /// Runge-Kutta step size
+    /// Runge-Kutta fixed step size for order 4 or less
     double fIntegrationStep;
+    /// Runge-Kutta minimum and maximum step size for adaptive step
+    double fIntegrationMinimumStep; ///< Minimum step size
+    double fIntegrationMaximumStep; ///< Maximum step size
+    double fIntegrationTolerance; ///< Allowable truncation error in adaptive step
 
     /// Newton's method step size in position
     double fPositionResolution;
     /// Newton's method step size in momentum
     double fMomentumStep;
+
+    /// Newton's method initial momentum
+    double fInitialMomentum;
+
+    /// Starting position for magnetic field swimming
+    double fStartPosition;
+    /// Ending position for magnetic field swimming
+    double fEndPosition;
 
     Double_t fBdl;  ///< scalar field integrals
     Double_t fBdlx; ///< x component of the field integral

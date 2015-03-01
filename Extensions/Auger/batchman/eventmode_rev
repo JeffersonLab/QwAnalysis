@@ -1,0 +1,58 @@
+#!/bin/bash
+umask 002
+
+NCPU=`grep ^processor /proc/cpuinfo | wc -l`
+
+REV=HEAD
+while [ $# -ge 1 ] ; do
+        case $1 in
+        --rev=*)
+                REV=${1/--rev=/}
+                shift
+                ;;
+        *)
+                OTHER="$OTHER $1"
+                shift
+                ;;
+        esac
+done
+
+export QWSCRATCH=/volatile/hallc/qweak/$USER/QwScratch_r$REV
+export QWANALYSIS=/volatile/hallc/qweak/$USER/QwAnalysis_r$REV
+
+mkdir -p $QWSCRATCH
+mkdir -p $QWANALYSIS
+
+echo "Checking out revision ${REV}..."
+svn checkout -r $REV https://qweaksvn.jlab.org/repos/QwAnalysis/trunk $QWANALYSIS >& /dev/null
+echo "Updating Extensions to HEAD..."
+svn upgrade -r HEAD $QWANALYSIS/Extensions >& /dev/null
+
+echo "Setting up environment..."
+$QWANALYSIS/SetupFiles/make_scratch_dir >& /dev/null
+source $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
+
+echo "Populating scratch dir..."
+$QWANALYSIS/SetupFiles/make_SET_ME_UP >& /dev/null
+
+echo "Building..."
+make -C $QWANALYSIS -j $NCPU >& /dev/null
+
+# Permissions
+if [ ! -d $QWSCRATCH/tracking/www/ ] ; then
+   mkdir -p $QWSCRATCH/tracking/www/
+   chmod g+w $QWSCRATCH/tracking/www/
+fi
+if [ ! -d $QWANALYSIS/Extensions/Macros/Tracking/auto_plots/ ] ; then
+   mkdir -p $QWANALYSIS/Extensions/Macros/Tracking/auto_plots/
+   chmod g+w $QWANALYSIS/Extensions/Macros/Tracking/auto_plots/
+fi
+
+# Submit run
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl -e qwtracking \
+   --post-run $QWANALYSIS/Extensions/Tracking/macros/process_run.sh \
+   --rootfile-output mss:/mss/home/$USER/rootfiles/r$REV \
+   --options "--add-config eventmode_pass.conf --add-config peiqing_2011.conf" \
+   $OTHER
+
+

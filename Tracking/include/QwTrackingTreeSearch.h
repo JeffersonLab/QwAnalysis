@@ -33,6 +33,9 @@
 ///
 /// \ingroup QwTracking
 
+// Standard C and C++ headers
+#include <vector>
+
 // Forward declarations
 namespace QwTracking {
   class shortnode;
@@ -41,7 +44,7 @@ namespace QwTracking {
 using QwTracking::shortnode; using QwTracking::shorttree;
 
 class QwHit;
-class QwTrackingTreeLine;
+class QwTreeLine;
 class QwTrackingTreeRegion;
 
 class QwTrackingTreeSearch {
@@ -60,34 +63,21 @@ class QwTrackingTreeSearch {
     void SetShowMatchingPatterns(bool show = true) { fShowMatchingPatterns = show; };
 
     /// \brief Get the list of tree lines
-    QwTrackingTreeLine* GetListOfTreeLines ();
+    std::vector<QwTreeLine*> GetListOfTreeLines ();
 
-    void wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHit**Xn, double maxdist);
-    // Only called from within TsSetPoint(Hit, Hit)
-    // TODO Transition to QwHit if necessary (where is it used?)
-
-    int exists (int *newa, int front, int back, int offset,QwTrackingTreeLine *treeline);
+    int exists (int *newa, int front, int back, int offset);
 
     void setpoint (double off, double h1, double res1, double h2, double res2,
 		double width, unsigned binwidth, char *pa, char *pb,
 		int *hasha, int *hashb);
 
-    // Methods to set the tree pattern
-    int TsSetPoint (double detectorwidth, double zdistance,
-		QwHit *Ha, QwHit *Hb,
-		char *patterna, char *patternb,
-		int *hasha, int *hashb,
-		unsigned binwidth);
-    int TsSetPoint (double detectorwidth,
-		QwHit *hit,
-		char *pattern, int *hash, unsigned binwidth);
-
+    /// \brief Method to set the tree pattern
     int TsSetPoint (double detectorwidth, double wirespacing,
 		QwHit *hit,
 		char *pattern, int *hash, unsigned binwidth);
 
     /// \brief Search for the tree lines consistent with the hit pattern
-    QwTrackingTreeLine* SearchTreeLines (QwTrackingTreeRegion *searchtree,
+    QwTreeLine* SearchTreeLines (QwTrackingTreeRegion *searchtree,
 		char *pattern[16], int *hashpat[16],
 		int maxlevel, int numwires, int numlayers);
 
@@ -116,7 +106,7 @@ class QwTrackingTreeSearch {
     unsigned int fPattern_fMaxBins;
     unsigned int fPattern_fMaxRows;
 
-    QwTrackingTreeLine* fTreeLineList;	// linked list of tree lines in a set of planes
+    std::vector<QwTreeLine*> fTreeLineList;
     unsigned int fNTreeLines;		// number of tree lines found
 
     // Recursive tree pattern methods

@@ -1,28 +1,57 @@
 #!/bin/bash
 
 if [ $# -lt 1 ] ; then
-	echo "Usage: `basename $0` --run=<run> [pass-through options]"
+	echo "Usage: `basename $0` --run=<run> --pass=<pass> [pass-through options]"
 	exit
 fi
 
 DATE=`date +%Y%m%d`
 TIME=`date +%H%M%S`
 
-RUN=${1/--run=/}
-shift
+RUN=""
+PASS=""
+OTHER=""
+while [ $# -ge 1 ] ; do
+	case $1 in
+	--run=*)
+		RUN=${1/--run=/}
+		echo "Analyzing run ${RUN}..."
+		shift
+		;;
+	--pass=*)
+		PASS=${1/--pass=/}
+		echo "Analyzing pass ${PASS}..."
+		shift
+		;;
+	*)
+		OTHER="$OTHER $1"
+		shift
+		;;
+	esac
+done
+if [ -z "${RUN}" ] ; then
+	echo "Error: argument --run=<run> not specified."
+	exit
+fi
+if [ -z "${PASS}" ] ; then
+	echo "Error: argument --pass=<pass> not specified."
+	exit
+fi
 
-rm -f ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%QWANALYSIS%|${QWANALYSIS}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%QWSCRATCH%|${QWSCRATCH}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%USER%|${USER}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%DATE%|${DATE}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%TIME%|${TIME}|g"	>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%RUN%|${RUN}|g"		>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
-echo "s|%OTHER%|$*|g"		>> ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed
+SED=`mktemp ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.XXXXXX.sed`
+XML=`mktemp ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.XXXXXX.xml`
+echo "s|%QWANALYSIS%|${QWANALYSIS}|g"	>> ${SED}
+echo "s|%QWSCRATCH%|${QWSCRATCH}|g"	>> ${SED}
+echo "s|%USER%|${USER}|g"	>> ${SED}
+echo "s|%DATE%|${DATE}|g"	>> ${SED}
+echo "s|%TIME%|${TIME}|g"	>> ${SED}
+echo "s|%PASS%|${PASS}|g"	>> ${SED}
+echo "s|%RUN%|${RUN}|g"		>> ${SED}
+echo "s|%OTHER%|${OTHER}|g"	>> ${SED}
 
-sed -f ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.sed \
-       ${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml \
-> ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.xml
+BASE=${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml
+sed -f ${SED} ${BASE} > ${XML}
 
-echo "Job: ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.xml"
-jsub -xml ${QWSCRATCH}/tracking/jobs/submit_run_${RUN}_${DATE}_${TIME}.xml
+echo "Job: ${XML}"
+jsub -xml  ${XML}
+

@@ -19,7 +19,7 @@
 // Qweak headers
 #include "VQwTrackingElement.h"
 #include "QwObjectCounter.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwDetectorInfo.h"
 #include "QwGeometry.h"
 
@@ -42,7 +42,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     //! Number of tree lines in this partial track
     Int_t fNQwTreeLines;
     //! List of tree lines in this partial track
-    std::vector<QwTrackingTreeLine*> fQwTreeLines;
+    std::vector<QwTreeLine*> fQwTreeLines;
 
   public: // methods
 
@@ -82,13 +82,13 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     //! \name Creating, adding, and getting tree lines
     // @{
     //! Create a new tree line
-    QwTrackingTreeLine* CreateNewTreeLine();
+    QwTreeLine* CreateNewTreeLine();
     //! Add an existing tree line as a copy
-    void AddTreeLine(const QwTrackingTreeLine* treeline);
+    void AddTreeLine(const QwTreeLine* treeline);
     //! \brief Add a linked list of existing tree lines as a copy
-    void AddTreeLineList(const QwTrackingTreeLine* treelinelist);
+    void AddTreeLineList(const QwTreeLine* treelinelist);
     //! \brief Add a standard vector of existing tree lines as a copy
-    void AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist);
+    void AddTreeLineList(const std::vector<QwTreeLine*> &treelinelist);
     //! \brief Clear the list of tree lines
     void ClearTreeLines(Option_t *option = "");
     //! \brief Reset the list of tree lines
@@ -96,9 +96,9 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     //! \brief Get the number of tree lines
     Int_t GetNumberOfTreeLines() const { return fNQwTreeLines; };
     //! \brief Get the list of tree lines
-    const std::vector<QwTrackingTreeLine*>& GetListOfTreeLines() const { return fQwTreeLines; };
+    const std::vector<QwTreeLine*>& GetListOfTreeLines() const { return fQwTreeLines; };
     //! \brief Get the specified tree line
-    const QwTrackingTreeLine* GetTreeLine(const int tl) const { return fQwTreeLines.at(tl); };
+    const QwTreeLine* GetTreeLine(const int tl) const { return fQwTreeLines.at(tl); };
     //! \brief Print the list of tree lines
     void PrintTreeLines(Option_t *option = "") const;
     // @}
@@ -163,6 +163,9 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     //! Rotate coordinates to right octant
     void RotateCoordinates();
 
+    //Rotate coordinates to account for any rotator pitch, yaw, or roll
+    void RotateRotator(const QwDetectorInfo* geometry);
+
   public: // members
 
     Double_t fOffsetX;		///< x coordinate (at MAGNET_CENTER)
@@ -175,11 +178,8 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     Double_t fCov[4][4];	///< covariance matrix
 
     // record the slope and offset from each treeline,modified 4/26/11
-    Double_t TSlope[kNumDirections];
-    Double_t TOffset[kNumDirections];
     Double_t TResidual[kNumDirections];                 // record the residual in u v and x treelines(designed for R2)
     Double_t fSignedResidual[12];                       // record the signed residual in every plane(track point - hit point) (designed for R2)
-    QwTrackingTreeLine *fTreeLine[kNumDirections];	//!	///< tree line in u v and x
 
     Bool_t fIsUsed;		///< used (part of a track)
     Bool_t fIsVoid;		///< marked as being void
@@ -188,20 +188,11 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     Int_t  fNumMiss;		///< missing hits
     Int_t  fNumHits;		///< used hits
 
-    int triggerhit;		///< Did this track pass through the trigger?
-    double trig[3];		///< x-y-z position at trigger face
-
-    int cerenkovhit;		///< Did this track pass through the cerenkov bar?
-    double cerenkov[3];		///< x-y-z position at Cerenkov bar face
-
     double pR2hit[3];           ///< x-y-z position at R2
     double uvR2hit[3];          ///< direction at R2
 
     double pR3hit[3];           ///< x-y-z position at R3
     double uvR3hit[3];          ///< direction at R3
-
-    // TODO remove QwPartialTrack::next
-    QwPartialTrack *next; //!	///< linked list (not saved)
 
     int fAlone;                /// number of Plane 0 Treelines
     

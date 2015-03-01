@@ -28,6 +28,8 @@ using std::vector;
 #include "QwOptions.h"
 #include "QwGeometry.h"
 
+#define NEW_G4_DATA  // uncomment this line to use newly simulated Geant4 data files
+
 // Definition of the reference detectors (## is concatenation)
 #define REGION1_DETECTOR(chamber,var) fRegion1_Chamber ## chamber ## _WirePlane_ ## var
 #define REGION2_DETECTOR(chamber,plane,var) fRegion2_Chamber ## chamber ## _WirePlane ## plane ## _ ## var
@@ -37,7 +39,7 @@ using std::vector;
 class QwDetectorInfo;
 class QwHit;
 class QwHitContainer;
-class QwTrackingTreeLine;
+class QwTreeLine;
 class QwPartialTrack;
 class QwTrack;
 class QwEvent;
@@ -80,6 +82,11 @@ class QwTreeEventBuffer
     /// Get the current event number
     int GetEventNumber() const { return fCurrentEventNumber; };
 
+    /// Get the current run label
+    TString GetRunLabel() const {
+      TString runlabel = Form("%d",fCurrentRunNumber);
+      return runlabel;
+    }
 
     /// \brief Open the next event file
     unsigned int OpenNextFile();
@@ -108,7 +115,7 @@ class QwTreeEventBuffer
     QwHitContainer* GetHitContainer() const;
 
     /// \brief Get the tree lines
-    std::vector<boost::shared_ptr<QwTrackingTreeLine> > CreateTreeLines(EQwRegionID region) const;
+    std::vector<boost::shared_ptr<QwTreeLine> > CreateTreeLines(EQwRegionID region) const;
 
     /// \brief Get the partial tracks
     std::vector<boost::shared_ptr<QwPartialTrack> > CreatePartialTracks(EQwRegionID region) const;
@@ -158,7 +165,7 @@ class QwTreeEventBuffer
     int GetNumberOfEntries() const { return fNumberOfEntries; };
 
     /// \brief Read the specified entry from the tree
-    bool GetEntry(const unsigned int entry, bool* r2_hit=false, bool* r3_hit=false);
+    bool GetEntry(const unsigned int entry, bool& r2_hit, bool& r3_hit);
 
 
     /// The event to be reconstructed
@@ -280,6 +287,8 @@ class QwTreeEventBuffer
     // Region2 WirePlane1
     Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane1_NbOfHits;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane1_ParticleType;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane1_PackageID;
     vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionZ;
@@ -295,6 +304,8 @@ class QwTreeEventBuffer
 
     Int_t fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit;
     Int_t fRegion2_ChamberBack_WirePlane1_NbOfHits;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane1_ParticleType;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane1_PackageID;
     vector <Float_t> fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionZ;
@@ -311,6 +322,8 @@ class QwTreeEventBuffer
     // Region2 WirePlane2
     Int_t fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane2_NbOfHits;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane2_ParticleType;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane2_PackageID;
     vector <Float_t> fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionZ;
@@ -326,6 +339,8 @@ class QwTreeEventBuffer
 
     Int_t fRegion2_ChamberBack_WirePlane2_PlaneHasBeenHit;
     Int_t fRegion2_ChamberBack_WirePlane2_NbOfHits;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane2_ParticleType;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane2_PackageID;
     vector <Float_t> fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionZ;
@@ -342,6 +357,8 @@ class QwTreeEventBuffer
     // Region2 WirePlane3
     Int_t fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane3_NbOfHits;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane3_ParticleType;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane3_PackageID;
     vector <Float_t> fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionZ;
@@ -357,6 +374,8 @@ class QwTreeEventBuffer
 
     Int_t fRegion2_ChamberBack_WirePlane3_PlaneHasBeenHit;
     Int_t fRegion2_ChamberBack_WirePlane3_NbOfHits;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane3_ParticleType;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane3_PackageID;
     vector <Float_t> fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionZ;
@@ -373,6 +392,8 @@ class QwTreeEventBuffer
     // Region2 WirePlane4
     Int_t fRegion2_ChamberFront_WirePlane4_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane4_NbOfHits;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane4_ParticleType;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane4_PackageID;
     vector <Float_t> fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionZ;
@@ -388,6 +409,8 @@ class QwTreeEventBuffer
 
     Int_t fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit;
     Int_t fRegion2_ChamberBack_WirePlane4_NbOfHits;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane4_ParticleType;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane4_PackageID;
     vector <Float_t> fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionZ;
@@ -404,6 +427,8 @@ class QwTreeEventBuffer
     // Region2 WirePlane5
     Int_t fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane5_NbOfHits;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane5_ParticleType;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane5_PackageID;
     vector <Float_t> fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionZ;
@@ -419,6 +444,8 @@ class QwTreeEventBuffer
 
     Int_t fRegion2_ChamberBack_WirePlane5_PlaneHasBeenHit;
     Int_t fRegion2_ChamberBack_WirePlane5_NbOfHits;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane5_ParticleType;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane5_PackageID;
     vector <Float_t> fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionZ;
@@ -435,6 +462,8 @@ class QwTreeEventBuffer
     // Region2 WirePlane6
     Int_t fRegion2_ChamberFront_WirePlane6_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane6_NbOfHits;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane6_ParticleType;
+    vector <Int_t> fRegion2_ChamberFront_WirePlane6_PackageID;
     vector <Float_t> fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionZ;
@@ -450,6 +479,8 @@ class QwTreeEventBuffer
 
     Int_t fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit;
     Int_t fRegion2_ChamberBack_WirePlane6_NbOfHits;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane6_ParticleType;
+    vector <Int_t> fRegion2_ChamberBack_WirePlane6_PackageID;
     vector <Float_t> fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX;
     vector <Float_t> fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionZ;
@@ -471,6 +502,7 @@ class QwTreeEventBuffer
     Int_t fRegion3_ChamberFront_WirePlaneU_HasBeenHit;
     Int_t fRegion3_ChamberFront_WirePlaneU_NbOfHits;
     vector <Int_t> fRegion3_ChamberFront_WirePlaneU_ParticleType;
+    vector <Int_t> fRegion3_ChamberFront_WirePlaneU_PackageID;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionX;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionY;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionZ;
@@ -488,6 +520,7 @@ class QwTreeEventBuffer
     Int_t fRegion3_ChamberFront_WirePlaneV_HasBeenHit;
     Int_t fRegion3_ChamberFront_WirePlaneV_NbOfHits;
     vector <Int_t> fRegion3_ChamberFront_WirePlaneV_ParticleType;
+    vector <Int_t> fRegion3_ChamberFront_WirePlaneV_PackageID;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionX;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionY;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionZ;
@@ -505,6 +538,7 @@ class QwTreeEventBuffer
     Int_t fRegion3_ChamberBack_WirePlaneU_HasBeenHit;
     Int_t fRegion3_ChamberBack_WirePlaneU_NbOfHits;
     vector <Int_t> fRegion3_ChamberBack_WirePlaneU_ParticleType;
+    vector <Int_t> fRegion3_ChamberBack_WirePlaneU_PackageID;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionZ;
@@ -522,6 +556,7 @@ class QwTreeEventBuffer
     Int_t fRegion3_ChamberBack_WirePlaneV_HasBeenHit;
     Int_t fRegion3_ChamberBack_WirePlaneV_NbOfHits;
     vector <Int_t> fRegion3_ChamberBack_WirePlaneV_ParticleType;
+    vector <Int_t> fRegion3_ChamberBack_WirePlaneV_PackageID;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionZ;
@@ -540,6 +575,7 @@ class QwTreeEventBuffer
     Bool_t fTriggerScintillator_HasBeenHit;
     Int_t fTriggerScintillator_Detector_HasBeenHit;
     Int_t fTriggerScintillator_Detector_NbOfHits;
+    vector <Int_t> fTriggerScintillator_Detector_ParticleType;
     Float_t fTriggerScintillator_Detector_HitLocalPositionX;
     Float_t fTriggerScintillator_Detector_HitLocalPositionY;
     Float_t fTriggerScintillator_Detector_HitLocalPositionZ;
@@ -557,7 +593,19 @@ class QwTreeEventBuffer
     vector <Int_t> fCerenkov_Detector_DetectorID;
     Int_t fCerenkov_Detector_HasBeenHit;
     Int_t fCerenkov_Detector_NbOfHits;
-    Int_t fCerenkov_PMT_PMTTotalNbOfHits;
+
+#ifdef NEW_G4_DATA
+    vector <Int_t> fCerenkov_PMT_PMTTotalNbOfHits;
+    vector <Float_t> fCerenkov_PMT_PMTTotalNbOfPEs;
+    vector <Float_t> fCerenkov_PMT_PMTLeftNbOfPEs;
+    vector <Float_t> fCerenkov_PMT_PMTRightNbOfPEs;
+#else
+    Int_t   fCerenkov_PMT_PMTTotalNbOfHits;
+    Float_t fCerenkov_PMT_PMTTotalNbOfPEs;
+    Float_t fCerenkov_PMT_PMTLeftNbOfPEs;
+    Float_t fCerenkov_PMT_PMTRightNbOfPEs;
+#endif
+
     Float_t fCerenkov_Detector_HitLocalPositionX;
     Float_t fCerenkov_Detector_HitLocalPositionY;
     Float_t fCerenkov_Detector_HitLocalPositionZ;

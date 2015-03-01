@@ -1,0 +1,39 @@
+#!/bin/bash
+# ^--- this is all written in bash
+
+# From the file inluce/Run.h get all lines that have '  std::vector' in them.
+# That gets us all the elements of Run_t that we are interested in.
+# With 'while read line' we read this in line by line (line is a variable).
+grep '  std::vector' include/Run.h | while read line ; do 
+
+  # We find the name of the variable in Run_t (for example "angle"):
+  # - we start from the run
+  # - cut with delimiter space (\ ) and pick the second field
+  # - cut with delimiter ; and pick the first field
+  varname=`echo $line | cut -d\  -f2 | cut -d\; -f1` ; 
+
+  # Similar to get the name of the struct (for example "MyAngle_t)
+  structname=`echo $line | cut -d\< -f2 | cut -d\> -f1` ; 
+  # Similar to get the name of the header file (for example "Angle.h"
+  # - remove the /My/ from structname first
+  # - cut off the _t
+  # - put "include/" in front and ".h" at the end
+  header=include/`echo ${structname/My/} | cut -d_ -f1`.h ; 
+
+  # If we can read the header
+  if [ -r $header ] ; then 
+
+    # We find the name of the Get function (for example "GetAngle")
+    funcname=`cat $header | grep Get | cut -d\  -f2 | cut -d\( -f1` ;  
+
+    # Print out whatever line we want with the variable above :-)
+    echo "    // Process ${structname/My}" ; 
+    echo "    runs[i].$varname = $funcname(runs[i].run, pass, path);" ; 
+    echo ; 
+
+  else
+    # If the file does not exist: warn the user
+    echo Cannot read $header
+  fi ; 
+
+done

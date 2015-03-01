@@ -1,4 +1,4 @@
-/*********************************************************** 
+/***********************************************************
 Programmer: Valerie Gray
 Purpose: To look at where the tracks/events are getting lost.
 
@@ -32,7 +32,11 @@ void NumTracks(Int_t runnum, bool is100k)
 	chain->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form("$QWSCRATCH/tracking/www/run_%d/%d_",runnum, runnum);
+	//Prefix = Form("$QWSCRATCH/tracking/www/run_%d/%d_",runnum, runnum);
+
+	Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+	      runnum, runnum);
 
 	//define the arrays that will store the infomation - (enrty num = region - 1)
 	//entry 0 will be for both regions
@@ -139,7 +143,7 @@ void NumTracks(Int_t runnum, bool is100k)
                 //starting with the TreeLines
                 for (Int_t t = 0 ; t < nTreeLines; t++)
                 {
-                        const QwTrackingTreeLine* treeline = fEvent->GetTreeLine(t);
+                        const QwTreeLine* treeline = fEvent->GetTreeLine(t);
 
                         if (treeline->GetRegion() == 2)
                         {
@@ -289,7 +293,7 @@ void NumTracks(Int_t runnum, bool is100k)
 */	
 
 	//Now lets graph and save the ONE histogram that is acutally made and used here
-	c[0]= new TCanvas ("c[0]",title[0],900,600);
+	c[0]= new TCanvas ("c[0]",title[0],500,500);
 	c[0]->SetLogy();
 	h[0]->Draw();
 

@@ -27,7 +27,7 @@
  *  \brief Virtual base class for all tracking elements
  *
  * This is the virtual base class of all tracking elements, such as QwTrack,
- * QwPartialTrack, or QwTrackingTreeLine.  This class contains the identifying
+ * QwPartialTrack, or QwTreeLine.  This class contains the identifying
  * information of the detector where the tracking element resides.  All other
  * classes that contain tracking information should inherit from this class.
  *
@@ -40,11 +40,11 @@ class VQwTrackingElement: public TObject {
 
     /// \brief Default constructor
     VQwTrackingElement()
-    : pDetectorInfo(0),
+    : TObject(),fDetectorInfo(0),
       fRegion(kRegionIDNull), fPackage(kPackageNull), fOctant(0),
       fDirection(kDirectionNull), fPlane(0), fElement(0) { };
     VQwTrackingElement(const VQwTrackingElement& that)
-    : TObject(that),
+    : TObject(that),fDetectorInfo(that.fDetectorInfo),
       fRegion(that.fRegion), fPackage(that.fPackage), fOctant(that.fOctant),
       fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) { };
     /// \brief Virtual destructor
@@ -52,14 +52,20 @@ class VQwTrackingElement: public TObject {
 
     /// \brief Assignment operator
     VQwTrackingElement& operator=(const VQwTrackingElement& that) {
-      SetGeometryTo(that);
+      fDetectorInfo = that.fDetectorInfo;
+      fRegion = that.fRegion;
+      fPackage = that.fPackage;
+      fOctant = that.fOctant;
+      fDirection = that.fDirection;
+      fPlane = that.fPlane;
+      fElement = that.fElement;
       return *this;
     };
 
     /// \brief Get the detector info pointer
-    const QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
+    const QwDetectorInfo* GetDetectorInfo () const { return fDetectorInfo; };
     /// \brief Set the detector info pointer
-    void SetDetectorInfo(const QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
+    void SetDetectorInfo(const QwDetectorInfo *detectorinfo) { fDetectorInfo = detectorinfo; };
 
     /// \brief Get the region
     EQwRegionID GetRegion() const { return fRegion; };
@@ -93,6 +99,7 @@ class VQwTrackingElement: public TObject {
 
     /// \brief Copy the geometry info from another object
     void SetGeometryTo(const VQwTrackingElement& e) {
+      fDetectorInfo = e.fDetectorInfo;
       fRegion = e.fRegion;
       fPackage = e.fPackage;
       fOctant = e.fOctant;
@@ -106,7 +113,7 @@ class VQwTrackingElement: public TObject {
     // This will stay empty until we have completely moved away from Det to the
     // QwDetectorInfo class for geometry propagation.  Then it will contain the
     // detector info of the first (not necessarily only) detector location.
-    const QwDetectorInfo* pDetectorInfo; //!	///< Detector info pointer
+    const QwDetectorInfo* fDetectorInfo; //!	///< Detector info pointer
 
     // There is a lot of overlap with QwDetectorID here, but as long as there
     // are still int in QwDetectorInfo we should use the standard types here.
@@ -148,7 +155,6 @@ class VQwTrackingElement: public TObject {
 /// when two identical branches with TClonesArrays are in the same tree.
 /// When drawing leafs from the second branch, the first branch is drawn.
 
-#define CONTAINS_STL_VECTOR
 #define MAX_NUM_ELEMENTS 1000
 
 template <class T>
@@ -157,44 +163,18 @@ class VQwTrackingElementContainer: public std::vector<T*> {
   public:
 
     /// Constructor
-    VQwTrackingElementContainer() {
-      #if defined LOCAL_TCLONESARRAY
-        // Initialize the local list
-        gList = 0;
-      #endif
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        // Create the static TClonesArray for the hits if not existing yet
-        if (! gList)
-          gList = new TClonesArray(T::Class(), MAX_NUM_ELEMENTS);
-        // Set local TClonesArray to static TClonesArray
-        fList = gList;
-        fSize = 0;
-      #endif
-    }
+    VQwTrackingElementContainer() { }
 
     /// Create a new tree line
     T* CreateNew() {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        TClonesArray &elements = *fList;
-        T *element = new (elements[fSize++]) T();
-      #elif defined CONTAINS_STL_VECTOR || defined INHERITS_STL_VECTOR
-        T* element = new T();
-        Add(element);
-      #endif
+      T* element = new T();
+      Add(element);
       return element;
     }
 
     /// Add an existing element as a copy
     void Add(T* element) {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        T* newelement = CreateNew();
-        *newelement = *element;
-        fSize++;
-      #elif defined CONTAINS_STL_VECTOR
-        fList.push_back(new T(element));
-      #elif defined INHERITS_STL_VECTOR
-        push_back(new T(element));
-      #endif
+      fList.push_back(new T(element));
     }
 
     /// Add a list of existing tree lines as a copy
@@ -205,78 +185,32 @@ class VQwTrackingElementContainer: public std::vector<T*> {
 
     /// Clear the list of tree lines
     void Clear(Option_t *option = "") {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        fList->Clear(option); // Clear the local TClonesArray
-        fSize = 0;
-      #elif defined CONTAINS_STL_VECTOR
-        for (typename std::vector<T*>::iterator element = fList.begin();
-             element != fList.end(); element++)
-          delete *element;
-        fList.clear();
-      #elif defined INHERITS_STL_VECTOR
-        for (typename std::vector<T*>::iterator element = this->begin();
-             element != this->end(); element++)
-          delete *element;
-        this->clear();
-      #endif
+      for (typename std::vector<T*>::iterator element = fList.begin();
+           element != fList.end(); element++)
+        delete *element;
+      fList.clear();
     }
 
     /// Reset the list of tree lines
     void Reset(Option_t *option = "") {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        delete gList;
-        gList = 0;
-      #endif // STATIC_TCLONESARRAY || LOCAL_TCLONESARRAY
       Clear(option);
     }
 
     /// Print the list of tree lines
     void Print(Option_t* option = "") const {
-      #if defined STATIC_TCLONESARRAY || defined LOCAL_TCLONESARRAY
-        TIterator* iterator = fList->MakeIterator();
-        T* element = 0;
-        while ((element = (T*) iterator->Next()))
-          std::cout << *element << std::endl;
-        delete iterator;
-      #elif defined CONTAINS_STL_VECTOR
-        for (typename std::vector<T*>::const_iterator element = fList.begin();
-             element != fList.end(); element++)
-          QwMessage << **element << QwLog::endl;
-      #elif defined INHERITS_STL_VECTOR
-        for (typename std::vector<T*>::const_iterator element = this->begin();
-             element != this->end(); element++)
-          QwMessage << **element << QwLog::endl;
-      #endif
+      for (typename std::vector<T*>::const_iterator element = fList.begin();
+           element != fList.end(); element++)
+        QwMessage << **element << QwLog::endl;
     }
 
     /// Get the number of tree lines
     Int_t GetNumberOfElements() const {
-      #if defined CONTAINS_STL_VECTOR
-        return fList.size();
-      #elif defined INHERITS_STL_VECTOR
-        return this->size();
-      #else
-        return fSize;
-      #endif
+      return fList.size();
     };
 
   private:
 
-    #ifdef STATIC_TCLONESARRAY
-      Int_t fSize; ///< Number of elements in the array
-      static TClonesArray* gList; //! ///< Static array of elements
-      TClonesArray*        fList; ///< Array of elements
-    #endif
-
-    #ifdef LOCAL_TCLONESARRAY
-      Int_t fSize; ///< Number of elements in the array
-      TClonesArray* gList; //! ///< Local array of elements
-      TClonesArray* fList; ///< Array of elements
-    #endif
-
-    #ifdef CONTAINS_STL_VECTOR
-      std::vector<T*> fList; ///< Array of pointers to elements
-    #endif
+    std::vector<T*> fList; ///< Array of pointers to elements
 
 }; // class VQwTrackingElementContainer
 

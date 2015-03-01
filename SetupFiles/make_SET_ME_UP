@@ -105,7 +105,7 @@ search=(
     /usr/local/include/mysql
     /opt/local/include/mysql5/mysql
     )
-export MYSQL_INC_DIR=$(first_path_with_file mysql_version.h "${MYSQL_INC_DIR}" "${search[@]}")
+export MYSQL_INC_DIR=$(first_path_with_file mysql_version.h "${search[@]}" "${MYSQL_INC_DIR}")
 report_status MYSQL_INC_DIR ${MYSQL_INC_DIR}
 
 libname=libmysqlclient.so
@@ -117,7 +117,7 @@ search=(
     /usr/${lib}
     /usr/${lib}/x86_64-linux-gnu
     )
-export MYSQL_LIB_DIR=$(first_path_with_file $libname "${MYSQL_LIB_DIR}" "${search[@]}")
+export MYSQL_LIB_DIR=$(first_path_with_file $libname "${search[@]}" "${MYSQL_LIB_DIR}")
 report_status MYSQL_LIB_DIR ${MYSQL_LIB_DIR}
 
 #  Check and report failure to find either MySQL directory.
@@ -134,9 +134,10 @@ search=(
     /usr/include/mysql++
     /usr/local/include/mysql++
     /opt/local/include/mysql++
+    /group/qweak/QwAnalysis/Linux_CentOS6.2-x86_64/mysql++/3.0.9/include/mysql++
     /group/qweak/spayde/local/include/mysql++
     )
-export MYSQLPP_INC_DIR=$(first_existing_directory "${MYSQLPP_INC_DIR}" "${search[@]}")
+export MYSQLPP_INC_DIR=$(first_existing_directory "${search[@]}" "${MYSQLPP_INC_DIR}" )
 report_status MYSQLPP_INC_DIR ${MYSQLPP_INC_DIR}
 
 libname=libmysqlpp.so
@@ -147,9 +148,10 @@ search=(
     /usr/local/${lib}
     /usr/local/${lib}/mysql++
     /opt/local/${lib}
+    /group/qweak/QwAnalysis/Linux_CentOS6.2-x86_64/mysql++/3.0.9/lib
     /group/qweak/spayde/local/${lib}
     )
-export MYSQLPP_LIB_DIR=$(first_path_with_file $libname "${MYSQLPP_LIB_DIR}" "${search[@]}")
+export MYSQLPP_LIB_DIR=$(first_path_with_file $libname "${search[@]}" "${MYSQLPP_LIB_DIR}")
 report_status MYSQLPP_LIB_DIR ${MYSQLPP_LIB_DIR}
 
 #  Check and report failure to find either MySQL++ directory.
@@ -168,15 +170,16 @@ search=(
     /usr/local/include
     /opt/local/include
     )
-export BOOST_INC_DIR=$(first_path_with_file $libname "${BOOST_INC_DIR}" "${search[@]}")
+export BOOST_INC_DIR=$(first_path_with_file $libname "${search[@]}" "${BOOST_INC_DIR}")
 
 libname=libboost_filesystem.a
 search=(
     /usr/${lib}
+    /usr/${lib}/x86_64-linux-gnu
     /usr/local/${lib}
     /opt/local/${lib}
     )
-export BOOST_LIB_DIR=$(first_path_with_file $libname "${BOOST_LIB_DIR}" "${search[@]}")
+export BOOST_LIB_DIR=$(first_path_with_file $libname "${search[@]}" "${BOOST_LIB_DIR}")
 
 report_status BOOST_INC_DIR ${BOOST_INC_DIR}
 report_status BOOST_LIB_DIR ${BOOST_LIB_DIR}

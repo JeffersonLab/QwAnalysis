@@ -41,7 +41,11 @@ void dslumi(int runnum, bool is100k)
 	Mps_Tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	///deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form("$QWSCRATCH/tracking/www/run_%d/dslumi_%d_",runnum, runnum);
+	//Prefix = Form("$QWSCRATCH/tracking/www/run_%d/dslumi_%d_",runnum, runnum);
+
+	Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_dslumi_",
+	      runnum, runnum);
 
 	//create a vector of 2-D histograms of size 9 and define it
         std::vector<TH2D*> h;
@@ -120,7 +124,7 @@ void dslumi(int runnum, bool is100k)
 
 
 	//Create a canvas
-	TCanvas* c1 = new TCanvas( "c1", "dslumi rate vs. mps counter", 900, 1000);
+	TCanvas* c1 = new TCanvas( "c1", "dslumi rate vs. mps counter", 1000, 900);
 
 	//Divide that canvas into 8 rows and 1 columns
 	c1->Divide(1,8);
@@ -150,7 +154,7 @@ void dslumi(int runnum, bool is100k)
 
 
 	//Create a canvas
-	TCanvas* c2 = new TCanvas ( "c2", "dslumi ratios vs. mps counter", 900, 800);
+	TCanvas* c2 = new TCanvas ( "c2", "dslumi ratios vs. mps counter", 500, 500);
 
 	//Divide that canvas into 8 rows and 1 columns
 	c2->Divide(1,4);

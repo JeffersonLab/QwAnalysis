@@ -1,0 +1,14 @@
+<Command><![CDATA[
+    echo "User:         " `whoami`
+    echo "WORKDIR:      " $WORKDIR
+    echo "PWD:          " $PWD
+    echo "------"
+    echo "Started at `date`" 
+    echo "Job Number" $JOB_ID
+    setup cernlib
+    setup root
+    setenv MYSQLPP_LIB_DIR $HOME/svn/lib
+    setenv MYSQLPP_INC_DIR $HOME/svn/include/mysql++
+
+
+

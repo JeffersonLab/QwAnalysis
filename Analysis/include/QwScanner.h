@@ -255,7 +255,10 @@ class QwScanner:
       return 0;
     };//return the error flag to the main routine
 
-    //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
+    //update the error flag in the subsystem level from the top level routines related to stability checks.
+    // This will uniquely update the errorflag at each channel based on the error flag in the corresponding
+    // channel in the ev_error subsystem
+
     void UpdateErrorFlag(const VQwSubsystem *ev_error){
     };
 

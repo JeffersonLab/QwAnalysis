@@ -1,0 +1,24 @@
+#!/bin/bash
+umask 002
+
+export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+export QWANALYSIS=/group/qweak/QwAnalysis/Linux_CentOS6.2-x86_64/QwAnalysis_TrackingPass5
+. $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
+
+# Permissions
+if [ ! -d $QWSCRATCH/tracking/www/ ] ; then
+   mkdir -p $QWSCRATCH/tracking/www/
+   chmod g+w $QWSCRATCH/tracking/www/
+fi
+if [ ! -d $QWANALYSIS/Extensions/Macros/Tracking/auto_plots/ ] ; then
+   mkdir -p $QWANALYSIS/Extensions/Macros/Tracking/auto_plots/
+   chmod g+w $QWANALYSIS/Extensions/Macros/Tracking/auto_plots/
+fi
+
+# Submit run
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl -e qwtracking \
+   --post-run $QWANALYSIS/Extensions/Tracking/macros/process_run.sh \
+   --rootfile-output mss:/mss/hallc/qweak/rootfiles/tracking_pass5 \
+   --options "--add-config eventmode_pass5.conf --add-config peiqing_2011.conf" \
+   $@
+

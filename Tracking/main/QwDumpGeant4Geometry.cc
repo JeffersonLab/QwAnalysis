@@ -81,7 +81,7 @@ Int_t main(Int_t argc, Char_t* argv[])
         << trigscint.front()->GetZPosition()
         << " cm" << QwLog::endl;
     QwMessage << "/TriggerScintillator/SetTiltingAngle "
-        << trigscint.front()->GetDetectorTiltInDeg()
+        << trigscint.front()->GetDetectorRollInDeg()
         << " degree" << QwLog::endl;
     QwMessage << QwLog::endl;
   }

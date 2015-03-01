@@ -10,6 +10,7 @@
 
 #include "QwLog.h"
 #include "QwColor.h"
+#include "QwOptions.h"
 #include "QwParameterFile.h"
 
 //const UInt_t QwDriftChamber::kMaxNumberOfTDCsPerROC = 21; 
@@ -19,8 +20,6 @@
 const UInt_t QwDriftChamber::kMaxNumberOfSlotsPerROC = 21;
 const Int_t  QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 const Int_t  QwDriftChamber::kCodaMasterPlaneNumber = 98;
-
-
 
 // kMaxNumberOfChannelsPerTDC is used in RegisterSlotNumber() function
 // before one can access the real F1TDC configuration from CODA buffer.
@@ -32,32 +31,31 @@ const Int_t  QwDriftChamber::kCodaMasterPlaneNumber = 98;
 // Friday, September  3 13:31:06 EDT 2010, jhlee
 
 
-// OK, fDEBUG, fNumberOfTDCs
-QwDriftChamber::QwDriftChamber(const TString& name, std::vector< QwHit > &fWireHits_TEMP)
-  :VQwSubsystem(name),
-   VQwSubsystemTracking(name),
-   fWireHits(fWireHits_TEMP)
-{
-  OK            = 0;
-  fDEBUG        = kFALSE;
-  fNumberOfTDCs = 0;
-  ClearAllBankRegistrations();
-  InitHistogramPointers();
-  
-  fF1TDContainer = new QwF1TDContainer();
-  fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
-  kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
-  fF1RefContainer = new F1TDCReferenceContainer();
+bool QwDriftChamber::fPrintF1TDCConfiguration = true;
 
-}
+#define OK 0
+
 
 QwDriftChamber::QwDriftChamber(const TString& name)
   :VQwSubsystem(name),
    VQwSubsystemTracking(name),
    fWireHits(fTDCHits)
 {
-  OK            = 0;
-  fDEBUG        = kFALSE;
+  fNumberOfTDCs = 0;
+  ClearAllBankRegistrations();
+  InitHistogramPointers();
+
+  fF1TDContainer = new QwF1TDContainer();
+  fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
+  kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels();
+  fF1RefContainer = new F1TDCReferenceContainer();
+}
+
+QwDriftChamber::QwDriftChamber(const TString& name, std::vector< QwHit > &fWireHits_TEMP)
+  :VQwSubsystem(name),
+   VQwSubsystemTracking(name),
+   fWireHits(fWireHits_TEMP)
+{
   fNumberOfTDCs = 0;
   ClearAllBankRegistrations();
   InitHistogramPointers();
@@ -66,9 +64,7 @@ QwDriftChamber::QwDriftChamber(const TString& name)
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
   fF1RefContainer = new F1TDCReferenceContainer();
-
 }
-
 
 QwDriftChamber::~QwDriftChamber()
 {
@@ -427,14 +423,12 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
   UInt_t slot_id      = 0;
   UInt_t vme_slot_num = 0;
 
-  Bool_t local_debug  = true;
-
   QwF1TDC *local_f1tdc = NULL;
    
   bank_index = GetSubbankIndex(roc_id, bank_id);
   
   if(bank_index >=0) {
-    if(local_debug) {
+    if(fPrintF1TDCConfiguration) {
       std::cout << "fF1TDContainer " << fF1TDContainer
 		<<" local_f1tdc    " << local_f1tdc << "\n";
     }
@@ -442,7 +436,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     fF1TDContainer -> SetSystemName(subsystem_name);
     fF1RefContainer-> SetSystemName(subsystem_name);
 
-    if(local_debug) {
+    if(fPrintF1TDCConfiguration) {
       std::cout << "-----------------------------------------------------" << std::endl;
   
       std::cout << "\nQwDriftChamber : " 
@@ -466,7 +460,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	
 	tdc_index    = GetTDCIndex(bank_index, slot_id);
 	vme_slot_num = slot_id;
-	if(local_debug) {
+	if(fPrintF1TDCConfiguration) {
 	  std::cout << "    "
 		    << "Slot [id, VME num] [" 
 		    << std::setw(2) << slot_id
@@ -491,7 +485,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	    local_f1tdc->SetF1SystemName(subsystem_name);
 
 	    fF1TDContainer->AddQwF1TDC(local_f1tdc);
-	    if(local_debug) { 
+	    if(fPrintF1TDCConfiguration) {
 	      std::cout << "F1TDC index " 
 			<< std::setw(2) 
 			<< tdc_index
@@ -503,7 +497,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	    }
 	  }
 	  else {
-	    if(local_debug){
+	    if(fPrintF1TDCConfiguration){
 	      std::cout << "Unused in "  
 			<< std::setw(4) 
 			<< subsystem_name	
@@ -515,20 +509,20 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 		
 	}
 	else { // slot_id == only 0, 1, & 2
-	  if(local_debug) {
+	  if(fPrintF1TDCConfiguration) {
 	    if      (slot_id == 0) std::cout << "         ";
 	    else if (slot_id == 1) std::cout << "MVME CPU ";
 	    else                   std::cout << "Trigger Interface"; // slot_id == 2;
 	  }
 	}
-	if(local_debug) {
+	if(fPrintF1TDCConfiguration) {
 	  std::cout << std::endl;
 	}
       }
     
     fF1TDCResolutionNS = fF1TDContainer->DoneF1TDCsConfiguration();
 
-    if(local_debug) fF1TDContainer->Print();
+    if(fPrintF1TDCConfiguration) fF1TDContainer->Print();
     std::cout << "-----------------------------------------------------" << std::endl;
 
     

@@ -197,6 +197,8 @@ class QwOptions {
 
     /// \brief Add a configuration file
     void AddConfigFile(const std::string& configfile) {
+      QwMessage << "Adding user-defined configuration file "
+                << configfile << QwLog::endl;
       fConfigFiles.push_back(configfile);
       fParsed = false;
     };
@@ -217,11 +219,13 @@ class QwOptions {
 
 
     /// \brief Parse all sources of options
-    void Parse() {
-      ParseCommandLine();
-      ParseEnvironment();
-      ParseConfigFile();
-      fParsed = true;
+    void Parse(bool force = false) {
+      if (! fParsed || force) {
+        ParseCommandLine();
+        ParseEnvironment();
+        ParseConfigFile();
+        fParsed = true;
+      }
     };
 
 
@@ -268,8 +272,16 @@ class QwOptions {
       return GetIntValuePair(key).second;
     };
 
-    int GetArgc()    {return (int) fArgc;};
-    char** GetArgv() {return (char**) fArgv;};
+    /// \brief Get the number of command line arguments
+    int GetArgc()    { return (int) fArgc; };
+    /// \brief Get the vector of command line arguments
+    char** GetArgv() { return (char**) fArgv; };
+
+    /// \brief Clear the parsed variables
+    void Clear() {
+      fVariablesMap.clear();
+      fParsed = false;
+    };
 
   private:
 
@@ -284,12 +296,6 @@ class QwOptions {
 
     /// \brief Parse the environment variables
     void ParseEnvironment();
-
-    /// \brief Clear the parsed variables
-    void Clear() {
-      //fVariablesMap.clear();
-      fParsed = false;
-    };
 
     /// \brief Configuration file
     std::vector<std::string> fConfigFiles;

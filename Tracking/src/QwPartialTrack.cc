@@ -4,7 +4,6 @@ ClassImp(QwPartialTrack)
 #endif
 
 // ROOT headers
-#include "TMath.h"
 #include "TRandom.h"
 
 // Qweak headers
@@ -110,8 +109,6 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
 
   // this is a pointer
   for (size_t i = 0; i < kNumDirections; ++i){
-    TSlope[i]=that.TSlope[i];
-    TOffset[i]=that.TOffset[i];
     TResidual[i]=that.TResidual[i];
   }
     
@@ -124,14 +121,6 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
 
   fNumMiss = that.fNumMiss;
   fNumHits = that.fNumHits;
-
-  triggerhit = that.triggerhit;
-  for (size_t i = 0; i < 3; ++i)
-    trig[i] = that.trig[i];
-
-  cerenkovhit = that.cerenkovhit;
-  for (size_t i = 0; i < 3; ++i)
-    cerenkov[i] = that.cerenkov[i];
 
   for (size_t i = 0; i < 3; ++i) {
     pR2hit[i] = that.pR2hit[i];
@@ -160,12 +149,8 @@ void QwPartialTrack::Initialize()
   fIsVoid = false; fIsUsed = false; fIsGood = false;
 
   // Initialize pointers
-  next = 0;
   for (int i = 0; i < kNumDirections; ++i){
-    TSlope[i]=0.0;
-    TOffset[i]=0.0;
     TResidual[i]=0.0;
-    fTreeLine[i] = 0;
   }
 
   for(int i=0; i< 12;++i)
@@ -206,15 +191,13 @@ double QwPartialTrack::CalculateAverageResidual()
 {
   int numTreeLines = 0;
   double sumResiduals = 0.0;
-  for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    for (const QwTrackingTreeLine* treeline = fTreeLine[dir]; treeline;
-         treeline = treeline->next) {
-      if (treeline->IsUsed()) {
-        numTreeLines++;
-        sumResiduals += treeline->GetAverageResidual();
-      }
-    } // end of loop over treelines
-  } // end of loop over directions
+  for (Int_t i = 0; i < GetNumberOfTreeLines(); i++) {
+    const QwTreeLine* treeline = GetTreeLine(i);
+    if (treeline->IsUsed()) {
+      numTreeLines++;
+      sumResiduals += treeline->GetAverageResidual();
+    }
+  } // end of loop over treelines
   fAverageResidual = sumResiduals / numTreeLines;
   return fAverageResidual;
 }
@@ -233,24 +216,24 @@ void QwPartialTrack::Reset(Option_t *option)
 }
 
 // Create a new QwTreeLine
-QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
+QwTreeLine* QwPartialTrack::CreateNewTreeLine()
 {
-  QwTrackingTreeLine* treeline = new QwTrackingTreeLine();
+  QwTreeLine* treeline = new QwTreeLine();
   AddTreeLine(treeline);
   return treeline;
 }
 
 // Add an existing QwTreeLine
-void QwPartialTrack::AddTreeLine(const QwTrackingTreeLine* treeline)
+void QwPartialTrack::AddTreeLine(const QwTreeLine* treeline)
 {
-  fQwTreeLines.push_back(new QwTrackingTreeLine(treeline));
+  fQwTreeLines.push_back(new QwTreeLine(treeline));
   ++fNQwTreeLines;
 }
 
 // Add a linked list of QwTreeLine's
-void QwPartialTrack::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
+void QwPartialTrack::AddTreeLineList(const QwTreeLine* treelinelist)
 {
-  for (const QwTrackingTreeLine *treeline = treelinelist;
+  for (const QwTreeLine *treeline = treelinelist;
          treeline; treeline = treeline->next){
     if (treeline->IsValid()){
        AddTreeLine(treeline);
@@ -259,9 +242,9 @@ void QwPartialTrack::AddTreeLineList(const QwTrackingTreeLine* treelinelist)
 }
 
 // Add a list of tree lines
-void QwPartialTrack::AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist)
+void QwPartialTrack::AddTreeLineList(const std::vector<QwTreeLine*> &treelinelist)
 { 
-  for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = treelinelist.begin();
+  for (std::vector<QwTreeLine*>::const_iterator treeline = treelinelist.begin();
        treeline != treelinelist.end(); treeline++)
     AddTreeLine(*treeline);
 }
@@ -270,7 +253,7 @@ void QwPartialTrack::AddTreeLineList(const std::vector<QwTrackingTreeLine*> &tre
 void QwPartialTrack::ClearTreeLines(Option_t *option)
 {
   for (size_t i = 0; i < fQwTreeLines.size(); i++) {
-    QwTrackingTreeLine* tl = fQwTreeLines.at(i);
+    QwTreeLine* tl = fQwTreeLines.at(i);
     delete tl;
   }
   fQwTreeLines.clear();
@@ -286,10 +269,10 @@ void QwPartialTrack::ResetTreeLines(Option_t *option)
 // Print the tree lines
 void QwPartialTrack::PrintTreeLines(Option_t *option) const
 {
-  for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
+  for (std::vector<QwTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
        treeline != fQwTreeLines.end(); treeline++) {
     std::cout << **treeline << std::endl;
-    QwTrackingTreeLine* tl = (*treeline)->next;
+    QwTreeLine* tl = (*treeline)->next;
     while (tl) {
       std::cout << *tl << std::endl;
       tl = tl->next;
@@ -305,7 +288,6 @@ void QwPartialTrack::Print(const Option_t* options) const
 {
   if (!this) return;
   QwVerbose << *this << QwLog::endl;
-  if (next) next->Print();
 }
 
 /**
@@ -315,7 +297,6 @@ void QwPartialTrack::PrintValid()
 {
   if (!this) return;
   if (this->IsValid()) QwVerbose << *this << QwLog::endl;
-  if (next) next->PrintValid();
 }
 
 /**
@@ -416,7 +397,7 @@ QwPartialTrack& QwPartialTrack::SmearAnglePhi(double sigma)
 const QwVertex* QwPartialTrack::DeterminePositionInDetector(const QwDetectorInfo* detector)
 {
   QwVertex* vertex = 0;
-  if (detector->GetDetectorRotation() != 0) {
+  if (detector->GetDetectorPitch() != 0) {
     // Get intersection with z-plane
     double z = detector->GetZPosition();
     TVector3 position = GetPosition(z);
@@ -538,5 +519,54 @@ void QwPartialTrack::RotateCoordinates(){
 
   fSlopeX=(x4-x3)/(z2-z1);
   fSlopeY=(y4-y3)/(z2-z1);
+
+}
+void QwPartialTrack::RotateRotator(const QwDetectorInfo* detector){
+
+	double z1=476.7,z2=500.0;
+	double x1=0,y1=0,x2=0,y2=0;
+	double pitch=0,yaw=0,roll=0;
+	double rotatorZpos = 476.7;
+
+	x1=fOffsetX+fSlopeX*z1;
+	y1=fOffsetY+fSlopeY*z1;
+	x2=fOffsetX+fSlopeX*z2;
+	y2=fOffsetY+fSlopeY*z2;
+
+	z1 = z1 - rotatorZpos;
+	z2 = z2 - rotatorZpos;
+
+	TVector3 v1(x1,y1,z1);
+	TVector3 v2(x2,y2,z2);
+
+	TVector3 xaxis(1,0,0);   //x-axis of rotator
+	TVector3 yaxis(0,1,0);  //y-axis of rotator
+	TVector3 zaxis(0,0,1);  //z-axis of rotator
+
+	 pitch = detector->GetRotatorPitch();
+	 yaw = detector->GetRotatorYaw();
+	 roll = detector->GetRotatorRoll();
+
+	v1.Rotate(pitch,xaxis);
+	v2.Rotate(pitch,xaxis);
+	yaxis.Rotate(pitch,xaxis);	//rotating y-axis for yaw next
+	zaxis.Rotate(pitch,xaxis);	//rotating z-axis for roll later
+
+	v1.Rotate(yaw,yaxis);
+	v2.Rotate(yaw,yaxis);
+	zaxis.Rotate(yaw,yaxis);	//rotating z-axis for roll next
+
+	v1.Rotate(roll,zaxis);
+	v2.Rotate(roll,zaxis);
+
+	v1.SetZ( v1.Z() + rotatorZpos );
+	v2.SetZ( v2.Z() + rotatorZpos );
+
+	fSlopeX = (v2.X()-v1.X())/(v2.Z()-v1.Z());
+	fSlopeY = (v2.Y()-v1.Y())/(v2.Z()-v1.Z());
+
+	fOffsetX = v1.X()-v1.Z()*fSlopeX;
+	fOffsetY = v1.Y()-v1.Z()*fSlopeY;
+
 
 }

@@ -96,10 +96,22 @@ void QwRayTracer::DefineOptions(QwOptions& options)
   options.AddOptions("Momentum reconstruction")("QwRayTracer.order",
       po::value<int>(0)->default_value(5),
       "Runge-Kutta method order (higher than 4 implies adaptive step)");
-  // Step size of Runge-Kutta method
+  // Step size of Runge-Kutta method for fixed steps (order 4 or less)
   options.AddOptions("Momentum reconstruction")("QwRayTracer.step",
       po::value<float>(0)->default_value(1.0),
-      "Runge-Kutta step size [cm]");
+      "Runge-Kutta fixed step size (for order 4 or less) [cm]");
+  // Minimum step size of Runge-Kutta method for adaptive step
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.min_step",
+      po::value<float>(0)->default_value(0.1),
+      "Runge-Kutta minimum step size (for adaptive step) [cm]");
+  // Maximum step size of Runge-Kutta method for adaptive step
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.max_step",
+      po::value<float>(0)->default_value(10.0),
+      "Runge-Kutta maximum step size (for adaptive step) [cm]");
+  // Maximum step size of Runge-Kutta method for adaptive step
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.tolerance",
+      po::value<float>(0)->default_value(1e-10),
+      "Runge-Kutta adaptive step maximum allowable truncation error");
   // Step size of Newton's method in momentum
   options.AddOptions("Momentum reconstruction")("QwRayTracer.momentum_step",
       po::value<float>(0)->default_value(30.0),
@@ -108,6 +120,22 @@ void QwRayTracer::DefineOptions(QwOptions& options)
   options.AddOptions("Momentum reconstruction")("QwRayTracer.position_resolution",
       po::value<float>(0)->default_value(0.3),
       "Newton's method position step [cm]");
+
+  // Starting momentum of Newton's method
+  // Note: Start iteration from a higher momentum limit (1.250 GeV)
+  //       as suggested by David Armstrong, to avoid possible bias
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.initial_momemtum",
+      po::value<float>(0)->default_value(1.25),
+      "Newton's method position step [GeV]");
+
+  // Starting position for magnetic field swimming
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.start_position",
+      po::value<float>(0)->default_value(-250.0),
+      "Magnetic field swimming start position [cm]");
+  // Ending position for magnetic field swimming
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.end_position",
+      po::value<float>(0)->default_value(+577.0),
+      "Magnetic field swimming end position [cm]");
 }
 
 /**
@@ -118,8 +146,15 @@ void QwRayTracer::ProcessOptions(QwOptions& options)
 {
   fIntegrationOrder = options.GetValue<int>("QwRayTracer.order");
   fIntegrationStep = Qw::cm * options.GetValue<float>("QwRayTracer.step");
+  fIntegrationMinimumStep = Qw::cm * options.GetValue<float>("QwRayTracer.min_step");
+  fIntegrationMaximumStep = Qw::cm * options.GetValue<float>("QwRayTracer.max_step");
+  fIntegrationTolerance = options.GetValue<float>("QwRayTracer.tolerance");
+
   fMomentumStep = Qw::MeV * options.GetValue<float>("QwRayTracer.momentum_step");
   fPositionResolution = Qw::cm * options.GetValue<float>("QwRayTracer.position_resolution");
+  fInitialMomentum = Qw::GeV * options.GetValue<float>("QwRayTracer.initial_momemtum");
+  fStartPosition = Qw::cm * options.GetValue<float>("QwRayTracer.start_position");
+  fEndPosition = Qw::cm * options.GetValue<float>("QwRayTracer.end_position");
 }
 
 /**
@@ -146,16 +181,14 @@ const QwTrack* QwRayTracer::Bridge(
   // else
   //     momentum[0] = 0.20 * Qw::GeV;
 
-  // Start iteration from a higher momentum limit (1.250 GeV)
-  // as suggested by David Armstrong, to avoid possible bias
-  momentum[0] = 1.250 * Qw::GeV;
+  momentum[0] = fInitialMomentum;
 
   // Front track position and direction
-  TVector3 start_position = front->GetPosition(-250 * Qw::cm);
+  TVector3 start_position = front->GetPosition(fStartPosition);
   TVector3 start_direction = front->GetMomentumDirection();
 
   // Back track position and direction
-  TVector3 end_position = back->GetPosition(577.0 * Qw::cm);
+  TVector3 end_position = back->GetPosition(fEndPosition);
   TVector3 end_direction = back->GetMomentumDirection();
 
   TVector3 position = start_position;
@@ -254,18 +287,16 @@ const QwTrack* QwRayTracer::Bridge(
     // Runge-Kutta 4th order
     position = start_position;
     direction = start_direction;
-    IntegrateRK(position, direction, momentum[0], end_position.Z(), 4, fIntegrationStep);
+    track->fIterationsRK4 = IntegrateRK(position, direction, momentum[0], end_position.Z(), 4, fIntegrationStep);
     track->fEndPositionActualRK4 = position;
     track->fEndDirectionActualRK4 = direction;
 
     // Runge-Kutta-Fehlberg 4th-5th order
     position = start_position;
     direction = start_direction;
-    IntegrateRK(position, direction, momentum[0], end_position.Z(), 5, fIntegrationStep);
+    track->fIterationsRKF45 = IntegrateRK(position, direction, momentum[0], end_position.Z(), 5, fIntegrationStep);
     track->fEndPositionActualRKF45 = position;
     track->fEndDirectionActualRKF45 = direction;
-
-    //std::cout<<"radial position of end point: "<<position.Perp()<<", momentum: "<<momentum[0]<<std::endl;
 
     // Let front partial track determine the package and octant
     track->SetPackage(front->GetPackage());
@@ -313,43 +344,49 @@ const QwTrack* QwRayTracer::Bridge(
 int QwRayTracer::IntegrateRK(TVector3& r, TVector3& v, const double p, const double z, const int order, const double h)
 {
   // Tolerance per step
-  const double epsilon = 0.0000001;
+  const double tolerance = fIntegrationTolerance;
 
   if (order == 2) {
     // Butcher tableau RK2
+    // Ref: https://en.wikipedia.org/wiki/Runge-Kutta_methods
     const int s = 2;
+    const int q = 1;
     const double alpha = 0.5; // 0.5, 1.0, 1.5
     // Define A
-    TMatrixD A(s,s);
+    TMatrixD A(s,s); A.Zero();
     A[1][0] = alpha;
     // Define b
-    TMatrixD b(1,s);
+    TMatrixD b(q,s); b.Zero();
     b[0][0] = 1.0 - 1.0 / (2.0 * alpha);
     b[0][1] = 1.0 / (2.0 * alpha);
 
-    return IntegrateRK(A, b, r, v, p, z, h, epsilon);
+    return IntegrateRK(A, b, r, v, p, z, h, tolerance);
   }
 
   if (order == 4) {
     // Butcher tableau RK4
+    // Ref: https://en.wikipedia.org/wiki/Runge-Kutta_methods
     const int s = 4;
+    const int q = 1;
     // Define A
-    TMatrixD A(s,s);
+    TMatrixD A(s,s); A.Zero();
     A[1][0] = A[2][1] = 1.0 / 2.0;
     A[3][2] = 1.0;
     // Define b
-    TMatrixD b(1,s);
+    TMatrixD b(q,s); b.Zero();
     b[0][0] = b[0][3] = 1.0 / 6.0;
     b[0][1] = b[0][2] = 1.0 / 3.0;
 
-    return IntegrateRK(A, b, r, v, p, z, h, epsilon);
+    return IntegrateRK(A, b, r, v, p, z, h, tolerance);
   }
 
   if (order == 5) {
-    // Butcher tableau RKF5
+    // Butcher tableau RKF4(5)
+    // Ref: https://en.wikipedia.org/wiki/Runge-Kutta-Fehlberg_method
     const int s = 6;
+    const int q = 2;
     // Define A
-    TMatrixD A(s,s);
+    TMatrixD A(s,s); A.Zero();
     A[1][0] = 1.0 / 4.0;
     A[2][0] = 3.0 / 32.0;
     A[2][1] = 9.0 / 32.0;
@@ -366,7 +403,7 @@ int QwRayTracer::IntegrateRK(TVector3& r, TVector3& v, const double p, const dou
     A[5][3] = 1859.0 / 4104.0;
     A[5][4] = -11.0 / 40.0;
     // Define b
-    TMatrixD b(2,s); b.Zero();
+    TMatrixD b(q,s); b.Zero();
     b[0][0] = 16.0 / 135.0;
     b[0][2] = 6656.0 / 12825.0;
     b[0][3] = 28561.0 / 56430.0;
@@ -377,10 +414,11 @@ int QwRayTracer::IntegrateRK(TVector3& r, TVector3& v, const double p, const dou
     b[1][3] = 2197.0 / 4104.0;
     b[1][4] = -1.0 / 5.0;
 
-    return IntegrateRK(A, b, r, v, p, z, h, epsilon);
+    return IntegrateRK(A, b, r, v, p, z, h, tolerance);
   }
 
-  return false;
+  // Return zero iterations if no matching Runge-Kutta algorithm
+  return 0;
 }
 
 /**
@@ -402,6 +440,8 @@ int QwRayTracer::IntegrateRK(TVector3& r, TVector3& v, const double p, const dou
  *  If the endpoint is at upstream and startpoint is at downstream,
  *  the electron will swim backward
  *
+ *  Ref: https://en.wikipedia.org/wiki/Runge-Kutta_methods#Explicit_Runge.E2.80.93Kutta_methods
+ *
  * @param A Runge-Kutta matrix
  * @param b Weight vector (first row is lowest order)
  * @param r Initial position (reference to final position)
@@ -420,15 +460,15 @@ int QwRayTracer::IntegrateRK(
     const double p,
     const double z,
     const double step,
-    const double epsilon)
+    const double tolerance)
 {
   // Order
   const int s = A.GetNrows();
 
   // Adaptive step if q > 1
   const int q = b.GetNrows();
-  const double h_min = 0.1 * Qw::cm;
-  const double h_max = 10.0 * Qw::cm;
+  const double h_min = fIntegrationMinimumStep;
+  const double h_max = fIntegrationMaximumStep;
   double h = step;
 
   // Determine c
@@ -488,9 +528,10 @@ int QwRayTracer::IntegrateRK(
     }
 
     // Adaptive step
+    // Ref: http://mathfaculty.fullerton.edu/mathews//n2003/rungekuttafehlberg/RungeKuttaFehlbergProof.pdf
     if (q == 2) {
       TVector3 r_diff = r_new[0] - r_new[1];
-      h = pow(epsilon * h / (2 * r_diff.Mag()), 0.25);
+      h *= pow(tolerance * h / (2 * r_diff.Mag()), 0.25);
       if (h < h_min) h = h_min;
       if (h > h_max) h = h_max;
     }

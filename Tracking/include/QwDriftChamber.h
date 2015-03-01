@@ -44,11 +44,18 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
  public:
   /// Constructor with name
-  QwDriftChamber(const TString& name);
+  QwDriftChamber(const TString& region_tmp);
   /// Constructor with name and hit list
   QwDriftChamber(const TString& region_tmp,std::vector< QwHit > &fWireHits_TEMP);
   /// Virtual destructor
   virtual ~QwDriftChamber();
+
+  /// Define options
+  static void DefineOptions(QwOptions& options) {
+    options.AddOptions("Tracking Options")("QwDriftChamber.print-f1tdc-configuration",
+        po::value<bool>(&fPrintF1TDCConfiguration)->default_bool_value(false),
+        "print F1TDC configuration");
+  }
 
   /*  Member functions derived from VQwSubsystem. */
 
@@ -64,9 +71,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   //separate meanings in VDC and HDC
   virtual void  SubtractReferenceTimes() = 0;
   virtual void  ProcessEvent() = 0;
-  virtual Int_t LoadGeometryDefinition(TString mapfile ) = 0;
  
-  virtual Int_t LoadChannelMap(TString mapfile ) = 0;
   virtual void  ClearEventData() = 0;
 
   
@@ -92,10 +97,9 @@ class QwDriftChamber: public VQwSubsystemTracking{
     grandHitContainer.Append(fTDCHits);
   };
 
-
-  Int_t OK;
-
  protected:
+
+  static bool fPrintF1TDCConfiguration;
 
   virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
   virtual Int_t AddChannelDefinition() = 0;
@@ -122,8 +126,6 @@ class QwDriftChamber: public VQwSubsystemTracking{
     return (GetTDCIndex(bank_index,slot_num) != -1);
   };
 
-
-  Bool_t fDEBUG;
 
   TString fRegion;  ///  Name of this subsystem (the region).
   size_t fCurrentBankIndex;

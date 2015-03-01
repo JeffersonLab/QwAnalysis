@@ -14,13 +14,13 @@
 
 // Qweak headers
 #include "QwTypes.h"
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 
 // Forward declarations
 class QwHit;
 class QwHitContainer;
 class QwGEMCluster;
-class QwTrackingTreeLine;
+class QwTreeLine;
 class QwPartialTrack;
 class QwTrack;
 class QwVertex;

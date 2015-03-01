@@ -74,10 +74,10 @@ class QwIntegratedRasterChannel : public VQwDataElement{
     return fTriumf_ADC.UpdateErrorFlag(ev_error->fTriumf_ADC);
   }
 
-  Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+  Int_t SetSingleEventCuts(Double_t mean = 0, Double_t sigma = 0);//two limts and sample size
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
-  
+  void SetSingleEventCuts(UInt_t errorflag, Double_t min = 0, Double_t max = 0, Double_t stability = 0);
+
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;

@@ -71,8 +71,8 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     // @}
 
 
-    /// Load geometry definition for tracking subsystems (required)
-    virtual Int_t LoadGeometryDefinition(TString mapfile) = 0;
+    /// Load geometry definition for tracking subsystems
+    Int_t LoadGeometryDefinition(TString mapfile);
 
     /// Get the hit list
     virtual void  GetHitList(QwHitContainer & grandHitContainer) = 0;

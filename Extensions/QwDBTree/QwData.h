@@ -18,6 +18,7 @@ class QwData {
         void fill_empty(void);
         /* debug function to output value */
         Double_t return_val(void);
+        Double_t return_n(void);
 };
 
 #endif

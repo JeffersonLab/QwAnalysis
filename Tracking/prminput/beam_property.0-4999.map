@@ -1,0 +1,10 @@
+# Simulated beam energy
+
+# Default
+energy=1160.00
+
+# Run1
+#energy=1159.65
+
+# Run2
+#energy=1157.48

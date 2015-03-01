@@ -760,7 +760,7 @@ void QwCombinedBPM<T>::PrintInfo() const
 template<typename T>
 VQwBPM& QwCombinedBPM<T>::operator= (const VQwBPM &value)
 {
-  *(dynamic_cast<const QwCombinedBPM<T>*>(this))=
+  *(dynamic_cast<QwCombinedBPM<T>*>(this))=
     *(dynamic_cast<const QwCombinedBPM<T>*>(&value));
   return *this;
 }
@@ -785,7 +785,7 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator= (const QwCombinedBPM<T> &value)
 template<typename T>
 VQwBPM& QwCombinedBPM<T>::operator+= (const VQwBPM &value)
 {
-  *(dynamic_cast<const QwCombinedBPM<T>*>(this))+=
+  *(dynamic_cast<QwCombinedBPM<T>*>(this))+=
     *(dynamic_cast<const QwCombinedBPM<T>*>(&value));
   return *this;
 }
@@ -809,7 +809,7 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator+= (const QwCombinedBPM<T> &value)
 template<typename T>
 VQwBPM& QwCombinedBPM<T>::operator-= (const VQwBPM &value)
 {
-  *(dynamic_cast<const QwCombinedBPM<T>*>(this))-=
+  *(dynamic_cast<QwCombinedBPM<T>*>(this))-=
     *(dynamic_cast<const QwCombinedBPM<T>*>(&value));
   return *this;
 }

@@ -14,7 +14,7 @@ graph of the octant that was fed to the analyzer for the package of the canvas.
 
 Entry Conditions: the run number, bool for first 100k
 Date: 06-13-2012
-Modified: 07-13-2012
+Modified: 05-05-2014
 Assisted By: Wouter Deconinck
 *********************************************************/
 
@@ -23,6 +23,10 @@ Assisted By: Wouter Deconinck
 #include "TH2D.h"
 #include "TLeaf.h"
 #include "QwEvent.h"
+#include "TSystem.h"
+
+#include <fstream>
+#include <iostream>
 
 //define a prefix for all the output files - global don't need to pass
 TString Prefix;
@@ -39,7 +43,11 @@ void OctantDetermination(int runnum, bool is100k)
 	event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form("$QWSCRATCH/tracking/www/run_%d/OctantDetermination_%d_",runnum, runnum);
+	//Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/OctantDetermination_%d_",runnum, runnum);
+
+	 Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_OctantDetermination_",
+	      runnum, runnum);
 
 	//define all of the needed histograms for this scripts
         //create a vectors of TH1D histogram pointer
@@ -73,7 +81,7 @@ void OctantDetermination(int runnum, bool is100k)
 	{
 		for (int y = 0; y < 9 ;y++)
 		{
-			h[z][y]= new TH2D (Form("h[%d][%d]",z,y),"OC",100,0.0,3000.0 ,100, 0.0, 3000.0 );
+			h[z][y]= new TH2D (Form("h[%d][%d]",z,y),"OC",100,0.0,6000.0 ,100, 0.0, 3000.0 );
 	                h[z][y]->GetYaxis()->SetTitle(Form("main detector %d signal",y));
         	        h[z][y]->GetXaxis()->SetTitle(Form("Trigger scintillator %d signal",y));
 
@@ -83,13 +91,13 @@ void OctantDetermination(int runnum, bool is100k)
 		{
 			for (int k = 0;k < 9;k++)
 			{
-				h2[z][q][k] = new TH1D (Form("h[%d][%d][%d]",z,q,k),"MD",100,0.0,3000.0);
+				h2[z][q][k] = new TH1D (Form("h[%d][%d][%d]",z,q,k),"MD",100,0.0,6000.0);
 		                h2[z][q][k]->GetYaxis()->SetTitle("frequency");
         		        h2[z][q][k]->GetXaxis()->SetTitle(Form("main detector %d signal",k));
 
 			}
 
-			h3[z][q]= new TH1I (Form("h3[%d][%d]",z,q),"passed octant",9,0,8);
+			h3[z][q]= new TH1I (Form("h3[%d][%d]",z,q),"passed octant",10,0,9);
 	                h3[z][q]->GetYaxis()->SetTitle("frequency");
         	        h3[z][q]->GetXaxis()->SetTitle(Form("passed octatn number for region %d and pacakge %d",z,q));
 
@@ -162,7 +170,7 @@ void OctantDetermination(int runnum, bool is100k)
 		// this will fill the passed value to the root tree from the analyzer
                 for (int t = 0; t < nTreeLines; t++)
                 {
-                        const QwTrackingTreeLine* treeline = fEvent->GetTreeLine(t);
+                        const QwTreeLine* treeline = fEvent->GetTreeLine(t);
 			if (! treeline) continue;
 			h3[treeline->GetRegion()][treeline->GetPackage()]->Fill(treeline->GetOctant());
 			h2[treeline->GetRegion()][treeline->GetPackage()][treeline->GetOctant()]->Fill(mdm[treeline->GetOctant()]->GetValue()+mdp[treeline->GetOctant()]->GetValue());
@@ -175,7 +183,7 @@ void OctantDetermination(int runnum, bool is100k)
 	for (int pkg = 1; pkg <= 2; pkg++)
 	{
 		//Create the canvas
-		TCanvas c1 ("c1", Form("Octant Determination - for Package %d",pkg), 600,600);
+		TCanvas c1 ("c1", Form("Octant Determination - for Package %d",pkg), 400,400);
 
 		//divide the canvas
 		c1.Divide(3,3);
@@ -206,7 +214,7 @@ void OctantDetermination(int runnum, bool is100k)
 		for (int pkg2 = 1; pkg2 <= 2; pkg2++)
 		{
         		//Create the canvas
-        		TCanvas c2("c2", Form("Main detector signal for each oct for Region %d Package %d", reg, pkg2), 600,600);
+        		TCanvas c2("c2", Form("Main detector signal for each oct for Region %d Package %d", reg, pkg2), 400,400);
 
         		//divide the canvas
         		c2.Divide(3,3);
@@ -232,5 +240,42 @@ void OctantDetermination(int runnum, bool is100k)
 		}	
 
 	}
-	return;
+
+  //print to file
+  //this file and evrything related to it is fout
+  std::ofstream fout;
+  std::ofstream fout1;
+  std::ofstream fout2;
+  std::ofstream fout3;
+
+  //open file
+  // open file with outputPrefix+q2.txt which will store the output of the vlaues
+  //to a file in a easy way that should be able to be read back into a program if needeD
+  fout.open(Prefix+"R2_pkg1.txt");
+  if (!fout.is_open()) cout << "File not opened R2_1" << endl;
+  fout1.open(Prefix+"R2_pkg2.txt");
+  if (!fout1.is_open()) cout << "File not opened R2_2" << endl;
+
+  //what are we printing
+  fout << h3[2][1]->GetMean() << endl;
+  fout1 << h3[2][2]->GetMean() << endl;
+  //close the file
+  fout.close();
+  fout1.close();
+
+  fout2.open(Prefix+"R3_pkg1.txt");
+  if (!fout2.is_open()) cout << "File not opened R3_1" << endl;
+  fout3.open(Prefix+"R3_pkg2.txt");
+  if (!fout3.is_open()) cout << "File not opened R3_2" << endl;
+
+  //what are we printing
+  fout2  << h3[3][1]->GetMean() << endl;
+  fout3  << h3[3][2]->GetMean() << endl;
+  //close the file
+  fout2.close();
+  fout3.close();
+
+
+  return;
 }
+

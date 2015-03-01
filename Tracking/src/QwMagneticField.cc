@@ -52,8 +52,8 @@ QwMagneticField::QwMagneticField(QwOptions& options, const bool suppress_read_fi
   fField = 0;
 
   // Initialize parameters
-  SetReferenceCurrent(8615.0);
-  SetActualCurrent(8615.0);
+  SetReferenceCurrent(8960.0);
+  SetActualCurrent(8921.0);
   SetTranslation(0.0);
   SetRotation(0.0);
 
@@ -80,21 +80,21 @@ void QwMagneticField::DefineOptions(QwOptions& options)
 {
   // Options
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.mapfile",po::value<std::string>()->default_value("peiqing_2007.dat"),
+    ("QwMagneticField.mapfile",po::value<std::string>()->default_value("peiqing_2011.dat"),
      "Field map file");
 
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.current",po::value<double>()->default_value(0.0),
      "Actual current of run to analyze");
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.reference",po::value<double>()->default_value(8615.0),
+    ("QwMagneticField.reference",po::value<double>()->default_value(8960.0),
      "Reference current of field map");
 
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.trans",po::value<double>()->default_value(0),
      "Translation [cm]");
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.rot",po::value<double>()->default_value(-90.0 + 22.5),
+    ("QwMagneticField.rot",po::value<double>()->default_value(0),
      "Rotation [deg]");
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.zmin",po::value<double>()->default_value(-250),
@@ -109,22 +109,22 @@ void QwMagneticField::DefineOptions(QwOptions& options)
     ("QwMagneticField.rmin",po::value<double>()->default_value(2),
      "Minimum of r [cm]");
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.rmax",po::value<double>()->default_value(300),
+    ("QwMagneticField.rmax",po::value<double>()->default_value(260),
      "Maximum of r [cm]");
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.rstep",po::value<double>()->default_value(2),
      "Step size of r [cm]");
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.phimin",po::value<double>()->default_value(-0.5),
+    ("QwMagneticField.phimin",po::value<double>()->default_value(0),
      "Minimum of phi [deg]");
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.phimax",po::value<double>()->default_value(360.5),
+    ("QwMagneticField.phimax",po::value<double>()->default_value(360),
      "Maximum of phi [deg]");
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.phistep",po::value<double>()->default_value(1.0),
+    ("QwMagneticField.phistep",po::value<double>()->default_value(1),
      "Step size of phi [deg]");
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.phiwrap",po::value<int>()->default_value(2),
+    ("QwMagneticField.phiwrap",po::value<int>()->default_value(1),
      "Wrap-around of phi (number of equivalent grid points)");
 }
 

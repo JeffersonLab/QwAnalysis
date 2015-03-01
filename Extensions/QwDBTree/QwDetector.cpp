@@ -7,13 +7,15 @@
 #include "string.h"
 
 /* Constructor for QwDetector. */
-QwDetector::QwDetector(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t avg) {
+QwDetector::QwDetector(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg) {
     detector_name = name;
     measurement_id = id;
     reg_type = type;
     good_runlets = runlets;
     db = db_pointer;
-    runavg = avg;
+    runavg = ravg;
+    slugavg = savg;
+    wienavg = wavg;
 }
 
 /*
@@ -43,7 +45,7 @@ void QwDetector::branch(TTree* tree, vector<QwData> &values, Int_t i) {
     else if (measurement_id == "d")
         type = "diff_";
     /* FIXME: Can only look at either y or yq for a variable <_<. */
-    else if (measurement_id == "y")
+    else if (measurement_id == "y" || measurement_id == "yq" || measurement_id == "yp")
         type = "yield_";
     else
         type = "asym_";

@@ -217,14 +217,29 @@ int QwTrackingTreeSort::bestconnected (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack *track2)
+int QwTrackingTreeSort::rcPTCommonWires (const QwPartialTrack *track1, const QwPartialTrack *track2)
 {
+  // Get lists of treelines in these tracks
+  const std::vector<QwTreeLine*> tl1 = track1->GetListOfTreeLines();
+  const std::vector<QwTreeLine*> tl2 = track2->GetListOfTreeLines();
+
+  // Map direction to treeline (assumes one treeline per direction)
+  std::map<EQwDirectionID,QwTreeLine*> tl1map, tl2map;
+  for (size_t i = 0; i < tl1.size(); i++)
+    tl1map[tl1[i]->GetDirection()] = tl1[i];
+  for (size_t i = 0; i < tl2.size(); i++)
+    tl2map[tl2[i]->GetDirection()] = tl2[i];
+
+  // Count common wires for the partial track
   int common = 0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    if (! track1->fTreeLine[dir]) continue;
-    if (! track2->fTreeLine[dir]) continue;
-    common += rcCommonWires (track1->fTreeLine[dir], track2->fTreeLine[dir]);
+    // Check whether entries exist for this direction
+    if (tl1map.count(dir) == 0) continue;
+    if (tl2map.count(dir) == 0) continue;
+    // Count common wires for these treelines
+    common += rcCommonWires (tl1map[dir], tl2map[dir]);
   }
+  // Determine average assuming 3 directions
   common /= 3;
   return common;
 }
@@ -235,26 +250,25 @@ int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack 
 shared between two treelines.  The only output is the integer
 return value
 */
-int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2)
+int QwTrackingTreeSort::rcCommonWires_r3 (const QwTreeLine *line1, const QwTreeLine *line2)
 {
   //################
   // DECLARATIONS  #
   //################
-  int total1, total2, common, total;
-  QwHit **hits1, **hits2;
+  int common, total;
 
   //##################
   //DEFINE VARIABLES #
   //##################
-  common = total1 = total2 = total = 0;
-  hits1  = line1->fHits;
-  hits2  = line2->fHits;
+  common = total = 0;
+  std::vector<QwHit*> hits1 = line1->GetListOfHits();
+  std::vector<QwHit*> hits2 = line2->GetListOfHits();
 
   //##############################################
   //Count the wires shared between the treelines #
   //##############################################
   int i1 = 0, i2 = 0;
-  for ( ; i1 < line1->fNumHits && i2 < line2->fNumHits ; ) {
+  for ( ; i1 < line1->GetNumberOfHits() && i2 < line2->GetNumberOfHits() ; ) {
     if (hits1[i1]->GetElement() == hits2[i2]->GetElement()) {
       if (hits1[i1]->IsUsed() && hits2[i2]->IsUsed())
 	common++;
@@ -271,56 +285,15 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
       total++;
     }
   }
-  total += line1->fNumHits - i1 + line2->fNumHits - i2;
-/*
-  for( ;; ) {
-    // A
-    if( fw & 1 ) {//Set i1 equal to the index of the next hit used in line1
-      i1++;
-      for( ; i1 < MAX_LAYERS && hits1[i1]; i1++)
-	if( hits1[i1]->used ) {
-	  total1++;
-	  break;
-	}
-    }
-    // B
-    if( fw & 2 ) {//Set i2 equal to the index of the next hit used in line2
-      i2++;
-      for( ; i2 < MAX_LAYERS && hits2[i2]; i2++)
-	if( hits2[i2]->used ) {
-	  total2++;
-	  break;
-	}
-    }
-    // ---
-    if( i1 == MAX_LAYERS || ! hits1[i1] ||
-	i2 == MAX_LAYERS || ! hits2[i2] )
-      break;//break if we reach the end of the hits in either line
-    //-----------------------------------------------------------
-    //The following lines separate hits in different detectors
-    did1 = hits1[i1]->detec->ID;//this line was altered
-    did2 = hits2[i2]->detec->ID;//this line was altered
+  total += line1->GetNumberOfHits() - i1 + line2->GetNumberOfHits() - i2;
 
-    cout << "dids = (" << did1 << "," << did2 << ")" << endl;
-    if( did1 < did2 )
-      fw = 1;// do only A in the next iteration
-    else if( did1 > did2 )
-      fw = 2;// do only B in the next iteration
-    else {
-      if( hits1[i1]->GetElement() == hits2[i2]->GetElement() )
-	common ++;
-      fw = 3;// do both A and B next iteration
-    }
-    //-----------------------------------------------------------
-  }
-*/
-//Check which line has more hits used
-//  total = total1 > total2 ? total2 : total1;
+  //Check which line has more hits used
+  //  total = total1 > total2 ? total2 : total1;
 
   if (! total)
     return 0;
 
-  // Get a ratio and mulitply it to return an integer
+  // Get a ratio and multiply it to return an integer
   return (10000 * common / total + 50 ) / 100;
   // if 8 common out of 8, then this = 100
 }
@@ -337,12 +310,12 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcCommonWires (
-	QwTrackingTreeLine *treeline1, ///< first tree line
-	QwTrackingTreeLine *treeline2) ///< second tree line
+	const QwTreeLine *treeline1, ///< first tree line
+	const QwTreeLine *treeline2) ///< second tree line
 {
   // Get the lists of hits associated with the two tree lines
-  QwHit **hits1  = treeline1->fHits;
-  QwHit **hits2  = treeline2->fHits;
+  const QwHit* const* hits1  = treeline1->fHits;
+  const QwHit* const* hits2  = treeline2->fHits;
 
   // A two-bit pattern indicates on which treeline we should advance in the
   // next iteration of the search.  This assumes that the detectors are ordered.
@@ -386,8 +359,8 @@ int QwTrackingTreeSort::rcCommonWires (
       break;
 
     // Now that we have a hit in tree line 1 and 2, determine the detector ID
-    int id1 = hits1[i1]->GetDetectorInfo()->GetID();
-    int id2 = hits2[i2]->GetDetectorInfo()->GetID();
+    int id1 = hits1[i1]->GetDetectorInfo()->GetPlane();
+    int id2 = hits2[i2]->GetDetectorInfo()->GetPlane();
     // If the ID in treeline 1 is lower, advance on treeline 1
     if (id1 < id2)
       fw = 1;
@@ -422,7 +395,7 @@ int QwTrackingTreeSort::rcCommonWires (
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcTreeConnSort (
-	QwTrackingTreeLine *treelinelist,	///< list of tree lines
+	QwTreeLine *treelinelist,	///< list of tree lines
 	EQwRegionID region)			///< region
 {
   // Maximum allowed chi value (was 20000.0)
@@ -445,7 +418,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
 
     index = 0;
     // Loop over the list of treelines
-    for (QwTrackingTreeLine* treeline = treelinelist;
+    for (QwTreeLine* treeline = treelinelist;
          treeline; treeline = treeline->next) {
 
       // If we have been doing this for too long already, give up already
@@ -510,11 +483,11 @@ int QwTrackingTreeSort::rcTreeConnSort (
   int*   isvoid = (int*)    malloc (nTreeLines * sizeof(int));
   double*   chi = (double*) malloc (nTreeLines * sizeof(double));
   int*    array = (int*)    malloc (nTreeLines * nTreeLines * sizeof(int));
-  QwTrackingTreeLine **tlarr = (QwTrackingTreeLine**) malloc (nTreeLines * sizeof(QwTrackingTreeLine*));
+  QwTreeLine **tlarr = (QwTreeLine**) malloc (nTreeLines * sizeof(QwTreeLine*));
 
   // Loop over the treelines and store valid treelines in new list
   index = 0;
-  for (QwTrackingTreeLine* treeline = treelinelist;
+  for (QwTreeLine* treeline = treelinelist;
        treeline; treeline = treeline->next) {
     if (treeline->IsValid()) {
       tlarr[index]  = treeline;
@@ -601,12 +574,11 @@ int QwTrackingTreeSort::rcTreeConnSort (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
+int QwTrackingTreeSort::rcPartConnSort (std::vector<QwPartialTrack*> parttracklist)
 {
   char *connarr;
   int *array;
   QwPartialTrack **ptarr, *parttrack;
-  int num, idx, i, j, bestconn;
   int  *isvoid;
   double   *chia, chi, maxch = 2000.0, nmaxch, nminch;
   /* ------------------------------------------------------------------
@@ -614,12 +586,14 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
    * ------------------------------------------------------------------ */
 
   int rep = 0;
+  int idx = 0;
   do {        /* filter out high chi2 if needed */
     rep++;
+    idx = 0;
     nmaxch = 0.0;
     nminch = maxch;
-    for (idx = 0, parttrack = parttracklist;
-         parttrack; parttrack = parttrack->next) {
+    for (size_t pt = 0; pt < parttracklist.size(); pt++) {
+      parttrack = parttracklist[pt];
       if (parttrack->fIsVoid == false ) {
         chi = parttrack->GetChiWeight();
         if (chi > maxch) {
@@ -640,10 +614,10 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
       }
     }
     maxch = nminch + (nmaxch - nminch) * 0.66;
-  } while( idx > 30 && rep < 10);
+  } while (idx > 30 && rep < 10);
 
 
-  num = idx;
+  int num = idx;
 
   if (! num)
     return 0;
@@ -659,19 +633,13 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
     fprintf(stderr,"Cannot Allocate Sort Array for %d PartialTracks\n",num);
     abort();
   }
-  /*
-  if( DE && (DEBUG & D_GRAPHP)) {
-    printf("----------SORT PT %c %c\n",
-    "FB"[vispar],"UL"[viswer]);
-  }
-  */
 
   /* ----------------------------------------------------------------------
    * find the used parttracks
    * ---------------------------------------------------------------------- */
 
-  for (idx = 0, parttrack = parttracklist;
-       parttrack; parttrack = parttrack->next) {
+  for (size_t pt = 0, idx = 0; pt < parttracklist.size(); pt++) {
+    parttrack = parttracklist[pt];
     if (parttrack->fIsVoid == false) {
       ptarr[idx]  = parttrack;
       isvoid[idx] = parttrack->fIsVoid;
@@ -684,76 +652,35 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
    * build the graph array
    * ---------------------------------------------------------------------- */
 
-  for (i = 0; i < num; i++) {
+  for (int i = 0; i < num; i++) {
     array[i * num + i] = false;
-    for (j = i+1; j < num; j++) {
+    for (int j = i+1; j < num; j++) {
       array[i * num + j] = array[j * num + i] =
         (rcPTCommonWires(ptarr[i], ptarr[j]) > 25);
     }
   }
-  /*
-  if( DE && (DEBUG & D_GRAPHP)) {
-    for( i = 0; i < num; i++ ) {
-      if( isvoid[i] != true )
-        printf("pthave (%d) %f,%f %f,%f - %f %d (%d)\n", i,
-        ptarr[i]->x,
-        ptarr[i]->y,
-        ptarr[i]->mx,
-        ptarr[i]->my,
-        ptarr[i]->GetChiWeight(),
-        ptarr[i]->nummiss,
-        connectiv( 0, array, isvoid, num, i));
-    }
-  }
-  */
+
   /* --------------------------------------------------------------------
    * check connectivity
    * -------------------------------------------------------------------- */
 
-  for (i = 0; i < num; ) {
+  for (int i = 0; i < num; ) {
     if (isvoid[i] == false) {
-      bestconn =  connectiv( 0, array, isvoid, num, i);
+      int bestconn =  connectiv( 0, array, isvoid, num, i);
       if (bestconn > 0) {
         if (connectarray(connarr, array, isvoid, num, i))
           continue;
-        /*
-        if( DE && (DEBUG & D_GRAPHP)) {
-          printf(" %d-connections:", i);
-          for( j = 0; j < num; j++ ) {
-            if( connarr[j])
-              printf("%d ",j);
-          }
-          puts("");
-        }
-        */
+
         bestunconnected (connarr, array, isvoid, chia, num, i);
-        /*
-        if( DE && (DEBUG & D_GRAPHP))
-          puts("");
-        */
+
       } else
         isvoid[i] = good;//good
     } else
       i++;
   }
-  /*
-  if( DE && (DEBUG & D_GRAPHP)) {
-    for( i = 0; i < num; i++ ) {
-      if( isvoid[i] != true )
-  printf("ptkeep (%d) %f,%f %f,%f - %f %d (%d)\n", i,
-         ptarr[i]->x,
-         ptarr[i]->y,
-         ptarr[i]->mx,
-         ptarr[i]->my,
-         ptarr[i]->GetChiWeight(),
-         ptarr[i]->nummiss,
-         connectiv( 0, array, isvoid, num, i));
-    }
-  }
-  */
-  for (i = 0; i < num; i++) {
+
+  for (int i = 0; i < num; i++) {
     if (isvoid[i] != true) {
-      //Statist[method].QwPartialTracksUsed[where][part] ++;
       ptarr[i]->fIsVoid = false;
     } else
       ptarr[i]->fIsVoid = true;

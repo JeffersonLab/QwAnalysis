@@ -278,11 +278,11 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename)
 	Double_t stabilitycut = mapstr.GetTypedNextToken<Double_t>();
 	QwMessage<<"QwBeamMod Error Code  "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(kQwUnknownDeviceType),device_name);
-	std::cout<<"*****************************"<<std::endl;
-	std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
-	fModChannel[det_index].PrintInfo();
+	QwMessage << "*****************************" << QwLog::endl;
+	QwMessage << " Type " << device_type << " Name " << device_name << " Index [" << det_index << "] "
+	          << " device flag " << eventcut_flag << QwLog::endl;
 	fModChannel[det_index].SetSingleEventCuts((GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)|kBModErrorFlag),LLX,ULX,stabilitycut);
-	std::cout<<"*****************************"<<std::endl;
+	QwMessage << "*****************************" << QwLog::endl;
 
       }
       else if (device_type == "word" && device_name== "ffb_status"){
@@ -356,16 +356,16 @@ Int_t QwBeamMod::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin looping through the data.
     if (lkDEBUG)
-      std::cout << "QwBeamMod::ProcessEvBuffer:  "
+      QwMessage << "QwBeamMod::ProcessEvBuffer:  "
 		<< "Begin processing ROC" << roc_id
 		<< " and subbank "<<bank_id
-		<< " number of words="<<num_words<<std::endl;
+		<< " number of words="<<num_words<<QwLog::endl;
     if (buffer[0]==0xf0f0f0f0 && num_words%2==1){
       buffer++;
       if (lkDEBUG)
-	std::cout << "QwBeamMod::ProcessEvBuffer:  "
+	QwMessage << "QwBeamMod::ProcessEvBuffer:  "
 		  << "Skipped padding word 0xf0f0f0f0 at beginning of buffer."
-		  << std::endl;
+		  << QwLog::endl;
     }
 
     for(size_t i=0;i<fModChannelID.size();i++)
@@ -648,41 +648,22 @@ void QwBeamMod::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 	this->fWord[i].fValue=innumer->fWord[i].fValue;
 
     }
-  return;
 }
 
 
 void QwBeamMod::Scale(Double_t factor)
 {
-
   for(size_t i=0;i<fModChannel.size();i++)
     fModChannel[i].Scale(factor);
-  return;
 }
 
-void QwBeamMod::CalculateRunningAverage()
-{/*
-  UInt_t i = 0;
-  std::cout<<"*********QwBeamMod device Averages****************"<<std::endl;
-  std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
-  printf("BPM\n");
-  for(i=0; i<fStripline.size(); i++) fStripline[i].Calculate_Running_Average();
-  printf("BCM\n");
-  for(i=0; i<fModChannel.size();       i++) fModChannel[i].Calculate_Running_Average();
-  for(i=0; i<fModChannelCombo.size();  i++) fModChannelCombo[i].Calculate_Running_Average();
-  for(i=0; i<fBPMCombo.size();  i++) fBPMCombo[i].Calculate_Running_Average();
-  std::cout<<"---------------------------------------------------"<<std::endl;
-  std::cout<<std::endl;*/
-  return;
-}
+void QwBeamMod::CalculateRunningAverage() { }
 
-void QwBeamMod::AccumulateRunningSum(VQwSubsystem*){}
+void QwBeamMod::AccumulateRunningSum(VQwSubsystem*) { }
 
 Bool_t QwBeamMod::Compare(VQwSubsystem *value)
 {
-  //  std::cout<<" Here in QwBeamMod::Compare \n";
-
-  Bool_t res=kTRUE;
+  Bool_t res = kTRUE;
   if(typeid(*value)!=typeid(*this))
     {
       res=kFALSE;
@@ -691,7 +672,6 @@ Bool_t QwBeamMod::Compare(VQwSubsystem *value)
     }
   else
     {
-      //QwBeamMod* input= (QwBeamMod*)value;
       QwBeamMod* input = dynamic_cast<QwBeamMod*>(value);
 
 	if(input->fModChannel.size()!=fModChannel.size())
@@ -854,7 +834,7 @@ void QwBeamMod::AnalyzeOpticsPlots()
 
   TCanvas *canvas = new TCanvas("canvas", "canvas", 5);
 
-  Double_t mean;
+  //Double_t mean; // unused
   Double_t amplitude;
   Double_t phase;
 
@@ -871,7 +851,7 @@ void QwBeamMod::AnalyzeOpticsPlots()
 	sine->SetParLimits(2, 0, TMath::Pi()*2 );
 	fHistograms[5*bpm + pattern]->Fit("sine","R B");
 	
-	mean = sine->GetParameter(0);
+	//mean = sine->GetParameter(0); // unused
 	amplitude = TMath::Abs(sine->GetParameter(1));
 	phase = sine->GetParameter(2) * TMath::RadToDeg();
 	
@@ -973,17 +953,15 @@ void QwBeamMod::FillTreeVector(std::vector<Double_t> &values) const
 //*****************************************************************
 void  QwBeamMod::Print()
 {
-  std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
+  QwMessage << "Name of the subsystem =" << fSystemName << QwLog::endl;
 
-  std::cout<<"there are "<<fModChannel.size()<<" mods \n";
+  QwMessage << "there are " << fModChannel.size() << " mods" << QwLog::endl;
 
-  std::cout<<" Printing Running AVG and other channel info for fModChannel"<<std::endl;
+  QwMessage << " Printing Running AVG and other channel info for fModChannel" << QwLog::endl;
   for(size_t i=0;i<fModChannel.size();i++)
     fModChannel[i].PrintValue();
   for(size_t i=0;i<fWord.size();i++)
     fWord[i].Print();
-
-  return;
 }
 
 void  QwBeamMod::PrintModChannelID()
@@ -994,31 +972,23 @@ void  QwBeamMod::PrintModChannelID()
       std::cout<<" Detector ID="<<i<<std::endl;
       fModChannelID[i].Print();
     }
-  return;
 }
 
 
 void  QwModChannelID::Print()
 {
-
-  std::cout<<std::endl<<"Detector name= "<<fmodulename<<std::endl;
-  std::cout<<"SubbankkIndex= "<<fSubbankIndex<<std::endl;
-  std::cout<<"word index in subbank= "<<fWordInSubbank<<std::endl;
-  std::cout<<"module type= "<<fmoduletype<<std::endl;
-// std::cout<<"detector type=  "<<fdetectortype<<" that is index="<<fTypeID<<std::endl;
-  std::cout<<"Index of this detector in the vector of similar detector= "<<
-    fIndex<<std::endl;
-//std::cout<<"Subelement index= "<< fSubelement<<std::endl;
-
+  QwMessage <<std::endl<<"Detector name= "<<fmodulename<<QwLog::endl;
+  QwMessage <<"SubbankkIndex= "<<fSubbankIndex<<QwLog::endl;
+  QwMessage <<"word index in subbank= "<<fWordInSubbank<<QwLog::endl;
+  QwMessage <<"module type= "<<fmoduletype<<QwLog::endl;
+// QwMessage <<"detector type=  "<<fdetectortype<<" that is index="<<fTypeID<<QwLog::endl;
+  QwMessage <<"Index of this detector in the vector of similar detector= "<<
+    fIndex << QwLog::endl;
+//QwMessage <<"Subelement index= "<< fSubelement<<QwLog::endl;
 
 
-
-
-  std::cout<<"---------------------------------------------------"<<std::endl;
-  std::cout<<std::endl;
-
-
-  return;
+  QwMessage << "---------------------------------------------------" << QwLog::endl;
+  QwMessage << QwLog::endl;
 }
 
 //*****************************************************************

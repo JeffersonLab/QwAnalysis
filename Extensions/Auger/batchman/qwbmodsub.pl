@@ -155,7 +155,7 @@ if (!defined($FarmOSName) || $FarmOSName eq "") {
     if (-f "$script_dir/.farm_os_name") {
 	chomp($FarmOSName = `cat $script_dir/.farm_os_name`);
     }
-    $FarmOSName = "linux64" if (!defined($FarmOSName) || $FarmOSName eq "");
+    $FarmOSName = "centos62" if (!defined($FarmOSName) || $FarmOSName eq "");
 }
 
 $BaseMSSDir = "/mss/hallc/qweak" if (!defined($BaseMSSDir) || $BaseMSSDir eq "");
@@ -661,7 +661,7 @@ sub create_old_jobfile($$$@) {
     #"OUTPUT_TEMPLATE: $ENV{PEDESTAL_DIR}/.\n";
 
     print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
-    print JOBFILE  "OS: $FarmOSName\n";
+    print JOBFILE  "OS: centos62\n";
     close JOBFILE;
     return $command_file;
 }
@@ -692,7 +692,7 @@ sub create_xml_jobfile($$$@) {
 	" <Name name=\"QwBMod_$runnumber$suffix\"/>\n";
     my $timelimit = 300*($#infiles+1);  # Allow 4 hrs per input file
     print JOBFILE
-	" <OS name=\"$FarmOSName\"/>\n",
+	" <OS name=\"centos62\"/>\n",
 	" <TimeLimit unit=\"minutes\" time=\"$timelimit\"/>\n",
 	" <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
 	" <Memory space=\"$MaxMemoryPerJob\" unit=\"MB\"/>\n";

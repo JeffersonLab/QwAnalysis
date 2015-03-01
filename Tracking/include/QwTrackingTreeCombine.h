@@ -8,7 +8,6 @@
 // Standard C and C++ headers
 #include <iostream>
 #include <utility>
-using std::cout; using std::cerr; using std::endl;
 
 #include "QwTypes.h"
 #include "QwDetectorInfo.h"
@@ -29,33 +28,6 @@ using std::cout; using std::cerr; using std::endl;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-/*!
-    \todo The chi_hash class is legacy code which I have yet to abolish.  Its
-    functions are used by various routines.  The goal is to eventually replace
-    the need for this class.
-*/
-///
-/// \ingroup QwTracking
-class chi_hash {
-
-  public:
-
-    chi_hash() {
-      hits = 0;
-    };
-    virtual ~chi_hash() {};
-
-    double cx, mx, cov[3], chi;
-    double hit[DLAYERS];
-    int    hits;
-    chi_hash *next;
-
-  private:
-
-};
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
 /*! \brief QwTrackingTreeCombine combines track segments and performs line fitting
 
 QwTrackingTreeCombine performs many of the tasks involved with matching hits to track segments
@@ -66,7 +38,7 @@ and combining track segments into full tracks with lab coordinates.
 class QwHit;
 class QwHitContainer;
 class QwTrackingTreeRegion;
-class QwTrackingTreeLine;
+class QwTreeLine;
 class QwPartialTrack;
 class QwEvent;
 
@@ -91,67 +63,69 @@ class QwTrackingTreeCombine {
     int SelectLeftRightHit (double *xresult, double dist_cut,
 		QwHitContainer *hitlist, QwHit **ha, double Dx = 0);
 
-    int SelectLeftRightHit (QwHitContainer *hitlist, QwHit **ha, int bin, double width,double Dx = 0);
     /// \brief Select the left or right hit assignment for VDC hits
     QwHit* SelectLeftRightHit (double track_position, QwHit* hit);
 
 
-    void mul_do (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);
-    void weight_lsq (
+    void SelectPermutationOfHits (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);
+    void r2_TreelineFit (
 		double& slope, double& offset, double cov[3], double& chi,
 		QwHit **hits, int n);
-    void weight_lsq_r3 (
+    void r3_TreelineFit (
 		double& slope, double& offset, double cov[3], double& chi,
 		QwHit **hits, int n, double z1, int wire_offset );
 
 
-    int selectx (double *xresult, double dist_cut, QwHit *hitarray[], QwHit **ha);
+    int selectx (double *xresult, double dist_cut, QwHit** hitarray, QwHit** ha);
     int contains (double var, QwHit **arr, int len);
 
     bool TlCheckForX (
 		double x1, double x2, double dx1, double dx2, double Dx, double z1, double dz,
-		QwTrackingTreeLine *treefill, QwHitContainer *hitlist,
+		QwTreeLine *treefill, QwHitContainer *hitlist,
 		int  dlayer, int tlayer, int iteration, int stay_tuned, double width);
 
     int TlMatchHits (
 		double x1, double x2, double z1, double z2,
-		QwTrackingTreeLine *treeline, QwHitContainer *hitlist,
+		QwTreeLine *treeline, QwHitContainer *hitlist,
 		int tlayers);
 
     bool InAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
-    void TlTreeLineSort (QwTrackingTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
+    void TlTreeLineSort (QwTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
 
     // Combine the tree lines in partial tracks for region 2 and region 3
     QwPartialTrack* TcTreeLineCombine (
-		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv,
-		QwTrackingTreeLine *wx,
-		int tlayer);
-     QwPartialTrack* TcTreeLineCombine (
-		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv,
-		QwTrackingTreeLine *wx,
-		int tlayer,bool opt);
+		QwTreeLine *wu,
+		QwTreeLine *wv,
+		QwTreeLine *wx,
+		int tlayer,
+		bool drop_worst_hit);
 
     QwPartialTrack* TcTreeLineCombine (
-		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv,
+		QwTreeLine *wu,
+		QwTreeLine *wv,
 		int tlayer);
-    QwPartialTrack* TcTreeLineCombine (
-		QwTrackingTreeLine *wu,
-		QwTrackingTreeLine *wv);
 
-    QwPartialTrack* TlTreeCombine (
-		QwTrackingTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
-		EQwRegionID region, int tlayer, int dlayer);
+    std::vector<QwPartialTrack*> TlTreeCombine (
+                const std::vector<QwTreeLine*>& treelines_x,
+                const std::vector<QwTreeLine*>& treelines_u,
+                const std::vector<QwTreeLine*>& treelines_v,
+                EQwDetectorPackage package,
+                EQwRegionID region,
+                int tlayer,
+                int dlayer);
 
-    void ResidualWrite (QwEvent *event);
+    int r2_PartialTrackFit (
+                const int num_hits,
+                QwHit **hits,
+                double *fit,
+                double *cov,
+                double &chi2,
+                double *signedresidual,
+                bool drop_worst_hit);
 
-    int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual);
-    int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual, bool opt);
-    int r3_TrackFit_deprecated  (const int num, QwHit **hits, double *fit, double *cov, double &chi, double uv2xy[2][2]);
-    QwPartialTrack* r3_TrackFit (const int num, QwHit **hits,
-        QwTrackingTreeLine *wu, QwTrackingTreeLine *wv);
+    QwPartialTrack* r3_PartialTrackFit (
+                const QwTreeLine* wu,
+                const QwTreeLine* wv);
 
   private:
 
@@ -166,6 +140,9 @@ class QwTrackingTreeCombine {
     int fMaxMissedPlanes;
     /// Maximum number of missed wires in region 3
     int fMaxMissedWires;
+
+    /// Drop the hit with largest residual and attempt partial track fit again in region 2
+    bool fDropWorstHit;
 
 }; // class QwTrackingTreeCombine
 

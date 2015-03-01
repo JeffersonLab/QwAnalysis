@@ -34,6 +34,7 @@ void DefineOptionsTracking(QwOptions& options)
 
   /* Define tracking options */
   QwTrackingWorker::DefineOptions(options);
+  QwDriftChamber::DefineOptions(options);
   QwDriftChamberVDC::DefineOptions(options);
   QwDriftChamberHDC::DefineOptions(options);
   QwMagneticField::DefineOptions(options);

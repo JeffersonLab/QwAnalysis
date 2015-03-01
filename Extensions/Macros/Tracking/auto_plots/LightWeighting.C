@@ -18,7 +18,7 @@ scatting angle is in degrees.
 
 Entry Conditions: the run number, bool for first 100k
 Date: 09-12-2012
-Modified:09-15-2012
+Modified:05-08-2014
 Assisted By: Wouter Deconinck
 *********************************************************/
 
@@ -59,11 +59,27 @@ double adc_pedestal[9] = {0.0, 550.000, 550.000, 550.000, 550.000, 550.000, 550.
 //define a functions 
 int DetermineOctantRegion3(TChain* event_tree, int package);
 
+
+/***********************************
+set up the significant figures right - &plusmn is for html,
+  change to +/- if not useing,
+  or in this case \t for a tab space in the outputfile
+Use this by calling: value_with_error(a,da)
+***********************************/
+#define value_with_error(a,da) std::setiosflags(std::ios::fixed) \
+ << std::setprecision((size_t) (std::log10((a)/(da)) - std::log10(a) + 1.5)) \
+ << " " << (a) << " \t " << (da) << std::resetiosflags(std::ios::fixed)
+
+
 void LightWeighting (int runnum, bool is100k)
 {
   //changed the outputPrefix so that it is compatble with both Root 
   //and writing to a file by setting the enviromnet properly 
-  Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+  //Prefix = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+
+  Prefix = Form(
+      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+      runnum, runnum);
 
   // Create and load the chain
   TChain *event_tree = new TChain("event_tree");
@@ -287,18 +303,18 @@ void LightWeighting (int runnum, bool is100k)
   if (!fout.is_open()) cout << "File not opened" << endl;
 
 	//Name what each coulmn is Note Package 0 is the compination of package 1 and package 2
-	fout << "Run \t Oct \t bar pos. \t # Tracks \t Q2 \t Q2 Error \t light yield \t LT Error \t scat. angle \t SA Error" <<endl;
+	fout << "Run \t Pkg \t bar pos. \t # Tracks \t Q2 \t Q2 Error \t light yield \t LT Error \t scat. angle \t SA Error" <<endl;
 
 	//some way to loop over all of this
 	for (size_t pkg = 1; pkg < h_q2.size(); pkg++)
-	{    
+	{
 		for (int bin = 0; bin < bin_size; bin++)
 		{
-			fout << runnum << " \t " << oct [pkg] << " \t " <<  h_q2_prof[pkg]->GetBinCenter(bin) << " \t " << 
-							h_x[pkg]->GetBinContent(bin) << " \t " <<
-							h_q2_prof[pkg]->GetBinContent(bin) << " \t " << h_q2_prof[pkg]->GetBinError(bin) << " \t " <<  
-							h_lw_prof[pkg]->GetBinContent(bin) << " \t " << h_lw_prof[pkg]->GetBinError(bin) << " \t " <<
-							h_sa_prof[pkg]->GetBinContent(bin) << " \t " << h_sa_prof[pkg]->GetBinError(bin) << endl;
+			fout << runnum << " \t " << pkg << " \t " << std::setprecision(10) << h_q2_prof[pkg]->GetBinCenter(bin) << " \t " <<
+							std::setprecision(10) << h_x[pkg]->GetBinContent(bin) << " \t" <<
+							value_with_error(h_q2_prof[pkg]->GetBinContent(bin), h_q2_prof[pkg]->GetBinError(bin)) << " \t" <<
+							value_with_error(h_lw_prof[pkg]->GetBinContent(bin), h_lw_prof[pkg]->GetBinError(bin)) << " \t" <<
+							value_with_error(h_sa_prof[pkg]->GetBinContent(bin), h_sa_prof[pkg]->GetBinError(bin)) << endl;
 		}
 	}
 	//close the file
@@ -310,15 +326,15 @@ void LightWeighting (int runnum, bool is100k)
   if (!fout2.is_open()) cout << "File not opened" << endl;
 
 	//Name what each coulmn is Note Package 0 is the compination of package 1 and package 2
-	fout2 << "Run \t Oct \t  Q2 \t Q2 Error \t LW Q2 \t LW Q2 Error \t LW & P Q2 \t LW & P Q2 Error " <<endl;
+	fout2 << "Run \t pkg \t  Q2 \t Q2 Error \t LW Q2 \t LW Q2 Error \t LW & P Q2 \t LW & P Q2 Error " <<endl;
 
 	//some way to loop over all of this
 	for (size_t pkg = 1; pkg < h_q2.size(); pkg++)
-	{    
-			fout2 << runnum << " \t " << oct[pkg] << " \t " << 
-					std::setprecision(5) << 1000*h_q2[pkg]->GetMean() << " \t " << std::setprecision(4) << 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2[pkg]->GetEntries()) << " \t "  <<
-					std::setprecision(5) << 1000*h_q2_lw[pkg]->GetMean() << " \t " << std::setprecision(4) << 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2_lw[pkg]->GetEntries()) << " \t "  <<
-					std::setprecision(5) << 1000*h_q2_lw_p[pkg]->GetMean() << " \t " << std::setprecision(4) << 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2_lw_p[pkg]->GetEntries()) << endl;
+	{
+			fout2 << runnum << " \t " << pkg << " \t" <<
+					value_with_error(1000*h_q2[pkg]->GetMean(), 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2[pkg]->GetEntries())) << " \t"  <<
+					value_with_error(1000*h_q2_lw[pkg]->GetMean(), 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2_lw[pkg]->GetEntries())) << " \t"  <<
+					value_with_error(1000*h_q2_lw_p[pkg]->GetMean(), 1000*h_q2[pkg]-> GetRMS()/sqrt(h_q2_lw_p[pkg]->GetEntries())) << endl;
 
 	}
 	//close the file

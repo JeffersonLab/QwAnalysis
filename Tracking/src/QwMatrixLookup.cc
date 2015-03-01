@@ -11,8 +11,6 @@
 // ROOT Math Interpolator headers
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 #include <Math/Interpolator.h>
-#else
-#warning "The QwRayTracer look-up table momentum determination will not be built!"
 #endif
 
 // Qweak headers
@@ -283,7 +281,7 @@ bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
     direction_theta = direction.Theta();
 
     // Add the back reference plane parameters to the look-up table
-    float value[4] = {position_r, position_phi, direction_phi, direction_theta};
+    float value[4] = {(float) position_r, (float) position_phi, (float) direction_phi, (float) direction_theta};
     fMatrix->Set(coord, value);
 
     // Progress bar
@@ -400,9 +398,6 @@ const QwTrack* QwMatrixLookup::Bridge(
     }
 
     // The hit is within the momentum limits, do interpolation for momentum
-
-    UInt_t size = 0;
-    size = iP.size();
     momentum = 0.0;
 
     // We can choose among the following interpolation methods:
@@ -412,9 +407,11 @@ const QwTrack* QwMatrixLookup::Bridge(
 
       #if ROOT_VERSION_CODE >= ROOT_VERSION(5,22,0)
         // Newer version of the MathMore plugin use kPOLYNOMIAL
+        UInt_t size = iP.size();
         ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::kPOLYNOMIAL);
       #else
         // Older version of the MathMore plugin use POLYNOMIAL
+        UInt_t size = iP.size();
         ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::POLYNOMIAL);
       #endif
 

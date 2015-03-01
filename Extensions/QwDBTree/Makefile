@@ -1,4 +1,5 @@
-CXXFLAGS = $(shell root-config --cflags)
+SVNDEV = -D'SVN_REV="$(shell svnversion -c . | sed -e 's/[MS]//g' -e 's/^[[:digit:]]*://')"'
+CXXFLAGS = $(SVNDEV) $(shell root-config --cflags)
 LIBS = $(shell root-config --glibs)
 
 SRCS := \
@@ -9,6 +10,9 @@ SRCS := \
 	QwDetector.cpp \
 	QwLumiDet.cpp \
 	QwMainDet.cpp \
+	QwDetectorSlope.cpp \
+	QwMainDetSlope.cpp \
+	QwLumiDetSlope.cpp \
 	parse.cpp \
 	runlet.cpp \
 	parse.h

@@ -2,8 +2,20 @@
 
 <html>
 <head>
-<meta http-equiv="Pragma" content="no-cache">
-<title>Tracking  %%RUNNUM%% Run Summary</title>
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>Tracking  %%RUNNUM%% Run Summary</title>
+
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+  <script>
+  $(function() {
+    $( "#accordion" ).accordion({
+      heightStyle: "content"
+    });
+  });
+  </script>
 </head>
 <body>
 
@@ -11,224 +23,527 @@
 
 <table border="0" width="100%">
 <tr>
-<td><h2><-Previous Run
-</td></h2>
-<td><h1 align="center">Run %%RUNNUM%% %%FIRST100KMESSAGE%% 
-</h1></td>
-<td><h2 align="right">Next Run->
-</td></h2>
-<td><h2 align="right"><a href="../index.html">^Runlist^</a>
-</td></h2>
+  <td><h2><-Previous Run</td></h2>
+  <td><h1 align="center">Run %%RUNNUM%% %%FIRST100KMESSAGE%%</h1></td>
+  <td><h2 align="right">Next Run-></td></h2>
+  <td><h2 align="right"><a href="../index.html">^Runlist^</a></td></h2>
 </tr>
 </table> 
 
 <table class="runpage-info" width="100%">
 <tr>
 	<td>Links</td>
-	<td></td><td>Start Run: %%STARTDATE%%</td>
-	<td></td><td>%%BCM01%%</td>
+  <td>Start Run: %%STARTDATE%%</td>
+	<td>Links</td>
 </tr>
 <tr>
 	<td><a href="./">Directory List</a></td>
-	<td></td><td>End Run: %%ENDDATE%%</td>
-	<td></td><td>%%BCM02%%</td>
+	<td>End Run: %%ENDDATE%%</td>
+	<td><a href="./">Directory List</a></td>
 </tr>
 <tr>
-	<td><a href="#hdc">Horizontal Drift Chambers</a></td>
-	<td></td><td>Root file date: %%ROOTDATE%%</td>
-	<td></td><td>%%BCM17%%</td>
+  <td><a href="#Q2">Q2</a></td>
+  <td>End Run: %%ENDDATE%%</td>
+  <td><a href="#vdc">VDC</a></td>
 </tr>
 <tr>
-	<td><a href="#vdc">Vertical Drift Chambers</a></td>
-	<td></td><td>Last Analysis: %%ANALYSISDATE%%</td>
-	<td></td><td>%%HWP%%</td>
+  <td><a href="#BeamPositionQ2">BeamPosition Q2</a></td>
+  <td>Root file date: %%ROOTDATE%%</td>
+  <td><a href="#R3TreelinesMatchUp">R3 treeline match up</a></td>
 </tr>
 <tr>
-	<td><a href="#ts">Trigger Scintillators</a></td>
-	<td></td>
-	<td></td>
+  <td><a href="#Chi">Log(Chi)</a></td>
+  <td>Root file date: %%ROOTDATE%%</td>
+  <td><a href="#R3Offsets">R3 offset</a></td>
 </tr>
 <tr>
-	<td><a href="#lumi">Luminosity Detectors</a></td>
-	<td></td>
-	<td></td>
+  <td><a href="#Residual">Residuals R2</a></td>
+  <td>Last Analysis: %%ANALYSISDATE%%</td>
+  <td><a href="#ts">Trigger Scint</a></td>
+</tr>
+<tr>
+	<td><a href="#hdc">HDCs</a></td>
+  <td></td>
+	<td><a href="#lumi">Lumis</a></td>
+</tr>
+<tr>
+  <td><a href="#QwHits">QwHits</a></td>
+  <td></td>
+  <td><a href="#QTOR">QTOR</a></td>
+</tr>
+<tr>
+  <td><a href="#OctantDetermination">Octant Determination</a></td>
+  <td></td>
+  <td><a href="#NumTracks">Good Events</a></td>
 </tr>
 </table>
 
+
+<!-- New Topic -->
+
+
 <a name="Q2"></a>
-<center><h2>Q2 Plots and Values</h2></center>
+<center><h2>Q2 and Scattering Angle</h2></center>
+
 <center><p> 
-This plot is the one that is output by the Q2 script. The left column is the sacttering angle and the right 
-is the Q^2 values.  The rows form top to bottom are both packages, package 1, and then package 2. 
+Q^2 and Theta for valid bridged tracks (all cuts are on). Left column is the scattering angle and the right 
+is the Q^2. <br> The rows from top to bottom are both packages, package 1, and then package 2. 
 The mean values and the error are given in the text file below the plot.  
 </p></center>
-<p><center><img src="%%RUNNUM%%_q2.png"></center></p>
-<p><center><a href="%%RUNNUM%%_q2.txt">Q2 Values</a></center></p>
+
+<p><center><img src="%%RUNNUM%%_q2.png" style="width: 800px; margin-right:50px"></center></p>
+<p><center><a href="%%RUNNUM%%_q2.txt" style="width: 800px; margin-right:50px">Q2 Values</a></center></p>
+
+
+<!-- New Topic -->
+
+
+<a name="BeamPositionQ2"></a>
+<center><h2>Q2 vs. X and Y Beam Position Plots</h2></center>
+
+<center><p>
+All plots illustrate Q2 vs. beam position for x and y position (global) of the rastered beam.
+The top plot is for x beam position and the bottom plot is for y beam position, for both packages,
+package 1, and package 2, respectively. The dependence between Q2 and beam position has been
+figured in each of them. The slope, error, and chi square are given in the text file below
+the plots. 
+</p></center>
+
+<p><center><img src="%%RUNNUM%%_Q2_vs_beamxposition.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Q2_vs_beamyposition.png"></center></p>
+<p><center><a href="%%RUNNUM%%_BeamPositionQ2_X.txt">Beam X Position Values</a></center></p>
+<p><center><a href="%%RUNNUM%%_BeamPositionQ2_Y.txt">Beam Y Position Values</a></center></p>
+
+
+
+<!-- New Topic -->
+
 
 <a name="Chi"></a>
-<center><h2>Log(Chi) plots and values</h2></center>
-<center><p> 
-The first two plots are the log(Chi) for each plane in region 1 and 2 respectivly.  
-From left to right the layout is such that, there is the total package (in black), the X plane (in red),
-the U plane (in blue) and the V plane (in green) of the package which is being ploted.
-Below these plots is a text file that has the mean Chi value for all of these and the error.  
-The direction is refenced by number where 0 == total package, 1 == X plane, 3 == U plane, and 4 == V plane.  <br>
+<center><h2>HDC Log(Chi) plots </h2></center>
+
+
+<center><p>
+The log(Chi) values for each HDC plane (Region 2) are plotted.  <br>
+From left to right: all planes (in black), the X plane (in red),
+the U plane (in blue) and the V plane (in green) of the package which is being plotted. <br>
+Below these plots is a text file that has the mean Chi value for all of these and the error. <br> 
+In the file the direction is referenced by: 0 == total package, 1 == X plane, 3 == U plane, and 4 == V plane.  <br>
 </p></center>
-<p><center><img src="Chi_%%RUNNUM%%__chi.png"></center></p>
-<p><center><a href="Chi_%%RUNNUM%%_Chi.txt">Chi Values</a></center></p>
-<!-- 
+
+<p><center><img src="%%RUNNUM%%_LogChi.png" style="width: 800px; margin-right:50px" ></center></p>
+<p><center><a href="%%RUNNUM%%_LogChi.txt" >Log Chi Values</a></center></p>
+
+<!-- This never existed...
+<p><center><img src="%%RUNNUM%%_chi.png" ></center></p>
+-->
+<p><center><a href="%%RUNNUM%%_Chi.txt" >Chi Values</a></center></p>
+
+<!-- This never existed...
+
 <center><p> The third plot log(Chi) values vs time in in region 2 for package 1 (across the top and package 2 across the bottom.
-From left to right the order is total package, X plane, U plane, V plane.</p><center>
-<p><center><img src="Chi_%%RUNNUM%%__chi_vs_time.png"></center></p>
+From left to right the order is total package, X plane, U plane, V plane.</p></center>
+
+<p><center><img src="%%RUNNUM%%_chi_vs_time.png"></center></p>
 -->
 
+
+<!-- New Topic -->
+
+
 <a name="Residual"></a>
-<center><h2>Residual value - Region 2</h2></center>
-<center><p>
-The first two plots here are for package 1 and package 2 respecitvly, for all 12 planes going 1-6 across the top and 7 -12 across the bottom.
-The planes are color coordinated such that the Xplane is red, the U plane is blue and the V plane is green.  
-The third plot is the residual for all the planes in package 1 (left) and package 2 (right)
+<center><h2>HDC Residuals</h2></center>
+
+<center><p> The first two plots are for package 1 and package 2 respectively, for all 12 planes going 1-6 across the top and 7-12 across the bottom.<br>
+The X planes are red, the U planes are blue and the V planes are green.  <br>
+The third plot is the residual for all the planes in package 1 (left) and package 2 (right). <br>
 Below this is a text file that has the mean residual and the error for all the packages, 
-where 0 is all the plane and 1 -12 is the number of the plane. <br>
-Please note: the rediual is calulated by:fQwTreeLines.fQwHits,fDriftPosition-fQwTreeLines.fQwHits.fTrackPosition, 
-and the residual in the Root tree is the absolute value of that
+where 0 is all planes and 1-12 is the number of the plane. <br>
+Note: the residual is calulated by:fQwTreeLines.fQwHits,fDriftPosition-fQwTreeLines.fQwHits.fTrackPosition; the residual in the Root tree is the absolute value of that.
 </p></center>
-<p><center><img src="Residual_%%RUNNUM%%_Residual_Package_1.png"></center></p>
-<p><center><img src="Residual_%%RUNNUM%%_Residual_Package_2.png"></center></p>
-<p><center><img src="Residual_%%RUNNUM%%_Residual_Both_Packages.png"></center></p>
-<p><center><a href="Residual_%%RUNNUM%%_Residual.txt">Residual Values</a></center></p>
+
+<p><center><img src="%%RUNNUM%%_Residual_Package_1.png" style="width: 800px; margin-right:50px"></center></p>
+<p><center><img src="%%RUNNUM%%_Residual_Package_2.png" style="width: 800px; margin-right:50px"></center></p>
+<!-- This never existed...
+<p><center><img src="%%RUNNUM%%_Residual_Both_Packages.png" style="width: 400px; margin-right:50px"></center></p> 
+-->
+<p><center><a href="%%RUNNUM%%_Residual.txt">Residual Values</a></center></p>
+
 <center><p>
-These last plots is the Mean Residual value vs. Plane number in Region 2 for 
-pacakge 1 (left) and 2 (right).  The error bars without the horzantal ticks at the end are    
+These last plots are the Mean Residual vs. Plane number in Region 2 for 
+package 1 (left) and 2 (right). 
+
+ <br> 
+
+<!--The error bars without the horizontal ticks at the end are    
 just the RMS values of the plot, and the ones with the ticks are the error defined as 
 RMS/sqrt(N).
-</p><center>
-<p><center><img src="Residual_%%RUNNUM%%_Residual_By_Plane_Package_1.png"> <img src="Residual_%%RUNNUM%%_Residual_By_Plane_Package_2.png"></center></p>
+-->
+</p></center>
+
+<p><center>
+<img src="%%RUNNUM%%_Residual_By_Plane_Package_1.png" style="width:300px;">
+<img src="%%RUNNUM%%_Residual_By_Plane_Package_2.png" style="width:300px;">
+</center></p>
+
+
+
+<!-- New Topic -->
 
 
 <a name="hdc"></a>
 <center><h2>Horizontal Drift Chamber Plots</h2></center>
 <center><p>
-These plots graph the drift time and drift distance in region 2 for each plane of wires, x,u,v.  
-The left graph is package 1 and the right is package 2.  
-In both the drift distance is across the top and the drift time is across the bottom.
+
+
+These plots graph the drift time and drift distance in Region 2 for each set of  planes of wires: x,u,v.  <br>
+Package 1 is plotted on the left and package 2 on the right.  <br>
+In both, the drift distance is across the top and the drift time is across the bottom.
 Again plane X is red, plane U is blue and plane V is green.
-</p><center>
-<p><center><img src="drift_distance_and_time_%%RUNNUM%%_Package_1.png"> <img src="drift_distance_and_time_%%RUNNUM%%_Package_2.png"></center></p>
+</p></center>
+
+<div style="width: 1200px; margin: 0 auto;">
+<img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
+
+<center><p>
+These plots graph the drift time distribution for all HDC hits (no requirement that the hits be part of valid tracks) for each of the 4 chambers, first on linear and then on log scales. 
+</p></center>
+
+<p><center><img src="%%RUNNUM%%_trk_drift_times.png"> </p></center>
+
+These plots graph the wire hit patterns for each plane of each HDC chamber for all HDC hits (no requirement that the hits be part of valid tracks)
+<p><center><img src="%%RUNNUM%%_trk_hit_patterns.png"></center></p>
+</p></center>
+
+
+<!-- New Topic -->
+
 
 <a name="QwHits"></a>
 <center><h2>QwHits plots</h2></center>
 <center><p>
-The first plot is the QwHits in each region, where 0 == null, 1 == Region 1, 2 == Region 2, 
-3 == Region 3, 4 == Trigger Scintillator, 5 == scanner, and 6 == numRegions.
-The second plot is the QwHits in each package, where 0 == null, 1 == package up, 2 == package down, and 3 == numPackages.
-The third plot is the QwHits in each direction, where 0 == Null, 1 == Direction X
-2 == Direction Y, 3 == Direction U, 4 == Direction V, 5 == Direction R, 
-6 == Direction phi, 7 == Direction Left, 8 == Direction Right, and 9 == numDirections. 
-</p><center>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_Region.png"> <img src="QwHitsInfo_%%RUNNUM%%_Package.png"></center></p>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_Direction.png"></center></p>
+
+The first plot is the QwHits in each region: 2 == Region 2, 
+3 == Region 3, 4 == Trigger Scintillator, 5 == scanner. <br>
+The second plot is the QwHits in each package. <br>
+The third plot is the QwHits in each direction: 1 == Direction X, 
+2 == Direction Y, 3 == Direction U, 4 == Direction V.
+</p></center>
+
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_Region.png"> <img src="%%RUNNUM%%_QwHitsInfo_Package.png"></center></p>
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_Direction.png"></center></p>
 <center><p>
-These  plots are the QwHits in each region, where region is defined as Trace # for R1; wire # for R2 & R3; PMT # for others
-</p><center>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_2.png"> <img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_3.png"></center></p>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_4.png"> <img src="QwHitsInfo_%%RUNNUM%%_Elements_Region_5.png"></center></p>
+These  plots are the "elements" for the QwHits in each region, where element is the wire # for R2 & R3 and the PMT# for others.
+</p></center>
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_2.png"> <img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_3.png"></center></p>
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_4.png"> <img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_5.png"></center></p>
 
 <center><p>
-This plot is of the log of events.fNQwTracks.
-</p><center>
-<p><center><img src="QwHitsInfo_%%RUNNUM%%_fNQwTracks.png">
+This is a plot of the log of the number of bridged tracks per event.
+</p></center>
+<p><center><img src="%%RUNNUM%%_QwHitsInfo_fNQwTracks.png">
+
+<!-- New Topic -->
+
 
 <a name="OctantDetermination"></a>
 <center><h2>Octant Determination Plots</h2></center>
+
 <center><p>
-The first two plots graph the main detector signal vs. the trigger scintillator for package 1 
-(left) and then package 2 (right) for each octant (where it would be on the farris wheel) with 
-the octant that was passed to through the analyzer graphed itn the center.
-</p><center>
-<p><center><img src="OctantDetermination_%%RUNNUM%%_Main_Detector_vs_Trigger_Scint_Package_1.png"> <img 
-src="OctantDetermination_%%RUNNUM%%_Main_Detector_vs_Trigger_Scint_Package_2.png"></center></p>
+The first two plots graph the main detector ADC signal (both PMTs summed) 
+vs. the trigger scintillator ADC signal (both PMTs summed) <br>
+for package 1 (left) and package 2 (right) for each octant 
+(visually located where it would be on the ferris wheel). <br>The center panel
+shows the octant that was selected as the one the package was located in.
+</p></center>
+
+<p><center>
+<div style="width: 1250px; margin: 0 auto;">
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_vs_Trigger_Scint_Package_1.png" style="width: 400px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_vs_Trigger_Scint_Package_2.png" style="width: 400px; margin-right:50px;" alt="" />
+</div>
+
+
 <center><p>
-The next four plots graph the main detector signal for region 2 (top) and then region 3 (bottom) for both package 1
-(left) and then package 2 (right) for each octant (where it would be on the farris wheel) with
-the octant that was passed to through the analyzer graphed itn the center.
-</p><center>
-<p><center><img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_2_Package_1.png"> 
-<img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_2_Package_2.png"></center></p>
+The next four plots graph the main detector ADC signal
+(both PMTs summed) for each octant, for treelines in Region 2 (top) and
+treelines in Region 3 (bottom),<br> for both package 1 (left) and then
+package 2 (right), with the octant that was passed to through the 
+analyzer graphed in the center.
+</p></center>
 
-<p><center><img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_3_Package_1.png">
-<img src="OctantDetermination_%%RUNNUM%%_Main_Detector_Region_3_Package_2.png"></center></p>
+<p><center>
+<div style="width: 1250px; margin: 0 auto;">
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_Region_2_Package_1.png" style="width: 400px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_Region_2_Package_2.png" style="width: 400px; margin-right:50px;" alt="" />
+</div>
+<div style="width: 1250px; margin: 0 auto;">
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_Region_3_Package_1.png" style="width: 400px; margin-right:50px;" alt="" />
+<img src="%%RUNNUM%%_OctantDetermination_Main_Detector_Region_3_Package_2.png" style="width: 400px; margin-right:50px;" alt="" />
+</div>
+</p></center>
 
 
-<a name="vdc"></a1>
+<a name="vdc"></a>
+
+
 <center><h2>Vertical Drift Chamber Plots</h2></center>
+
 <center><p>
-The first two plots graphs the number of hits vs wire number.  
-Package 1 is on the left and package 2 is on the right. 
-On each canvas the planes are layed out in columns such that the 
-V planes is the first column and the second is the u plane.
+The plots in this section are for all VDC hits (no requirement that they be used in valid tracks).<br> 
+The first two plots are the number of hits vs. wire number.  
+Package 1 is on the left and Package 2 is on the right. <br>
+The planes are in columns; 
+V planes are in the first column and the second are the U planes. <br>
 Vader is red, Yoda is appropriately green, Leia is blue and Han is purple. 
-</p><center> 
-<p><center><img src="auto_vdc_%%RUNNUM%%_wires_package1.png"> <img src="auto_vdc_%%RUNNUM%%_wires_package2.png"></center></p>
+</p></center> 
+
+<p><center><img src="%%RUNNUM%%_auto_vdc_wires_package1.png"> <img src="%%RUNNUM%%_auto_vdc_wires_package2.png"></center></p>
 
 <center><p>
-The following two plots graphs the number of ambiguous hits vs wire number.  
-Package 1 is on the left and package 2 is on the right.
-On each canvas the planes are layed out in columns such that the 
-V planes is the first column and the second is the u plane.
+The following two plots are the number of ambiguous hits vs. wire number.
+Package 1 is on the left and Package 2 is on the right. <br>
+The planes are in columns;
+V planes are in the first column and the second are the U planes. <br>
 Vader and Yoda are green, Leia and  Han are purple.
-</p><center>
-<p><center><img src="auto_vdc_%%RUNNUM%%_wires_ambig_package1.png"> <img src="auto_vdc_%%RUNNUM%%_wires_ambig_package2.png"></center></p>
+</p></center>
+<p><center><img src="%%RUNNUM%%_auto_vdc_wires_ambig_package1.png"> <img src="auto_vdc_wires_ambig_package2.png"></center></p>
+
 
 <center><p>
-The following two plots graphs the number of hits vs plane on the left 
-and number of ambiguous hits vs plane on the right.
-Package 1 is on the top in blue and package 2 is on the bottom in green for bothof these.
-</p><center>
-<p><center><img src="auto_vdc_%%RUNNUM%%_planes_hits.png"> <img src="auto_vdc_%%RUNNUM%%_planes_hit_ambigious.png"></center></p>
+The following two plots are the number of hits vs. plane on the left 
+and number of ambiguous hits vs. plane on the right.
+Package 1 is on the top in blue and Package 2 is on the bottom in green for both of these.
+</p></center>
+<p><center><img src="%%RUNNUM%%_auto_vdc_planes_hits.png"> <img src="%%RUNNUM%%_auto_vdc_planes_hit_ambigious.png"></center></p>
+
 
 <center><p>
-This plot graphs the mulitplcity vs number of hits for Vader, Leia, Yoda and Han.  
+This plot graphs the hit multiplicity (number of hits on a wire in given event) for Vader, Leia, Yoda and Han.  <br>
 Vader is red, Yoda is green, Leia is blue and Han is purple.
-</p><center>
-<p><center><img src="auto_vdc_%%RUNNUM%%_hit_number.png"></center></p>
+</p></center>
+<p><center><img src="%%RUNNUM%%_auto_vdc_hit_number.png"></center></p>
+
+
+This plot shows the drift time distributions for the VDCs (all hits).
+</p></center> 
+<p><center><img src="%%RUNNUM%%_auto_vdc_drifttimes.png"> 
+
+<p>This plot shows the hit distributions across the MUX delay lines for the VDCs.
+</p></center> 
+<p><center><img src="%%RUNNUM%%_auto_vdc_delaylines_hit.png"> 
+
+<!-- New Topic -->
+
+
+<a name="R3TreelinesMatchUp"></a>
+<center><h2>R3 match up of the treelines</h2></center>
+<center><p>
+
+These plots are to investigate how well the treelines in each plane
+match up with each other.  They are of the slope and the Chi^2 values
+of ALL (no cuts as of 04-15-2014) the treelines in the file.  <br> This is
+done for the treelines, partial tracks, and tracks.  The first group of
+plots are for the slope and the second set are for the Chi^2
+values.</p>
+
+<p>How are the planes related to each other you ask?  Well that is a
+very useful question.  <br>The planes are: Both, U, V, UU and VV.  In the
+plots we have:
+
+
+<table border="1" cellspacing="0" cellpadding="4" style="width:300px">
+<tr>
+  <td>Plane</td>
+  <td>VDC</td>    
+  <td>notes</td>
+  </tr>
+<tr>
+  <td>Both</td>
+  <td>Front/Back</td>   
+  <td>combination of the U and V plan for a VDC</td>
+</tr>
+<tr>
+  <td>U</td>
+  <td>Front/Back</td>   
+  <td>Just the plain old U plane</td>
+</tr>
+<tr>
+  <td>V</td>
+  <td>Front/Back</td>   
+  <td>Just the plain old V plane</td>
+</tr>
+<tr>
+  <td>UU</td>
+  <td>Both</td>   
+  <td>Combination of the U planes in both VDCs</td>
+</tr>
+<tr>
+  <td>VV</td>
+  <td>Both</td>   
+  <td>Combination of the U planes in both VDCs</td>
+</tr>
+</table>
+
+<font size="1">More information: see the comments at the beginning of R3_treelines_match_up.C script
+(feel free to meander the code too ;) )</font>
+</p></center>
+
+<center><h3>Slopes</h3></center>
+<center><p>
+The first set of plots is the treelines.  The first 3 are both VDCs together, 
+the front VDC and then the Back VDC for package 1 and likewise for package 2.<br>
+Both VDCs include the UU and VV plane from left to right.  The front and back 
+VDCs have both planes combined, the U and then the V plane.
+This is followed by a text file with average slopes in it.
+</p></center>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_1_Front_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_1_Back_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_2_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_2_Front_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Slope_package_2_Back_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Treeline_match_up_Slope.txt">R3 Treelines slopes</a></center></p>
+
+<center><p>
+
+These plots are for partial tracks.  Partial tracks by
+nature are a connection of treelines that match up.  There are no
+treelines in planes. <br> This means that we only have UU and VV planes,
+so both VDCs.  Package 1 (top) and 2 (bottom) are here followed again
+by the summary in a text file.
+
+</p></center>
+<p><center><img src="%%RUNNUM%%_Partial_Tracks_Slope_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Partial_Tracks_Slope_package_2_Both_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Partial_Tracks_match_up_Slope.txt">R3 Partial Tracks slopes</a></center></p>
+
+<center><p>
+
+These plots are for the tracks.  Tracks by
+nature are a connection of treelines that match up.  There are no
+treelines in planes. <br> This means that we only have UU and VV planes,
+so both VDCs.  Package 1 (top) and 2 (bottom) are here followed again
+by the summary in a text file.
+
+</p></center>
+<p><center><img src="%%RUNNUM%%_Tracks_Slope_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Tracks_Slope_package_2_Both_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Tracks_match_up_Slope.txt">R3 Tracks slopes</a></center></p>
+
+<center><h3>Chi^2</h3></center>
+<center><p>
+
+The first set of plots is the treelines.  The first 3 are both VDCs
+together, the front VDC and then the Back VDC for package 1 and
+likewise for package 2. <br> Both VDCs include the UU and VV plane, from
+left to right.  The front and back VDCs have both planes combined, the
+U and then the V plane.  This is followed by a text file with average
+slopes in it.
+
+</p></center>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_1_Front_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_1_Back_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_2_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_2_Front_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Treelines_Chi2_package_2_Back_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Treeline_match_up_Chi2.txt">R3 Treelines Chi^2</a></center></p>
+
+<center><p>
+
+These plots are for the partial tracks.  Partial tracks by nature are a
+connection of treelines that match up.  There are no treelines in planes.  <br>
+This means that we only have UU and VV planes, so both VDCs.  Package 1
+(top) and 2 (bottom) are here followed agin by the summary in a text file.
+
+</p></center>
+<p><center><img src="%%RUNNUM%%_Partial_Tracks_Chi2_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Partial_Tracks_Chi2_package_2_Both_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Partial_Tracks_match_up_Chi2.txt">R3 Partial Tracks Chi^2</a></center></p>
+
+<center><p>
+
+These plots are for the tracks.  Tracks by
+nature are a connection of treelines that match up.  There are no
+treelines in planes. <br> This means that we only have UU and VV planes,
+so both VDCs.  Package 1 (top) and 2 (bottom) are here followed agin
+by the summary in a text file.
+
+</p></center>
+<p><center><img src="%%RUNNUM%%_Tracks_Chi2_package_1_Both_VDC.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Tracks_Chi2_package_2_Both_VDC.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_Tracks_match_up_Chi2.txt">R3 Tracks Chi^2</a></center></p>
+
+
+<!-- New Topic -->
+
+
+<a name="R3Offsets"></a>
+<center><h2>R3 offset plots</h2></center>
+<center><p>
+These plots are looking at the offsets in direction (in the real world, momentum)
+of the Theta (top) and Phi (bottom) angles.  The plots from left to right are package 0 (both), 1,
+2.  The mean values are also in the file below the plots.
+</p></center>
+<p><center><img src="%%RUNNUM%%_Theta_offset.png"></center></p>
+<p><center><img src="%%RUNNUM%%_Phi_offset.png"></center></p>
+<p><center><a href="%%RUNNUM%%_R3_offsets_Theta.txt">Theta offsets</a> | <a href="%%RUNNUM%%_R3_offsets_Phi.txt">Phi offsets</a></center></p>
+
+
+<!-- New Topic -->
+
 
 <a name="ts"></a>
 <center><h2>Trigger Scintillator Plots</h2></center>
 <center><p>
-Graphs the two trigger scintillator scaler values vs time as event number.
-</p><center>
-<p><center><img src="trigger_scint_scalers_vs_time_%%RUNNUM%%.png"></center></p>
+Graphs the two trigger scintillator scaler values vs time (event number).
+</p></center>
+<p><center><img src="%%RUNNUM%%_trigger_scint_scalers_vs_time.png"></center></p>
+
+
+<!-- New Topic -->
+
 
 <a name="lumi"></a>
 <center><h2>Luminosity Detector Plots</h2></center>
 <center><p>
 Graph of all 8 dslumi rates vs. time (mps counter)
-</p><center>
-<p><center><img src="dslumi_%%RUNNUM%%_vs_time.png"></center></p>
+</p></center>
+<p><center><img src="%%RUNNUM%%_dslumi_vs_time.png"></center></p>
 <center><p>
 Graph of the sum of all the dslumi rates vs. time (mps counter)
-</p><center>
-<p><center><img src="dslumi_%%RUNNUM%%_sum_vs_time.png"></center></p>
+</p></center>
+<p><center><img src="%%RUNNUM%%_dslumi_sum_vs_time.png"></center></p>
 <center><p>
 Graphs all 4 dslumi rates ratios vs. time on one canvas 
 - the ratios are, 1/5, 2/6, 3/7, 4/8 (from top to bottom), octants that are across from each other.
-</p><center>
-<p><center><img src="dslumi_%%RUNNUM%%_ratios_vs_time.png"></center></p>
+</p></center>
+<p><center><img src="%%RUNNUM%%_dslumi_ratios_vs_time.png"></center></p>
+
+
+<!-- New Topic -->
+
 
 <a name="QTOR"></a>
 <center><h2>QTOR current vs. time Plots</h2></center>
 <center><p>
 Graphs the QTOR current vs event number.
-</p><center>
-<p><center><img src="QTOR_%%RUNNUM%%_current_vs_time.png"></center></p>
+</p></center>
+<p><center><img src="%%RUNNUM%%_QTOR_current_vs_time.png"></center></p>
+<p><center><a href="%%RUNNUM%%_QTOR_current.txt">QTOR current</a></center></p>
+
+
+<!-- New Topic -->
+
 
 <a name="NumTracks"></a>
 <center><h2>Number of Good Events in Various Categories</h2></center>
 <center><p>
+
 Graph the number of events in this run and the number of good events for 
 Hits, Treelines, Partial Tracks, and Tracks.
-Goal of this is to try and see where we are loosing about 90% of good tracks.
-</p><center>
+Goal of this is to try and see where we might be losing good tracks.
+</p></center>
 <p><center><img src="%%RUNNUM%%_NTracks.png"></center></p>
 

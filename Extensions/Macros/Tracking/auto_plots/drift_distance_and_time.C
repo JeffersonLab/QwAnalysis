@@ -38,7 +38,11 @@ void drift_distance_and_time(int runnum, bool is100k)
 	event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
 	//deifne the prefix as the directory that the files will be outputed to
-	Prefix = Form("$QWSCRATCH/tracking/www/run_%d/drift_distance_and_time_%d_",runnum, runnum);
+	//Prefix = Form("$QWSCRATCH/tracking/www/run_%d/drift_distance_and_time_%d_",runnum, runnum);
+
+	Prefix = Form(
+	      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_drift_distance_and_time_",
+	      runnum, runnum);
 
 	//Create the canvas
 	TCanvas c1("c1", "Drift Distance and Drift Time for Package 1", 600,700);

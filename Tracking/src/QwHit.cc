@@ -124,7 +124,7 @@ void QwHit::Initialize()
   fDirection         = kDirectionNull;
   fPlane             = 0;
   fElement           = 0;
-  pDetectorInfo      = 0;
+  fDetectorInfo      = 0;
 
   fAmbiguousElement  = false;
   fLRAmbiguity       = false;
@@ -135,20 +135,16 @@ void QwHit::Initialize()
   fTime              = 0.0;
   fTimeRes           = 0.0;
   fDistance          = 0.0;
-  fDriftPosition     = 0.0;
-  fTrackPosition     = 0.0;
   fWirePosition      = 0.0;
-  fResidual          = 0.0;
-  fZPosition         = 0.0;
+  fDriftPosition     = 0.0;
+  fTreeLinePosition     = 0.0;
+  fTreeLineResidual     = 0.0;
+  fPartialTrackPosition = 0.0;
+  fPartialTrackResidual = 0.0;
   fSpatialResolution = 0.0;
   fTrackResolution   = 0.0;
 
   fIsUsed            = false;
-
-  next               = 0;
-  nextdet            = 0;
-  rPos               = 0.0;
-  rPos2              = 0.0;
 }
 
 /**
@@ -171,7 +167,7 @@ QwHit& QwHit::operator=(const QwHit& hit)
   fDirection         = hit.fDirection;
   fPlane             = hit.fPlane;
   fElement           = hit.fElement;
-  pDetectorInfo      = hit.pDetectorInfo;
+  fDetectorInfo      = hit.fDetectorInfo;
 
   fAmbiguousElement  = hit.fAmbiguousElement;
   fLRAmbiguity       = hit.fLRAmbiguity;
@@ -184,18 +180,14 @@ QwHit& QwHit::operator=(const QwHit& hit)
   fDistance          = hit.fDistance;
   fDriftPosition     = hit.fDriftPosition;
   fWirePosition      = hit.fWirePosition;
-  fTrackPosition     = hit.fTrackPosition;
-  fResidual          = hit.fResidual;
-  fZPosition         = hit.fZPosition;
+  fTreeLinePosition     = hit.fTreeLinePosition;
+  fTreeLineResidual     = hit.fTreeLineResidual;
+  fPartialTrackPosition = hit.fPartialTrackPosition;
+  fPartialTrackResidual = hit.fPartialTrackResidual;
   fSpatialResolution = hit.fSpatialResolution;
   fTrackResolution   = hit.fTrackResolution;
 
   fIsUsed            = hit.fIsUsed;
-
-  next               = hit.next;
-  nextdet            = hit.nextdet;
-  rPos               = hit.rPos;
-  rPos2              = hit.rPos2;
 
   return *this;
 }
@@ -292,11 +284,21 @@ std::ostream& operator<< (std::ostream& stream, const QwHit& hit)
   stream << "dir "       << hit.fDirection << ", ";
   stream << "plane "     << hit.fPlane;
 
-  if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
+  if (hit.fDetectorInfo) stream << " (detector " << hit.fDetectorInfo << "), ";
   else                   stream << ", ";
 
   stream << "element "  << hit.fElement;
-  if (hit.fDistance != 0.0) stream << ", distance " << hit.fDistance/Qw::cm << " cm";
+  if (hit.fDistance != 0.0)
+    stream << ", distance " << hit.fDistance/Qw::cm << " cm";
+
+  if (hit.fTreeLineResidual != 0.0)
+    stream << ", tl |" << hit.fDriftPosition/Qw::cm << " - " << hit.fTreeLinePosition/Qw::cm
+    << "| = " << hit.fTreeLineResidual/Qw::cm << " cm";
+
+  if (hit.fPartialTrackResidual != 0.0)
+    stream << ", pt |" << hit.fDriftPosition/Qw::cm << " - " << hit.fPartialTrackPosition/Qw::cm
+    << "| = " << hit.fPartialTrackResidual/Qw::cm << " cm";
+
   if (hit.fAmbiguousElement) stream << " (?)";
 
   return stream;

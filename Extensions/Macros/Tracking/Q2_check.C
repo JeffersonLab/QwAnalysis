@@ -55,7 +55,12 @@ const int md_low=-210;
 const int md_high=-150;
 const int multiple=18;
 
-void q2_check(int event_start=-1,int event_end=-1,int run=8658, bool opt=false, TString stem="Qweak_", string suffix=""){
+void Q2_check(int event_start=-1,int event_end=-1,int run=8658, bool opt=false, TString stem="Qweak_", string suffix=""){
+
+  //cross section value - needed for simualtion files ran through qwsimtracking
+  // for data will be set equal to 1
+  double CrossSection = 0;
+
 
    string folder=gSystem->Getenv("QW_ROOTFILES");
    ostringstream ss;
@@ -90,7 +95,6 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, bool opt=false, 
 
    QwEvent* fEvent=0;
    QwTrack* track=0;
-   QwKinematics* kinematic=0;
    TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
    
    //try to get the oct number from the run number
@@ -108,11 +112,14 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, bool opt=false, 
     event_branch->SetAddress(&fEvent);
     int md_1=(oct+4)%8;
     int md_2=oct;
-    
-    TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
-    TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
-    TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
-    TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
+
+  if(maindet_branch)
+    {
+      TLeaf* mdp_1=maindet_branch->GetLeaf(Form("md%dp_f1",md_1));
+      TLeaf* mdm_1=maindet_branch->GetLeaf(Form("md%dm_f1",md_1));
+      TLeaf* mdp_2=maindet_branch->GetLeaf(Form("md%dp_f1",md_2));
+      TLeaf* mdm_2=maindet_branch->GetLeaf(Form("md%dm_f1",md_2));
+    }
 
     double mean_thetaoff_pkg1=0,sigma_thetaoff_pkg1=1;
     double mean_thetaoff_pkg2=0,sigma_thetaoff_pkg2=1;
@@ -211,24 +218,43 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, bool opt=false, 
 	cout << "events processed so far: " << i << endl;
       
       event_branch->GetEntry(i);
-      maindet_branch->GetEntry(i);
-       
-      trig_branch->GetEntry(i);
-       
-      bool prompt_mdp1 = false;
-      bool prompt_mdm1 = false;
-      bool prompt_mdp2 = false;
-      bool prompt_mdm2 = false;
 
-      // Look at first hits in the appropriate Main Detector channels...
-      double mdp_value_1=mdp_1->GetValue();
-      double mdm_value_1=mdm_1->GetValue();
-      double mdp_value_2=mdp_2->GetValue();
-      double mdm_value_2=mdm_2->GetValue();
-      md_time_1->Fill(mdp_value_1);
-      md_time_1->Fill(mdm_value_1);
-      md_time_2->Fill(mdp_value_2);
-      md_time_2->Fill(mdm_value_2);
+      if(trig_branch)
+        {
+          trig_branch->GetEntry(i);
+        }
+
+      if(maindet_branch)
+      {
+        maindet_branch->GetEntry(i);
+
+        bool prompt_mdp1 = false;
+        bool prompt_mdm1 = false;
+        bool prompt_mdp2 = false;
+        bool prompt_mdm2 = false;
+
+        // Look at first hits in the appropriate Main Detector channels...
+        double mdp_value_1=mdp_1->GetValue();
+        double mdm_value_1=mdm_1->GetValue();
+        double mdp_value_2=mdp_2->GetValue();
+        double mdm_value_2=mdm_2->GetValue();
+        md_time_1->Fill(mdp_value_1);
+        md_time_1->Fill(mdm_value_1);
+        md_time_2->Fill(mdp_value_2);
+        md_time_2->Fill(mdm_value_2);
+
+        CrossSection = 1;
+
+     }else
+        {
+          bool prompt_mdp1 = true;
+          bool prompt_mdm1 = true;
+          bool prompt_mdp2 = true;
+          bool prompt_mdm2 = true;
+
+         CrossSection = fEvent->fCrossSection;
+
+        }
 
       double ntracks=fEvent->GetNumberOfTracks();
           
@@ -248,12 +274,15 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, bool opt=false, 
 	    else
 	      ++valid_hits_2;
 	  }
-	  // look for Main Detector hits in the "prompt" time window; MainDetector data is "Region=5"
-          // recall that in QwHits the "plane" for MD hits is the octant number, and element = 1 for PMT_positive, =2 for PMT_negative
-	  if(hit->GetRegion()==5 && hit->GetPlane()==md_1 && hit->GetElement()==1 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdp1=true;
-	  if(hit->GetRegion()==5 && hit->GetPlane()==md_1 && hit->GetElement()==2 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdm1=true;
-	  if(hit->GetRegion()==5 && hit->GetPlane()==md_2 && hit->GetElement()==1 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdp2=true;
-	  if(hit->GetRegion()==5 && hit->GetPlane()==md_2 && hit->GetElement()==2 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdm2=true;
+    if(maindet_branch)
+    {
+      // look for Main Detector hits in the "prompt" time window; MainDetector data is "Region=5"
+       // recall that in QwHits the "plane" for MD hits is the octant number, and element = 1 for PMT_positive, =2 for PMT_negative
+      if(hit->GetRegion()==5 && hit->GetPlane()==md_1 && hit->GetElement()==1 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdp1=true;
+      if(hit->GetRegion()==5 && hit->GetPlane()==md_1 && hit->GetElement()==2 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdm1=true;
+	    if(hit->GetRegion()==5 && hit->GetPlane()==md_2 && hit->GetElement()==1 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdp2=true;
+	    if(hit->GetRegion()==5 && hit->GetPlane()==md_2 && hit->GetElement()==2 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdm2=true;
+    }
 	}
 
 	if(ntracks>0){
@@ -267,15 +296,15 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, bool opt=false, 
 	  if (valid_hits_1 < multiple && prompt_mdp1 && prompt_mdm1){
 	    if(track->fDirectionPhioff>pkg1_phioff_lower && track->fDirectionPhioff<pkg1_phioff_upper && track->fDirectionThetaoff>pkg1_thetaoff_lower && track->fDirectionThetaoff<pkg1_thetaoff_upper ){
 	      double Q2_val=fEvent->fKinElasticWithLoss.fQ2;
-	      angle_1->Fill(angle_val);
-	      q2_1->Fill(Q2_val);
-	      angle->Fill(angle_val);
-	      q2->Fill(Q2_val);
+	      angle_1->Fill(angle_val,CrossSection);
+	      q2_1->Fill(Q2_val,CrossSection);
+	      angle->Fill(angle_val,CrossSection);
+	      q2->Fill(Q2_val,CrossSection);
 
-	      p1_theta->Fill(track->fDirectionThetaoff);
-	      p1_phi->Fill(track->fDirectionPhioff);
-	      p1_theta_p->Fill(track->fPositionThetaoff);
-	      p1_phi_p->Fill(track->fPositionPhioff);
+	      p1_theta->Fill(track->fDirectionThetaoff,CrossSection);
+	      p1_phi->Fill(track->fDirectionPhioff,CrossSection);
+	      p1_theta_p->Fill(track->fPositionThetaoff,CrossSection);
+	      p1_phi_p->Fill(track->fPositionPhioff,CrossSection);
 	    }
 	  }
 	}
@@ -284,15 +313,15 @@ void q2_check(int event_start=-1,int event_end=-1,int run=8658, bool opt=false, 
 	   if (valid_hits_2 < multiple && prompt_mdp2 && prompt_mdm2){
 	     if(track->fDirectionPhioff>pkg2_phioff_lower && track->fDirectionPhioff<pkg2_phioff_upper && track->fDirectionThetaoff>pkg2_thetaoff_lower && track->fDirectionThetaoff<pkg2_thetaoff_upper){
 	       double Q2_val=fEvent->fKinElasticWithLoss.fQ2;
-	       angle_2->Fill(angle_val);
-	       q2_2->Fill(Q2_val);
-	       angle->Fill(angle_val);
-	       q2->Fill(Q2_val);
+	       angle_2->Fill(angle_val,CrossSection);
+	       q2_2->Fill(Q2_val,CrossSection);
+	       angle->Fill(angle_val,CrossSection);
+	       q2->Fill(Q2_val,CrossSection);
 
-	       p2_theta->Fill(track->fDirectionThetaoff);
-	       p2_phi->Fill(track->fDirectionPhioff);
-	       p2_theta_p->Fill(track->fPositionThetaoff);
-	       p2_phi_p->Fill(track->fPositionPhioff);
+	       p2_theta->Fill(track->fDirectionThetaoff,CrossSection);
+	       p2_phi->Fill(track->fDirectionPhioff,CrossSection);
+	       p2_theta_p->Fill(track->fPositionThetaoff,CrossSection);
+	       p2_phi_p->Fill(track->fPositionPhioff,CrossSection);
 	     }
 	   }
 	}

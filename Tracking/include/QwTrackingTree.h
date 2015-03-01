@@ -127,7 +127,7 @@ class QwTrackingTree: public VQwTrackingElement {
     unsigned int& fNumPlanes;	///< Number of planes in the region 2 HDCs
     unsigned int& fNumWires;	///< Number of wires in a region 3 VDC group
 
-    int fHashSize;	///< Length of the hash table (as member field)
+    unsigned int fHashSize;	///< Length of the hash table (as member field)
 
     double fMaxSlope;	///< Maximum allowed slope for tracks in this detector
     int fNumPatterns;	///< Number of valid patterns in the tree

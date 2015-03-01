@@ -156,7 +156,7 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
         fSubbank_Map[subbank].at(modnum).resize(channum+1,-1);
       // Add scaler channel
       if (fSubbank_Map[subbank].at(modnum).at(channum) < 0) {
-        QwMessage << "Registering " << modtype << " " << keyword
+        QwVerbose << "Registering " << modtype << " " << keyword
                   << std::hex
                   << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
                   << std::dec

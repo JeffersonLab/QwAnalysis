@@ -1,0 +1,117 @@
+The macros in this directory are useful for plotting certain BMOD outputs and 
+residuals. 
+
+C/C++ Programs
+*************************************
+
+checkInvertedSlopes.C (Out of date. This file is not useful in the current scheme 
+                       since it uses one slope per run whereas our current 
+                       analysis has one slope per macrocycle. Use 
+	               findBModResiduals.C or findBModResidualsFast.C instead.)
+Reads the inverted slopes from the "slopes/slope<run_number>.set4.dat" files and
+uses them to correct the data in the bmod_only rootfiles. It then profiles the 
+data and fits a sine + cosine curve to the corrected data vs. ramp_filled. These
+residual cosine and sine components are stored in the 
+"slopes/run<run_number>Cosine(Sine)Ampl.dat" files.
+
+findBModResiduals.C ("Out of date"ish. findBModResidualsFast.C uses TGraph's 
+	             findBmodResiduals.C uses either TProfile's or TGraph's 
+	             produced with the Draw() command both of which have their own
+                     set of issues. TProfile's are plagued with small statistics
+                     bins and TGraph's created with the Draw() command can have 
+	             binning issues)
+Reads the inverted slopes from the "macrocycle_slopes/macrocycle_slopes*.dat" 
+files and uses them to correct the data in the bmod_only rootfiles. It then 
+profiles the data or plots it as a TGraph using the Draw() command and fits an
+A + B*sine + C*cosine curve to the corrected data vs. ramp_filled. These residual 
+cosine and sine components are stored in the 
+"macrocycle_slopes/run<run_number>Cosine(Sine)Ampl_*.dat" files.
+
+findBModResidualsFast.C (Current)
+Reads the inverted slopes from the "macrocycle_slopes/macrocycle_slopes*.dat" 
+files and uses them to correct the data in the bmod_only rootfiles. It then plots 
+it as a TGraph and fits an A + B*sine + C*cosine curve to the corrected data vs. 
+ramp_filled. These residual cosine and sine components are stored in the 
+"macrocycle_slopes/run<run_number>Cosine(Sine)Ampl_*.dat" files.
+
+makeReducedRunletAverages.C(Out of date. Crashes due to memory issues.)
+makeRegressedRunletAverages.C(Out of date. Crashes due to memory issues.)
+makeCorrecedRunletAverages.C (Out of date. Crashes due to memory issues.)
+These three programs create text files of runlet averages of quartet data for the
+reduced, regressed and dither-corrected slugfiles respectively. They have been
+replaced by MakeRunletAverages.C
+
+makeRunletAverages.C(Curent)
+Creates text files of runlet averages of quartet data for the reduced, regressed 
+and dither-corrected slugfiles.
+
+plotInvertedSlopesBySlug.C
+Plots the inverted slopes (dDet/dMon) as found in the 
+"slopes/slope_<run_number>.set4.dat" files. These slopes are error weighted and 
+averaged over full slugs. This program gets its runlist by slug from the file 
+"runBySlug.dat" also located in this macros directory.
+
+plotResidualCosAndSinCompBySlug.C
+Plots the residual cosine and sine amplitudes vs slug.
+
+plotMonitorOrDetectorSlopes.C
+Plots either the monitor or detector coefficients (dMon/dCoil) vs slug.
+
+
+
+Scripts
+*************************************
+      
+checkInvertSlopes.sh (Out of date. See explanation for checkInvertedSlopes.C.)
+Script that executes "runQwMpsOnly.cc" and then "checkInvertedSlopes.C" for a 
+given run range creating the modulation slopes and diagnostic files and residual 
+cosine and sine amplitude files.
+
+findBModResiduals.sh (Current)
+First runs $BMOD_SRC/runMpsOnly.cc to create the BMod slopes and coefficients 
+files and then runs findBModResiduals.C to create residuals. It takes in a run
+range as its two arguments. 
+  OVERWRITE_SLOPESFILES can be set to 0 if you only want to create slopes files 
+                        that do not already exist. This will still try recreate 
+                        all residual files.
+  NEW_MONITORS can be set if you wish to use the new composite monitor set
+  SINE_ONLY creates slopes from only the sine amplitudes (5 coil modulation). In 
+            general, this should be set to 0.
+  TRANSVERSE flag is used when analysing tranversely polarized data.
+  NONLINCUT is used if you wish to cut half of the BMod data that creates the 
+            largerst excursions in targetX and targetY before finding slopes. This
+            should be set to 0 unless doing a specific study.
+  CHISQUARE set this to 1 if you wish to used 10 Coil modulation with Chi Square
+            minimization.
+  PHASESET chose set number for phase offset used in 5 coil modulation. Eg. if you
+           set this to 4 the runMpsOnly.cc will use phase_set4.config for its 
+           phase offsets.  
+
+findBModResidualsFast.sh (Current)
+Exactly the same as findBModResiduals.sh except that instead of trying to find all
+runs in the given run range it only tries to run the program for runs that have
+mps_only files.Furthermore, it takes NEW_MONITORS as a second argument. 
+The outut of ls mps_only_*.root is used to create a list of run numbers to 
+analyse. It is called "Fast" because it does not try every run but first assembles
+a runlist of exist runs and goes over it.
+
+findBModResiduals2.sh (Current)
+Same as findBModResiduals.sh except that it takes a runlist from a file. The run-
+lists are stored in files called files$1.txt, where $1 is the number you pass as
+the first argument to the script. The second argument is an optional beginning 
+run number if you wish to skip some at the beginning of the file. This is useful
+if you want two processes running at the same time over different portions of the
+same runlist file.
+
+make_reduced_runlet_averages.sh(Out of date. See MakeReducedRunletAverages.C)
+Replaced by make_runlet_averages.sh
+
+make_regressed_runlet_averages.sh(Out of date. See MakeRegressedRunletAverages.C)
+Replaced by make_runlet_averages.sh
+
+make_corrected_runlet_averages.sh(Out of date. See MakeCorrectRunletAverages.C)
+Replaced by make_runlet_averages.sh
+
+make_runlet_averages.sh(Current)
+Loops over a range of slugs calling MakeRunletAverages.C to produce runlet average
+text files.

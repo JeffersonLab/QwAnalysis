@@ -23,25 +23,9 @@
 #include "QwTrackingTreeCombine.h"
 
 // Qweak tracking headers
-#include "QwTrackingTreeLine.h"
+#include "QwTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double rcPEval( double vz, double te, double ph, double bend){
-  std::cerr << "Error: THIS FUNCTION IS ONLY A STUB rcPEval " << std::endl;
-  return -1000;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double rcZEval( double vz, double te, double ph, double mom, int idx){
-  std::cerr << "Error: THIS FUNCTION IS ONLY A STUB rcZEval " << std::endl;
-  return -1000;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /**
  * Match the tree lines in two like-pitched planes in region 3.
@@ -76,9 +60,9 @@ double rcZEval( double vz, double te, double ph, double mom, int idx){
  * @param backlist List of tree lines in the back plane
  * @return List of tree lines after matching
  */
-QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
-	QwTrackingTreeLine* frontlist,
-	QwTrackingTreeLine* backlist)
+QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
+	const QwTreeLine* frontlist,
+	const QwTreeLine* backlist)
 {
   // Check the region of the tree lines (only region 3 is allowed)
   if (frontlist->GetRegion() != kRegionID3
@@ -106,7 +90,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
 
   // Initialize the list of combined tree lines to null
-  QwTrackingTreeLine* treelinelist = 0;
+  QwTreeLine* treelinelist = 0;
 
   // Initialize the tree combine object (TODO can this be avoided?)
   QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
@@ -120,8 +104,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   const QwDetectorInfo* backdetector  = backlist->GetDetectorInfo();
 
   // Rotation of the detector planes in the xz plane around the y axis
-  double cos_theta = frontdetector->GetDetectorRotationCos();
-  double sin_theta = frontdetector->GetDetectorRotationSin();
+  double cos_theta = frontdetector->GetDetectorPitchCos();
+  double sin_theta = frontdetector->GetDetectorPitchSin();
 
   // Differences in position between the front and back detector planes
   // NOTE: these positions are still in the wrong coordinate system
@@ -149,7 +133,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
   // Loop over the tree lines in the front VDC plane to set the wire position.
   int numflines = 0;
-  for (QwTrackingTreeLine* frontline = frontlist; frontline;
+  for (const QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, numflines++) {
     // Skip the the void tree lines
     if (frontline->IsVoid()) continue;
@@ -165,7 +149,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   }
   // Loop over the tree lines in the back VDC plane to set the wire position
   int numblines = 0;
-  for (QwTrackingTreeLine* backline = backlist; backline;
+  for (const QwTreeLine* backline = backlist; backline;
        backline = backline->next, numblines++) {
     // Skip the the void tree lines
     if (backline->IsVoid()) continue;
@@ -195,7 +179,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
   // Loop over the tree lines in the front VDC plane
   int ifront = 0;
-  for (QwTrackingTreeLine* frontline = frontlist; frontline;
+  for (const QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, ifront++) {
 
     // Initialization of fmatches
@@ -212,7 +196,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
     // Loop over the tree lines in the back VDC plane
     int iback = 0;
-    for (QwTrackingTreeLine* backline = backlist; backline;
+    for (const QwTreeLine* backline = backlist; backline;
          backline = backline->next, iback++) {
 
       // Skip void tree lines
@@ -294,19 +278,19 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   // Loop over the tree lines in the front VDC plane
 
   ifront = 0;
-  for (QwTrackingTreeLine* frontline = frontlist; frontline;
+  for (const QwTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, ifront++) {
 
     // Loop over the tree lines in the back VDC plane
     int iback = 0;
-    for (QwTrackingTreeLine* backline = backlist; backline;
+    for (const QwTreeLine* backline = backlist; backline;
          backline = backline->next, iback++) {
 
       // If this front segment was matched to this back segment
       if (fmatches[ifront] == iback) {
 
         // Create a new tree line
-        QwTrackingTreeLine* treeline = new QwTrackingTreeLine;
+        QwTreeLine* treeline = new QwTreeLine;
         // Set the detector identification
         treeline->SetRegion(frontline->GetRegion());
         treeline->SetPackage(frontline->GetPackage());
@@ -319,15 +303,17 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         // NOTE:Set the hits for front VDC, the reverse will determine how we should align the treelines
         int fronthits = frontline->fNumHits;
         for (int hit = 0; hit < fronthits; hit++) {
-          treeline->fHits[hit] = new QwHit(frontline->fHits[hit]);
-          DetecHits[hit] = treeline->fHits[hit];
-	        DetecHits[hit]->fDriftPosition *= reverse[ifront*numblines+iback];
+          treeline->AddHit(frontline->fHits[hit]);
+          treeline->fHits[hit] = treeline->GetListOfHits().back();
+          DetecHits[hit] = treeline->GetListOfHits().back();
+          DetecHits[hit]->fDriftPosition *= reverse[ifront*numblines+iback];
         }
         // Set the hits for back VDC
         int backhits = backline->fNumHits;
         for (int hit = 0; hit < backhits; hit++) {
-          treeline->fHits[hit+fronthits] = new QwHit(backline->fHits[hit]);
-          DetecHits[hit+fronthits] = treeline->fHits[hit+fronthits];
+          treeline->AddHit(backline->fHits[hit]);
+          treeline->fHits[hit+fronthits] = treeline->GetListOfHits().back();
+          DetecHits[hit+fronthits] = treeline->GetListOfHits().back();
 
           if (backline->GetPackage() == 1)
             DetecHits[hit+fronthits]->fWirePosition -= delta_u;
@@ -346,9 +332,10 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 // 	std::cout << "distance: " << std::endl;
 // 	for(int i=0;i<nhits;i++)
 // 		std::cout << DetecHits[i]->fDriftPosition << "," << std::endl;
+
         // Fit a line to the hits
         double slope, offset, chi, cov[3];
-        TreeCombine->weight_lsq_r3 (slope, offset, cov, chi, DetecHits, nhits, 0, -1);
+        TreeCombine->r3_TreelineFit (slope, offset, cov, chi, DetecHits, nhits, 0, -1);
 
         // Store the determined offset, slope, and chi^2 into the tree line
         treeline->SetOffset(offset);
@@ -363,14 +350,9 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         // Set the tree line valid
         treeline->SetValid();
 
-        // Store the final set of hits into this tree line
-        for (int hit = 0; hit < fronthits; hit++) {
-          treeline->fUsedHits[hit] = new QwHit(DetecHits[hit]);
-          treeline->AddHit(DetecHits[hit]);
-        }
-        for (int hit = fronthits; hit < fronthits + backhits; hit++) {
-          treeline->fUsedHits[hit] = new QwHit(DetecHits[hit]);
-          treeline->AddHit(DetecHits[hit]);
+        // TODO remove this along with fHits, this is just so the destructor of treeline is happy
+        for (int hit = 0; hit < fronthits + backhits; hit++) {
+          treeline->fHits[hit] = new QwHit(treeline->fHits[hit]);
         }
 
         treeline->next = treelinelist;
@@ -385,23 +367,3 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   // Return the list of matched tree lines (if no tree lines found, this is null)
   return treelinelist;
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwTrackingTreeMatch::TgTrackPar (
-	QwPartialTrack *front,	///< front partial track
-	QwPartialTrack *back,	///< back partial track
-	double *theta,		///< determined polar angle
-	double *phi,		///< determined azimuthal angle
-	double *bending,	///< bending in polar angle
-	double *ZVertex)	///< determined z vertex
-{
-  *theta = atan(front->fSlopeX);
-  *phi   = atan(front->fSlopeY);
-  if (bending && back)
-    *bending = atan(back->fSlopeX) - *theta;
-  *ZVertex = - ( (front->fSlopeX * front->fOffsetX + front->fSlopeY * front->fOffsetY)
-	       / (front->fSlopeX * front->fSlopeX  + front->fSlopeY * front->fSlopeY));
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

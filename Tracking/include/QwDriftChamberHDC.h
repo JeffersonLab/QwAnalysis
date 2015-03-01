@@ -11,6 +11,9 @@
 
 #include "QwDriftChamber.h"
 #include "QwOptions.h"
+
+#define OK 0
+
 ///
 /// \ingroup QwTrackingg
 class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberHDC> {
@@ -20,7 +23,7 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
    *
    ******************************************************************/
  public:
-  QwDriftChamberHDC(TString region_tmp);
+  QwDriftChamberHDC(TString name): VQwSubsystem(name), QwDriftChamber(name,fTDCHits) { };
   virtual ~QwDriftChamberHDC() { };
 
   /* Unique virtual member functions from QwDrifChamber base class */
@@ -29,7 +32,6 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   //  void  ReportConfiguration();
   void  SubtractReferenceTimes();
   void  ProcessEvent();
-  Int_t LoadGeometryDefinition(TString mapfile );
   //  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   //  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
   Int_t LoadChannelMap ( TString mapfile ) ;

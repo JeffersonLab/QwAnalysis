@@ -23,8 +23,11 @@
 #include <TMath.h>
 #include <string>
 #include "QwMainDet.h"
+#include "QwMainDetSlope.h"
 #include "QwLumiDet.h"
+#include "QwLumiDetSlope.h"
 #include "QwBeamDet.h"
+#include <time.h>
 #include "parse.h"
 #include "runlet.h"
 
@@ -33,9 +36,15 @@
  * then reads in the detector mapfiles md, lumi, and beam; reg map file is read
  * in by main(). 
  */
-int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir, TString target, Bool_t runavg) {
+int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdir, TString outdir, TString target, Bool_t runavg, Bool_t slugavg, Bool_t wienavg, TString slopes) {
+    /* Select name for if averaging. */
+    TString avg_type = "";
+    if(runavg) avg_type = "runavg";
+    if(slugavg) avg_type = "slugavg";
+    if(wienavg) avg_type = "wienavg";
     /* Open the output file and create the tree for outputting. */
-    TFile *f = new TFile(Form("%s%s_%s_tree.root",outdir.Data(),target.Data(),reg_type.Data()),"RECREATE");
+    TFile *f;
+    f = new TFile(Form("%s%s%s%s_%s_tree.root",outdir.Data(),avg_type.Data(),slopes.Data(),target.Data(),reg_type.Data()),"RECREATE");
     TTree *tree = new TTree("tree","treelibrated tree");
 
     /*
@@ -78,37 +87,74 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
     if(runavg) {
         good_runlets = runlets.get_runs();
     }
+    if(slugavg) {
+        good_runlets = runlets.get_slugs();
+    }
+    if(wienavg) {
+        good_runlets = runlets.get_wiens();
+    }
 
     /*
      * Create a temporary detector object and push it onto a vector of detector
-     * objects. This will be the basis for filling the tree. Stard with main
-     * detectors.
+     * objects. This will be the basis for filling the tree. Start with main
+     * detectors. 
      */
+    
+    vector<QwMainDetSlope> main_detector_slopes;
+    vector<QwLumiDetSlope> lumi_detector_slopes;
     vector<QwMainDet> main_detectors;
-    for(Int_t i = 0; i < num_mds; i++) {
-        QwMainDet temp_detector(mds.detector(i), mds.id_type(i), reg_type, good_runlets, db, runavg);
-        temp_detector.fill();
-        main_detectors.push_back(temp_detector);
-    }
-
-    /*
-     * Fill lumi object vector.
-     */
     vector<QwLumiDet> lumi_detectors;
-    for(Int_t i = 0; i < num_lumis; i++) {
-        QwLumiDet temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, good_runlets, db, runavg);
-        temp_detector.fill();
-        lumi_detectors.push_back(temp_detector);
-    }
-
-    /*
-     * Fill beam object vector.
-     */
     vector<QwBeamDet> beam_detectors;
-    for(Int_t i = 0; i < num_beams; i++) {
-        QwBeamDet temp_detector(beams.detector(i), beams.id_type(i), reg_type, good_runlets, db, runavg);
-        temp_detector.fill();
-        beam_detectors.push_back(temp_detector);
+
+    if(slopes != "") {
+        /* Create a vector of slopes for wrt_qwk_charge only for each MD. Only do
+         * this if reg_type = "on_5+1". 
+         *
+         * Fill main detector slope object vector
+         */
+        if(reg_type == "on_5+1" || reg_type == "on" || reg_type == "on_set11" || reg_type == "on_set13") {
+            for(Int_t i = 0; i < num_mds; i++) {
+                QwMainDetSlope temp_detector(mds.detector(i), mds.id_type(i), reg_type, slopes, good_runlets, db, runavg, slugavg, wienavg);
+                temp_detector.fill();
+                main_detector_slopes.push_back(temp_detector);
+            }
+        }
+
+        if(reg_type == "on_5+1" || reg_type == "on" || reg_type == "on_set11" || reg_type == "on_set13") {
+            for(Int_t i = 0; i < num_lumis; i++ || reg_type == "on") {
+                QwLumiDetSlope temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, slopes, good_runlets, db, runavg, slugavg, wienavg);
+                temp_detector.fill();
+                lumi_detector_slopes.push_back(temp_detector);
+            }
+        }
+    }
+    else {
+        /*
+         * Fill main detector object vector.
+         */
+        for(Int_t i = 0; i < num_mds; i++) {
+            QwMainDet temp_detector(mds.detector(i), mds.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
+            temp_detector.fill();
+            main_detectors.push_back(temp_detector);
+        }
+
+        /*
+         * Fill lumi object vector.
+         */
+        for(Int_t i = 0; i < num_lumis; i++) {
+            QwLumiDet temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
+            temp_detector.fill();
+            lumi_detectors.push_back(temp_detector);
+        }
+
+        /*
+         * Fill beam object vector.
+         */
+        for(Int_t i = 0; i < num_beams; i++) {
+            QwBeamDet temp_detector(beams.detector(i), beams.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
+            temp_detector.fill();
+            beam_detectors.push_back(temp_detector);
+        }
     }
 
     /*
@@ -124,28 +170,48 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
      * anything that will end up in the tree.
      */
     QwValues runlet_data;
-    runlet_data.runlet_properties.reserve(6);
+    runlet_data.runlet_properties.reserve(9);
 
+    /*
+     * Vectors to store normal data.
+     */
     vector<QwData> main_data;
     main_data.reserve(num_mds);
-
     vector<QwData> lumi_data;
     lumi_data.reserve(num_lumis);
-
     vector<QwData> beam_data;
     beam_data.reserve(num_beams);
 
+    /*
+     * Vectors to store slope data.
+     */
+    vector<QwData> main_slope_data;
+    main_slope_data.reserve(num_mds);
+    vector<QwData> lumi_slope_data;
+    lumi_slope_data.reserve(num_mds);
+
     /* Branch the tree. See QwDetector::branch() for details. */
     runlets.branch(tree, runlet_data);
-    for(Int_t i = 0; i < num_mds; i++) {
-        // pass in the vector like main_data[i]
-        main_detectors[i].branch(tree, main_data, i);
+
+    if(slopes != "") {
+        for(Int_t i = 0; i < num_mds; i++) {
+            // pass in the vector like main_data[i]
+            main_detector_slopes[i].branch(tree, main_slope_data, i);
+        }
+        for(Int_t i = 0; i < num_lumis; i++) {
+            lumi_detector_slopes[i].branch(tree, lumi_slope_data, i);
+        }
     }
-    for(Int_t i = 0; i < num_lumis; i++) {
-        lumi_detectors[i].branch(tree, lumi_data, i);
-    }
-    for(Int_t i = 0; i < num_beams; i++) {
-        beam_detectors[i].branch(tree, beam_data, i);
+    else {
+        for(Int_t i = 0; i < num_mds; i++) {
+            main_detectors[i].branch(tree, main_data, i);
+        }
+        for(Int_t i = 0; i < num_lumis; i++) {
+            lumi_detectors[i].branch(tree, lumi_data, i);
+        }
+        for(Int_t i = 0; i < num_beams; i++) {
+            beam_detectors[i].branch(tree, beam_data, i);
+        }
     }
 
     /* Fill the QwData vectors from QwDetector objects. */
@@ -153,18 +219,40 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
         /* Fill runlet data. */
         runlets.get_data_for_runlet(j, runlet_data);
         /* Fill main detectors, lumis, and beam detectors. */
-        for(Int_t i = 0; i < num_mds; i++) {
-            main_detectors[i].get_data_for_runlet(good_runlets[j], main_data[i]);
+        if(slopes != "") {
+            for(Int_t i = 0; i < num_mds; i++) {
+                main_detector_slopes[i].get_data_for_runlet(good_runlets[j], main_slope_data[i]);
+            }
+            for(Int_t i = 0; i < num_lumis; i++) {
+                lumi_detector_slopes[i].get_data_for_runlet(good_runlets[j], lumi_slope_data[i]);
+            }
         }
-        for(Int_t i = 0; i < num_lumis; i++) {
-            lumi_detectors[i].get_data_for_runlet(good_runlets[j], lumi_data[i]);
-        }
-        for(Int_t i = 0; i < num_beams; i++) {
-            beam_detectors[i].get_data_for_runlet(good_runlets[j], beam_data[i]);
+        else {
+            for(Int_t i = 0; i < num_mds; i++) {
+                main_detectors[i].get_data_for_runlet(good_runlets[j], main_data[i]);
+            }
+            for(Int_t i = 0; i < num_lumis; i++) {
+                lumi_detectors[i].get_data_for_runlet(good_runlets[j], lumi_data[i]);
+            }
+            for(Int_t i = 0; i < num_beams; i++) {
+                beam_detectors[i].get_data_for_runlet(good_runlets[j], beam_data[i]);
+            }
         }
         /* Fill the tree. It will use the address given during branching. */
         tree->Fill();
     }
+
+    /* Create new tree to store basic info. */
+    TTree *tree_info = new TTree("tree_info","treelibrated tree");
+
+    /* Set SVN revision and date. */
+    int svn_revision = atoi(SVN_REV);
+
+    /* Branch SVN revision and date before branching the remainder of the tree. */
+    tree_info->Branch("svn_revision", &(svn_revision));
+
+    /* Fill SVN revision and date. */
+    tree_info->Fill();
 
     /* Write the tree to the previously opened rootfile. */
     f->Write();

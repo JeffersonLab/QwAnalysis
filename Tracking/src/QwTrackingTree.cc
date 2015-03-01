@@ -119,7 +119,7 @@ void QwTrackingTree::PrintTree() const
 void QwTrackingTree::PrintHashTable() const
 {
   QwOut << "Hash table:" << QwLog::endl;
-  for (int i = 0; i < fHashSize; i++) {
+  for (size_t i = 0; i < fHashSize; i++) {
     QwOut << "hash " << i << ":" << QwLog::endl;
     treenode* node = fHashTable[i];
     while (node) {
@@ -153,6 +153,8 @@ QwTrackingTree::QwTrackingTree(unsigned int numlayers)
   // be equal to the value defined in the header.
   fHashSize = HSHSIZ;
   fHashTable = new treenode*[fHashSize];
+  for (size_t i = 0; i < fHashSize; i++)
+    fHashTable[i] = 0;
 
   // Initialize the QwTrackingTree structure
   fFather = new treenode(fNumLayers);
@@ -175,7 +177,7 @@ QwTrackingTree::~QwTrackingTree ()
 
   // Delete all top links in the hash table
   QwDebug << "Deleting fHashTable..." << QwLog::endl;
-  for (int i = 0; i < fHashSize; i++) {
+  for (size_t i = 0; i < fHashSize; i++) {
     treenode* node = fHashTable[i];
     while (node) {
       treenode* node_next = node->GetNext();
@@ -232,7 +234,7 @@ int QwTrackingTree::consistent(
   //###########
   // REGION 2 #
   //###########
-  if (detector->fType == kTypeDriftHDC && detector->fRegion == kRegionID2) {
+  if (detector->GetType() == kTypeDriftHDC && detector->GetRegion() == kRegionID2) {
     int layer;
     int templayers = 4;
     int tlaym1 = templayers - 1;
@@ -330,7 +332,7 @@ int QwTrackingTree::consistent(
   //###########
   // REGION 3 #
   //###########
-  } else if (detector->fType == kTypeDriftVDC && detector->fRegion == kRegionID3) {
+  } else if (detector->GetType() == kTypeDriftVDC && detector->GetRegion() == kRegionID3) {
 
     int templayers = 8;
 
@@ -562,7 +564,7 @@ void QwTrackingTree::marklin (
   //###########
   // REGION 2 #
   //###########
-  if (detector->fRegion == kRegionID2 && detector->fType == kTypeDriftHDC) {
+  if (detector->GetRegion() == kRegionID2 && detector->GetType() == kTypeDriftHDC) {
 
     // There are four u, v, or x wire planes.
     fNumPlanes = 4;
@@ -751,7 +753,7 @@ void QwTrackingTree::marklin (
   //###########
   // REGION 3 #
   //###########
-  else if (detector->fRegion == kRegionID3 && detector->fType == kTypeDriftVDC) {
+  else if (detector->GetRegion() == kRegionID3 && detector->GetType() == kTypeDriftVDC) {
 
     // There are 8 wires in each demultiplexed VDC group
     fNumWires = 8;
@@ -1110,7 +1112,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 //   }
 
   /*! Try to read in an existing database */
-  QwMessage << "Attempting to read tree from " << filename << QwLog::endl;
+  QwVerbose << "Attempting to read tree from " << filename << QwLog::endl;
   trr = readtree(filename, levels, tlayer, width, regenerate);
   if (trr == 0) {
 

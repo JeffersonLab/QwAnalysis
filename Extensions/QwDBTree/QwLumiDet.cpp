@@ -5,8 +5,8 @@
 #include "QwLumiDet.h"
 
 /* Constructor for QwLumiDet. */
-QwLumiDet::QwLumiDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t avg):
-    QwDetector(name, id, type, runlets, db_pointer, avg) {}
+QwLumiDet::QwLumiDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg):
+    QwDetector(name, id, type, runlets, db_pointer, ravg, savg, wavg) {}
 
 /*
  * Method to generate a query for lumi detectors. It uses the temporary tables
@@ -35,17 +35,29 @@ TString QwLumiDet::query(void) {
      * value weight: n * mdallbars_width^(-2)
      * error weight: mdallbars_width/sqrt(n)
      */
-    if(runavg) {
-        query += "DISTINCT run_number\n";
+    if(runavg || slugavg || wienavg) {
+        if(runavg) {
+            query += "DISTINCT run_number\n";
+        }
+        if(slugavg) {
+            query += "DISTINCT slug\n";
+        }
+        if(wienavg) {
+            query += "DISTINCT wien_slug\n";
+        }
         /* Changed to number weighted avg. FIXME. */
         if(measurement_id == "a" || measurement_id == "d") {
             /* Changed to number weighted avg. FIXME. */
-            query += ", SUM(lumi_data.value*SQRT(n))/SUM(SQRT(n))*1e6\n";
-            query += ", SQRT(1/SUM(1/POWER(lumi_data.error,2)))*1e6\n";
+            //query += ", SUM(lumi_data.value*SQRT(n))/SUM(SQRT(n))*1e6\n";
+            query += ", SUM(lumi_data.value/POW(main_det.error,2))/SUM(POW(main_det.error,-2))*1e6\n";
+            //query += ", SQRT(1/SUM(1/POWER(lumi_data.error,2)))*1e6\n";
+            query += ", SUM(lumi_data.error/POW(main_det.error,2))/SUM(POW(main_det.error,-2))*1e6\n";
         }
         else {
-            query += ", SUM(lumi_data.value*(n))/SUM(SQRT(n))\n";
-            query += ", SQRT(1/SUM(1/POWER(lumi_data.error,2)))\n";
+            //query += ", SUM(lumi_data.value*(n))/SUM(SQRT(n))\n";
+            query += ", SUM(lumi_data.value/POW(main_det.error,2))/SUM(POW(main_det.error,-2))\n";
+            //query += ", SQRT(1/SUM(1/POWER(lumi_data.error,2)))\n";
+            query += ", SUM(lumi_data.error/POW(main_det.error,2))/SUM(POW(main_det.error,-2))\n";
         }
         query += ", SUM(lumi_data.n)\n";
     }
@@ -69,6 +81,11 @@ TString QwLumiDet::query(void) {
     query += "JOIN lumi_data ON " + table+ ".analysis_id = lumi_data.analysis_id\n";
     /* Join the detector name to the detector number. */
     query += "JOIN lumi_detector ON lumi_data.lumi_detector_id = lumi_detector.lumi_detector_id\n";
+    /* If run avg, join the main detector on for error weighting in the same manner as above. */
+    if(runavg || slugavg || wienavg) {
+        query += "JOIN md_data AS main_det ON " + table+ ".analysis_id = main_det.analysis_id\n";
+        query += "JOIN main_detector AS main_detector_label ON main_det.main_detector_id = main_detector_label.main_detector_id\n";
+    }
 
     /*
      * lumi detector level cuts. Runlet level cuts are made when generating
@@ -81,6 +98,8 @@ TString QwLumiDet::query(void) {
 
     /* Organize the data. */
     if(runavg) query += "GROUP BY run_number;\n";
+    else if(slugavg) query += "GROUP BY slug;\n";
+    else if(wienavg) query += "GROUP BY wien_slug;\n";
     else query += "ORDER BY runlet_id;\n";
 
     return query;

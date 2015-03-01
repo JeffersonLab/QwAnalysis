@@ -26,7 +26,7 @@ class QwDriftChamberVDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
    *
    ******************************************************************/
  public:
-  QwDriftChamberVDC(TString region_tmp);
+  QwDriftChamberVDC(TString name);
   virtual ~QwDriftChamberVDC() { };
 
   /* Unique virtual member functions from QwDrifChamber base class */
@@ -35,7 +35,6 @@ class QwDriftChamberVDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
   //  void  ReportConfiguration();
   void  SubtractReferenceTimes();
   void  ProcessEvent();
-  Int_t LoadGeometryDefinition(TString mapfile );
   //  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   //  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
   Int_t LoadChannelMap(TString mapfile);

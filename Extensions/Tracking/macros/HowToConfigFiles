@@ -1,0 +1,62 @@
+﻿Welcome!
+
+There has been additions to the process to analyze a run for the tracking data.
+This file is to help with question that one might have in regards to the additions.
+
+You will see that the large difference in this directory is that there are config
+files. These are so that one can test the modifications they are making to an
+autoplot script in there local directory and use the qwroot that was used
+for the pass itself. This is a wonderful way to test scripts with less stress.
+
+The main drive behind this is that one can now update or not if they want their
+local QwAnalysis directory, and it doesn't have to be at the same revision number
+as the rootfile you are analyzing, if it is one used to generate the webpage.
+
+These files include/define the following variables, or can not with commenting
+them out with a squashed spider, #:
+QWANALYSIS - there analyze directory for the pass one is looking at
+  this is the QwAnalysis directory with the qwroot version for the
+  pass, the one you want to use. (this will probably not be commented out)
+WEBDIR - this is the directory of the webpage for the pass. If you are testing
+  a script and you want to not have it go to the website and go somewhere say
+  locally then comment this out, and use the standard one as defined in the
+  process_run file or you can define a different one here locally (not likely to
+  get commented out)
+QW_ROOTFILES - this is the directory of the root files for the pass on the
+  cache disk (this will probably never be commented out) you will still have
+  to jcache the files if there are not there.
+QWEXTENSIONS - This is the directory to where the Extensions directory is with
+  the autoplot(s) script that one is testing. This is commented out by default,
+  as it will most likely be your local directory (Make sure to run QWAnalysis,
+  which we all do anyway:
+    setenv QWANALYSIS ~/QwAnalysis
+  so that QWEXTENSIONS is defined right away to your local directory).
+
+Q: How do I use this?
+
+A: Great question!  Here is how.
+
+  Make sure that you have set up the QWANALYSIS variable to your local one.
+  Most of use do this by habit or default, so not a problem.
+  You will not have to do the other commands that we have had to in the past.
+
+  When running process_run, you will do something like the following (modify for
+  your needs)
+    ./process_run.sh --run=<runnum> --marco=<macro> --configfile=<configfileofpass>
+
+  to just regenerate the front page, it will be
+    ./process_run.sh --run=<runnum> --index --configfile=<configfileofpass>
+
+For the people who are in charge of submitting the whole pass or just a run the form
+to do this is:
+  ./submit_run.sh --run=<runnum> --configfile=<configfileofpass> --pass=<pass>
+
+
+*Please note:*
+  Using this with autoplots scripts pre-r5979 this will not work,
+  rather you will get a bunch or errors. My apologies I had to change
+  the prefix.
+
+I think that is all. Hope this helps.
+
+Good Day!

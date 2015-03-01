@@ -12,9 +12,6 @@
 #include <cstdio>
 #include <cmath>
 
-// ROOT headers
-#include "TMath.h"
-
 // Qweak headers
 #include "QwLog.h"
 

@@ -48,7 +48,6 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
-  Int_t LoadGeometryDefinition(TString mapfile);
   Int_t LoadInputParameters(TString mapfile){return 0;};
 
 

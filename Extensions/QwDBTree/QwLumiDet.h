@@ -5,7 +5,7 @@
 
 class QwLumiDet : public QwDetector {
     public:
-        QwLumiDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t);
+        QwLumiDet(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t, Bool_t, Bool_t);
         TString query(void);
 };
 

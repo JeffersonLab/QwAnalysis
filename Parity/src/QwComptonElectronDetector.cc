@@ -89,7 +89,8 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       //  Break this line into tokens to process it.
       TString modtype = mapstr.GetTypedNextToken<TString>();
       UInt_t modnum   = mapstr.GetTypedNextToken<UInt_t>();
-      UInt_t channum = mapstr.GetTypedNextToken<UInt_t>(); //if commented, 'dettype' is not evaluated properly.
+      UInt_t channum __attribute__ ((unused)) // unused but function call is still required
+                      = mapstr.GetTypedNextToken<UInt_t>(); //if commented, 'dettype' is not evaluated properly.
       TString dettype = mapstr.GetTypedNextToken<TString>();
       TString name    = mapstr.GetTypedNextToken<TString>();
       Int_t plane     = mapstr.GetTypedNextToken<Int_t>();

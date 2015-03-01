@@ -31,8 +31,22 @@
 //  saves them.  For all of these functions the global are the historgrams.
 //  this was done by Wouter Deconinck and Valerie Gray to save time as now the scrpit only
 //  goes through the event_tree once and  now the each website page can be created a bit faster :)
+//  updated May 14 2014 DSA: added some include files for compilation
+//                         : save the .png plots for the drift times and delaylines.
+//                         : fix bug in filling plot for ambiguous hits/plane in package 2
 
 #include "auto_shared_includes.h"
+
+#include "TSystem.h"
+#include "TF1.h"
+#include "TLeaf.h"
+
+#include "TCanvas.h"
+#include "TChain.h"
+#include "TF1.h"
+#include "TStyle.h"
+#include "TPaveStats.h"
+#include "TList.h"
 
 #include "QwHit.h"
 #include "QwEvent.h"
@@ -135,7 +149,7 @@ void fill_planes(const QwHit* hit)
 
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fAmbiguousElement==1)
     h_planes_am_hit_1->Fill(hit->fPlane);
-  if (hit->fRegion==3&&hit->fPackage==1&&hit->fAmbiguousElement==2)
+  if (hit->fRegion==3&&hit->fPackage==2&&hit->fAmbiguousElement==1)
     h_planes_am_hit_2->Fill(hit->fPlane);
 }
 
@@ -334,7 +348,8 @@ void plot_delaylines()
   h_delay_line_3 -> Draw();
   delaylines_c->cd(4);
   h_delay_line_4 -> Draw();
-  delaylines_c->Draw(outputPrefix+"delaylines_hit.png");
+   delaylines_c->SaveAs(outputPrefix+"delaylines_hit.png");
+  //  delaylines_c->Draw(outputPrefix+"delaylines_hit.png");
 
 }
 
@@ -424,7 +439,8 @@ void plot_times()
   times_c->cd(8);
   gPad->SetLogy();
   h_time_8 -> Draw();
-  times_c->Draw(outputPrefix+"drifttimes.png");
+  //  times_c->Draw(outputPrefix+"drifttimes.png");
+  times_c->SaveAs(outputPrefix+"drifttimes.png");
 
 }
 
@@ -491,7 +507,11 @@ void plot_hitnumber()
 
 void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)
 {
-  outputPrefix = Form("$QWSCRATCH/tracking/www/run_%d/auto_vdc_%d_",runnum,runnum);
+  //outputPrefix = Form("$QWSCRATCH/tracking/www/run_%d/auto_vdc_%d_",runnum,runnum);
+
+  outputPrefix = Form(
+      TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_auto_vdc_",
+      runnum, runnum);
 
   // Create and load the chain
   TChain *chain = new TChain("event_tree");
