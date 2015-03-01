@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Author: Rakitha Beminiwattha (rakithab@jlab.org)
+# This will check for failed regression jobs for a given run number
+# To run in cdaql5 or ifarm
+#./check_failed_regression 12119
+
+SRC="/work/hallc/qweak/QwAnalysis/run2/pass5bregression"
+sets=(std 5+1 set3 set4 set5 set6 set7 set8 set9 set10 set13)
+
+run_num=$1
+if [ $run_num -ge 14487 ] 
+then
+    echo "Run is greater than 14486, repressing sets 5 and 6"
+    sets=(std 5+1 set3 set4 set7 set8 set9 set10 set11 set12 set13)
+fi
+
+for lrbset in ${sets[*]}
+  do
+  if [  `ls -l ${SRC}/${lrbset}/out-regAbort1-${run_num}* | wc -l ` -gt 0 ]
+      then
+      failed_list=`ls ${SRC}/${lrbset}/out-regAbort1-${run_num}*/logS1`
+      for filen in ${failed_list[@]}
+	do
+	tail $filen
+	echo "$filen"
+      done
+  fi
+done
+
+echo "Please ignore set4 for runs after 11002"
+

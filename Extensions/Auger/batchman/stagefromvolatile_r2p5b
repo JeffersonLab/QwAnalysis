@@ -1,0 +1,23 @@
+#!/bin/bash
+run=$1
+
+#if [ $# -ne 1 ] ; then
+#   echo The volatile stager wrapper script needs run_number
+#   exit
+#fi
+
+PathToVolatile="/volatile/hallc/qweak/QwAnalysis/run2"
+
+SendToSilo="/u/group/qweak/QwAnalysis/common/perl/send_rootfiles_to_silo.pl --regex-pattern .+[^0-9\]${run}\[^0-9\].+ --age 1"
+
+oldPath=`pwd`
+cd $PathToVolatile
+$SendToSilo pass5b/Slugs          ./pass5b_slugs
+$SendToSilo pass5b/lrb_rootfiles  ./pass5b_lrb_rootfiles
+$SendToSilo pass5b/bmod_mpsslug   ./pass5b_bmod_mpsslug
+$SendToSilo pass5b/bmod_rootfiles ./pass5b_bmod_rootfiles/set1
+$SendToSilo pass5b/bmod_rootfiles ./pass5b_bmod_rootfiles/set2
+$SendToSilo pass5b/bmod_rootfiles ./pass5b_bmod_rootfiles/set3
+$SendToSilo pass5b/bmod_rootfiles ./pass5b_bmod_rootfiles/set4 
+$SendToSilo pass5b/bmod_lrbrootfiles ./pass5b_bmod_lrbrootfiles
+cd $oldPath

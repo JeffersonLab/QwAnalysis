@@ -1,0 +1,26 @@
+#!/bin/bash
+umask 002
+
+#  Do a little gymnastics to figure out which installed
+#  analyzer version is being called.
+initialDir=`pwd`
+cd `dirname $0`
+scriptPath=`pwd`
+cd $initialDir
+
+export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+export QWANALYSIS=`echo $scriptPath | sed 's/Extensions\/Auger\/batchman//'`
+. $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
+
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --max-files-per-job 5 \
+    --job-maxmemory 3000 \
+    --post-run $QWANALYSIS/Extensions/Regression/QwBeamModulation/scripts/bash/bmod_r1p5b_batch.bash  \
+    --post-run $QWANALYSIS/Extensions/Regression/QwBeamModulation/Slug/run_makeslug_mps_run1pass5b \
+    --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run1pass5b.sh \
+    --post-runlet $QWANALYSIS/Extensions/Macros/Parity/SlugPlots/run1pass5b/run_makesluglet \
+    --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run1pass5b_bmod.sh \
+    --rootfile-stem QwPass5b_ \
+    --end-script $QWANALYSIS/Extensions/Auger/batchman/outputstage_r1p5b \
+    --rootfile-output null \
+    --options "--config official_run1pass5.conf --QwDatabase.dbname qw_run1_pass5b" $@
+

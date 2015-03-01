@@ -403,7 +403,7 @@ Int_t QwModulation::ErrorCodeCheck(TString type)
 //     }
 
     if(qwk_charge_hw_sum < fCurrentCut){
-      std::cerr << "Low current failed: " << qwk_charge_hw_sum << std::endl;
+      // std::cerr << "Low current failed: " << qwk_charge_hw_sum << std::endl;
       bmodErrorFlag = 1;
     }
 

@@ -1,0 +1,29 @@
+
+#!/bin/bash
+# Author: Rakitha Beminiwattha (rakithab@jlab.org) 
+# 08-07-2012
+
+
+slug_num=$1
+#this is the source of regressed root files
+SRC="/work/hallc/qweak/QwAnalysis/run1/pass5regression/lrb_rootfiles"
+DST="/volatile/hallc/qweak/QwAnalysis/run1/pass5_slugs/"
+DST_Dbug="/work/hallc/qweak/QwAnalysis/run1/pass5_slugs/out_files"
+
+
+################
+#
+# check that all runlets in the runlist have regression completed. If runlet mismacth occurs then we cannot compare 
+# different regression schemes with unregressed slug root file - Scott (smacewan@jlab.org) 11-13-2012
+#
+################
+
+ 
+argument="MakeSlug.C+(\"runlists/slug${slug_num}_goodruns_list.txt\",\"leaflist_run1pass5_sluglet.txt\",\"${DST}/slug${slug_num}.root\")"
+
+echo root -n -q -b -l ${argument} 
+#>${DST_Dbug}/slug${slug_num}.out
+
+
+
+

@@ -1,0 +1,21 @@
+#!/bin/bash
+umask 002
+
+#  Do a little gymnastics to figure out which installed
+#  analyzer version is being called.
+initialDir=`pwd`
+cd `dirname $0`
+scriptPath=`pwd`
+cd $initialDir
+
+export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+export QWANALYSIS=`echo $scriptPath | sed 's/Extensions\/Auger\/batchman//'`
+. $QWANALYSIS/SetupFiles/SET_ME_UP.bash >& /dev/null
+
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --max-files-per-job 5 \
+    --job-maxmemory 3000 \
+    --rootfile-stem newtargetBPMtest_ \
+    --end-script $QWANALYSIS/Extensions/Auger/batchman/outputstage_r2p5 \
+    --rootfile-output file:/volatile/hallc/qweak/QwAnalysis/run2/rootfiles \
+    --options "--config test_official_run1pass5.conf --QwDatabase.dbname qw_test_20120720 --QwParityDB.disable-analysis-check true" $@
+

@@ -1,0 +1,29 @@
+<Request>
+  <!--EDIT LINE BELOW-->
+  <Email email="smacewan@jlab.org" request="false" job="true"/>
+  <Project name="qweak"/>
+  <Track name="one_pass"/>
+  <!--EDIT LINE BELOW-->
+  <Name name="run_makeslug_unreg_0000"/>
+  <OS name="linux64"/>
+  <TimeLimit unit="minutes" time="720"/>
+  <DiskSpace space="10300" unit="MB"/>
+  <Memory space="2048" unit="MB"/>
+  <!--EDIT LINE BELOW, CHANGING 0 TO SLUG NUMBER-->
+  <Command><![CDATA[
+date
+whoami
+hostname
+cd /group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5
+/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/QwAnalysis_3.04/Extensions/Macros/Parity/SlugPlots/run1pass5/run_makeslug_unreg 0000
+jobstat | grep smacewan
+  ]]></Command>
+  
+<!--EDIT LINES BELOW-->
+  <Job>
+    <Stdout dest="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files/run_makeslug_unreg_0000.out"/>
+    <Stderr dest="/work/hallc/qweak/QwAnalysis/run1/pass5slugs/out_files/run_makeslug_unreg_0000.err"/>
+  </Job>
+
+</Request>
+

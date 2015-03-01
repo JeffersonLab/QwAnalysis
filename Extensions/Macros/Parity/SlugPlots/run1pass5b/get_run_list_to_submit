@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Author: Rakitha Beminiwattha (rakithab@jlab.org)
+#Tested only in cdaq cluseter. To run pass the slug number,
+#./get_run_list_to_submit 118
+
+
+slug_num=$1
+
+sql_query="select run.run_number from run  where slug=${slug_num} ; "
+
+
+
+rm -f analyzer_status_query.sql
+echo " ${sql_query} " > analyzer_status_query.sql
+mysql -u qweak -h qweakdb -p qw_run1_pass4b  < analyzer_status_query.sql
+
+rm -f analyzer_status_query.sql
