@@ -1,12 +1,12 @@
-///////////////////////////////////////////////////////
-// This class has been automatically generated on    //
-// Tue Aug 26 19:55:40 2014 by ROOT version 5.34/05  //
-// from TTree event_tree/QwTracking Event-based Tree //
-// found on file: Qweak_10545.root		     //
-///////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+// This class has been automatically generated on
+// Tue Aug 26 19:55:40 2014 by ROOT version 5.34/05
+// from TTree event_tree/QwTracking Event-based Tree
+// found on file: Qweak_10545.root
+//////////////////////////////////////////////////////////
 
-#ifndef Neutral_Fraction_h
-#define Neutral_Fraction_h
+#ifndef Neutral_Pedestal_h
+#define Neutral_Pedestal_h
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -18,7 +18,7 @@
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
-class Neutral_Fraction {
+class Neutral_Pedestal {
 public :
    TChain         *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
@@ -304,9 +304,9 @@ public :
    TBranch        *b_previous_entry_in_Slow_Tree;   //!
    TBranch        *b_previous_entry_in_Mps_Tree;   //!
 
-   Neutral_Fraction(TTree *tree=0);
-   Neutral_Fraction(Int_t Run=10548, Int_t TS1_oct=5, Int_t TS2_oct=1);
-   virtual ~Neutral_Fraction();
+   Neutral_Pedestal(TTree *tree=0);
+   Neutral_Pedestal(Int_t Run=13709, Int_t TS1_oct=5, Int_t TS2_oct=1);
+   virtual ~Neutral_Pedestal();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
@@ -318,20 +318,20 @@ public :
 
 #endif
 
-#ifdef Neutral_Fraction_cxx
-Neutral_Fraction::Neutral_Fraction(TTree *tree) : fChain(0) 
+#ifdef Neutral_Pedestal_cxx
+Neutral_Pedestal::Neutral_Pedestal(TTree *tree) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
 
-   const char* location = "/lustre/expphy/volatile/hallc/qweak/mjmchugh/tracking-pass3b";
+   const char* location = "/home/mjmchugh/qweak/rootfiles/tracking_pass3b";
    std::cout << "Enter Run Number:" << std::endl;
    cin >> run;
    std::cout << "Enter TS1 Octant:" << std::endl;
    cin >> TS_Octant[0];
    std::cout << "Enter TS2 Octant:" << std::endl;
    cin >> TS_Octant[1];
-   
+ 
    if (tree == 0) {
       TFile *f = (TFile*)gROOT->
                  GetListOfFiles()->
@@ -345,12 +345,12 @@ Neutral_Fraction::Neutral_Fraction(TTree *tree) : fChain(0)
    Init(tree);
 }
 
-Neutral_Fraction::Neutral_Fraction(Int_t Run, Int_t TS1_oct, Int_t TS2_oct) : fChain(0) {
+Neutral_Pedestal::Neutral_Pedestal(Int_t Run, Int_t TS1_oct, Int_t TS2_oct) : fChain(0) {
 
    run = Run;
    TS_Octant[0] = TS1_oct;
    TS_Octant[1] = TS2_oct;
-   
+
    TChain* chain = new TChain("event_tree");
    chain->Add(Form("/lustre/expphy/volatile/hallc/qweak/mjmchugh/tracking-pass3b/Qweak_%d.root",run));
  
@@ -358,19 +358,19 @@ Neutral_Fraction::Neutral_Fraction(Int_t Run, Int_t TS1_oct, Int_t TS2_oct) : fC
 
 }
 
-Neutral_Fraction::~Neutral_Fraction()
+Neutral_Pedestal::~Neutral_Pedestal()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
 }
 
-Int_t Neutral_Fraction::GetEntry(Long64_t entry)
+Int_t Neutral_Pedestal::GetEntry(Long64_t entry)
 {
 // Read contents of entry.
    if (!fChain) return 0;
    return fChain->GetEntry(entry);
 }
-Long64_t Neutral_Fraction::LoadTree(Long64_t entry)
+Long64_t Neutral_Pedestal::LoadTree(Long64_t entry)
 {
 // Set the environment to read one entry
    if (!fChain) return -5;
@@ -383,7 +383,7 @@ Long64_t Neutral_Fraction::LoadTree(Long64_t entry)
    return centry;
 }
 
-void Neutral_Fraction::Init(TChain *tree)
+void Neutral_Pedestal::Init(TChain *tree)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -471,7 +471,7 @@ void Neutral_Fraction::Init(TChain *tree)
    Notify();
 }
 
-Bool_t Neutral_Fraction::Notify()
+Bool_t Neutral_Pedestal::Notify()
 {
    // The Notify() function is called when a new file is opened. This
    // can be either for a new TTree in a TChain or when when a new TTree
@@ -482,18 +482,18 @@ Bool_t Neutral_Fraction::Notify()
    return kTRUE;
 }
 
-void Neutral_Fraction::Show(Long64_t entry)
+void Neutral_Pedestal::Show(Long64_t entry)
 {
 // Print contents of entry.
 // If entry is not specified, print current entry
    if (!fChain) return;
    fChain->Show(entry);
 }
-Int_t Neutral_Fraction::Cut(Long64_t entry)
+Int_t Neutral_Pedestal::Cut(Long64_t entry)
 {
 // This function may be called from Loop.
 // returns  1 if entry is accepted.
 // returns -1 otherwise.
    return 1;
 }
-#endif // #ifdef Neutral_Fraction_cxx
+#endif // #ifdef Neutral_Pedestal_cxx
