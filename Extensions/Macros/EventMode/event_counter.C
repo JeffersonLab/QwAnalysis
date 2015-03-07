@@ -18,7 +18,7 @@ void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventH
   gROOT -> SetStyle("Modern");
 
   //open rootfile
-  TString filename = Form("QweakRun2_%i.root",runNumber);
+  TString filename = Form("Qweak_%i.root",runNumber);
   TFile *file = new TFile(filename);
   if ( !file->IsOpen() ) {
     std::cout <<"Error opening ROOTFILE " << file->GetName() <<std::endl;
