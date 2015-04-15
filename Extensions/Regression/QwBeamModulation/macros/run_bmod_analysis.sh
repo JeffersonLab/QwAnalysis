@@ -41,7 +41,6 @@ n=0
 prev_run=0
 cd $MPS_ONLY_ROOTFILES
 for i in $( ls mps_only_1*.root | cut -d'_' -f $FIELD );
-#for i in $( find ${OUTPUT}/macrocycle_slopes/coil_coeffs_${1}*_ChiSqMin.set0.dat -mtime +3 -mtime -90 -ls| cut -d'_' -f ${FIELD} );
   do
   if [ "$i" -gt 17837 ];then
       RAMP_PEDESTAL=7.5

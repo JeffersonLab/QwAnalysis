@@ -124,7 +124,7 @@ Int_t MakeCorrectedDBrootfile(Int_t run_period = 1, TString stem = "")
   TString leafListFileName =  Form("%s/config/setup_mpsonly%s.config",
 				   gSystem->Getenv("BMOD_SRC"), stem.Data());
   correctedFileDir += Form("run%i/", run_period);
-  TString DBFileDir = Form("/net/data2/paschkelab2/DB_rootfiles/run%i/", 
+  TString DBFileDir = Form("%s/run%i/", gSystem->Getenv("DB_ROOTFILES"),
 			   run_period);
   TString run_range_filename = Form("%s/slopelists/run_ranges.dat", 
 				     gSystem->Getenv("BMOD_OUT"));
@@ -189,8 +189,8 @@ Int_t MakeCorrectedDBrootfile(Int_t run_period = 1, TString stem = "")
 
   //get the DB rootfile
   /////////////////////
-  TFile *DBfile = TFile::Open(Form("/net/data2/paschkelab2/DB_rootfiles/run%i/"
-				   "HYDROGEN-CELL_off_tree.root", run_period));
+  TFile *DBfile = TFile::Open(Form("%s/run%i/HYDROGEN-CELL_off_tree.root", 
+				   gSystem->Getenv("DB_ROOTFILES"),run_period));
   if(DBfile==0){
     cout<<"DB rootfile not found. Exiting.\n";
     return -1;
@@ -325,8 +325,8 @@ Int_t MakeCorrectedDBrootfile(Int_t run_period = 1, TString stem = "")
 
 //   //create new DB friend tree
 //   ///////////////////////////
-  TFile *newfile = new TFile(Form("/net/data2/paschkelab2/DB_rootfiles/run%i/"
-				  "hydrogen_cell_corrected_tree%s.root",
+  TFile *newfile = new TFile(Form("%s/run%i/hydrogen_cell_corrected_tree%s.root",
+				  gSystem->Getenv("DB_ROOTFILES"),
 				  run_period, stem.Data()), "recreate");
   if(newfile==0){
     cout<<"Warning. New corrected tree file failed to open. Exiting.\n";

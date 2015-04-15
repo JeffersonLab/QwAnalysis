@@ -74,10 +74,10 @@ int main(Int_t argc,Char_t* argv[]){
   time ( &rawtime );
   timeinfo = localtime ( &rawtime );
 
+  Double_t figSize = 1.0;
+
 
   Bool_t DIFF_PLOT = 1;
-
-
   Bool_t FIGURE = 0;
 
 //   TString database="qw_run2_pass1";
@@ -115,7 +115,6 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t markerSize[6] = {0.9,0.6,0.7,0.5,1.2,0.8};
 //   Double_t yScale[2] = {-10.0,10.0};
 
-
   Double_t x_lo_stat_in4,y_lo_stat_in4,x_hi_stat_in4,y_hi_stat_in4,x_lo_stat_out4,y_lo_stat_out4,x_hi_stat_out4,y_hi_stat_out4;
   x_lo_stat_in4=0.76;y_lo_stat_in4=0.64;x_hi_stat_in4=0.99;y_hi_stat_in4=0.95;
   x_lo_stat_out4=0.76;y_lo_stat_out4=0.30;x_hi_stat_out4=0.99;y_hi_stat_out4=0.61;
@@ -125,7 +124,8 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t tsiz,tsiz3,tsiz4,tsiz5,tll,tlr,ps1,ps2,ps3,ps4,ps5;
   //   tsiz=0.45;tsiz3=0.40;tsiz4=0.35;tsiz5=0.30;tll=0.012;tlr=0.4;ps1=0.01;ps2=0.93;ps3=0.94;ps4=0.99;ps5=0.99;
   tsiz=0.45;tsiz3=0.50;tsiz4=0.35;tsiz5=0.30;tll=0.012;tlr=0.4;ps1=0.005;ps2=0.935;ps3=0.945;ps4=0.995;ps5=0.99;
-
+  Double_t textSize[4] = {0.060*figSize,0.035*figSize,0.060*figSize,0.030*figSize};
+  Double_t xScalePlot = 1.0;
 
   //  Int_t argc;Char_t* argv[400];
 
@@ -286,10 +286,12 @@ int main(Int_t argc,Char_t* argv[]){
   else if(datopt == 2){
     polar = "v_transverse";
     good = "8";
+    xScalePlot = 1.0;
   }
   else if(datopt == 3){
     polar = "h_transverse";
     good = "9";
+    xScalePlot = 1.06;
   }
   else if(datopt == 4){
     polar = "h+v_transverse";
@@ -475,7 +477,8 @@ int main(Int_t argc,Char_t* argv[]){
   const Int_t det = 6;
   Double_t calc_DiffInp0[det],calc_eDiffInp0[det],calc_DiffInChisquare[det],calc_DiffInNDF[det];
   Double_t calc_DiffOutp0[det],calc_eDiffOutp0[det],calc_DiffOutChisquare[det],calc_DiffOutNDF[det];
-
+  Double_t calc_DiffInPOutp0[det],calc_eDiffInPOutp0[det],calc_DiffInPOutChisquare[det],calc_DiffInPOutNDF[det];
+  Double_t calc_DiffInMOutp0[det],calc_eDiffInMOutp0[det],calc_DiffInMOutChisquare[det],calc_DiffInMOutNDF[det];
 
 
   runletDiff.open(Form("dirPlot/%s_%s_%s_%s_regression_%s_%s_%s_diff_%s.txt"
@@ -685,7 +688,7 @@ int main(Int_t argc,Char_t* argv[]){
 
   if(DIFF_PLOT){
 
-  TCanvas * c11 = new TCanvas("c11", titleInOut,0,0,1600,1000);
+  TCanvas * c11 = new TCanvas("c11", titleInOut,0,0,1600*figSize,1000*figSize);
   c11->Draw();
   c11->SetBorderSize(0);
   c11->cd();
@@ -850,8 +853,8 @@ int main(Int_t argc,Char_t* argv[]){
   statsDiffXIn->SetFillColor(kWhite); 
   statsDiffXOut->SetTextColor(kRed);
   statsDiffXOut->SetFillColor(kWhite);
-  statsDiffXIn->SetTextSize(0.045);
-  statsDiffXOut->SetTextSize(0.045);
+  statsDiffXIn->SetTextSize(textSize[0]);
+  statsDiffXOut->SetTextSize(textSize[0]);
   statsDiffXIn->SetX1NDC(x_lo_stat_in4);    statsDiffXIn->SetX2NDC(x_hi_stat_in4); 
   statsDiffXIn->SetY1NDC(y_lo_stat_in4);    statsDiffXIn->SetY2NDC(y_hi_stat_in4);
   statsDiffXOut->SetX1NDC(x_lo_stat_out4);  statsDiffXOut->SetX2NDC(x_hi_stat_out4); 
@@ -867,13 +870,27 @@ int main(Int_t argc,Char_t* argv[]){
   calc_DiffOutChisquare[0] =   fitfun1Out->GetChisquare();
   calc_DiffOutNDF[0]       =   fitfun1Out->GetNDF();
 
+  calc_DiffInPOutp0[0]     =   (calc_DiffInp0[0]+calc_DiffOutp0[0])/2.0;
+  calc_eDiffInPOutp0[0]    =   (sqrt(pow(calc_eDiffInp0[0],2)+pow(calc_eDiffOutp0[0],2)))/2.0;
+  calc_DiffInMOutp0[0]     =   ((calc_DiffInp0[0]/pow(calc_eDiffInp0[0],2)) - (calc_DiffOutp0[0]/pow(calc_eDiffOutp0[0],2))) /((1/pow(calc_eDiffInp0[0],2)) + (1/pow(calc_eDiffOutp0[0],2)));
+  calc_eDiffInMOutp0[0]    =   sqrt(1/((1/pow(calc_eDiffInp0[0],2)) + (1/pow(calc_eDiffOutp0[0],2))));
+
 //   TLegend *legRunDiffX = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-//   legRunDiffX->AddEntry("diffXGraphIN",  Form("A_{IN}= %4.2f#pm%4.2f [ppm]",calc_DiffXInp0,calc_eDiffXInp0),"lp");
-//   legRunDiffX->AddEntry("diffXGraphOUT",  Form("A_{OUT}= %4.2f#pm%4.2f [ppm]",calc_DiffXOutp0,calc_eDiffXOutp0),"lp");
-//   legRunDiffX->SetTextSize(0.042);
+//   legRunDiffX->AddEntry("diffXGraphIN",  Form("(<IN>+<OUT>)/2 = %4.2f#pm%4.2f",calc_DiffInPOutp0[0],calc_eDiffInPOutp0[0]),"");
+//   legRunDiffX->AddEntry("diffXGraphOUT",  Form("<IN,-OUT> = %4.2f#pm%4.2f",calc_DiffInMOutp0[0],calc_eDiffInMOutp0[0]),"");
+//   legRunDiffX->SetTextSize(textSize[0]);
 //   legRunDiffX->SetFillColor(0);
 //   legRunDiffX->SetBorderSize(2);
 //   legRunDiffX->Draw();
+  TLatex* tDiffXPosInPOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangePos[0]*0.85, Form("IN+OUT: %2.2f #pm %2.2f",calc_DiffInPOutp0[0],calc_eDiffInPOutp0[0]));
+  tDiffXPosInPOut->SetTextSize(textSize[0]);
+  tDiffXPosInPOut->SetTextColor(kBlack);
+  TLatex* tDiffXPosInMOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangePos[0]*1.10, Form("IN-OUT: %2.2f #pm %2.2f",calc_DiffInMOutp0[0],calc_eDiffInMOutp0[0]));
+  tDiffXPosInMOut->SetTextSize(textSize[0]);
+  tDiffXPosInMOut->SetTextColor(kBlack);
+
+  tDiffXPosInPOut->Draw();
+  tDiffXPosInMOut->Draw();
 
 
   TLatex* tDiffPosIn = new TLatex(dummyArraySize*0.2,YRangePos[0]*1.15, "HWP-IN");
@@ -939,8 +956,8 @@ int main(Int_t argc,Char_t* argv[]){
   statsDiffYIn->SetFillColor(kWhite); 
   statsDiffYOut->SetTextColor(kRed);
   statsDiffYOut->SetFillColor(kWhite);
-  statsDiffYIn->SetTextSize(0.045);
-  statsDiffYOut->SetTextSize(0.045);
+  statsDiffYIn->SetTextSize(textSize[0]);
+  statsDiffYOut->SetTextSize(textSize[0]);
   statsDiffYIn->SetX1NDC(x_lo_stat_in4);    statsDiffYIn->SetX2NDC(x_hi_stat_in4); 
   statsDiffYIn->SetY1NDC(y_lo_stat_in4);    statsDiffYIn->SetY2NDC(y_hi_stat_in4);
   statsDiffYOut->SetX1NDC(x_lo_stat_out4);  statsDiffYOut->SetX2NDC(x_hi_stat_out4); 
@@ -959,6 +976,20 @@ int main(Int_t argc,Char_t* argv[]){
   tDiffPosIn->Draw();
   tDiffPosOut->Draw();
 
+  calc_DiffInPOutp0[1]     =   (calc_DiffInp0[1]+calc_DiffOutp0[1])/2.0;
+  calc_eDiffInPOutp0[1]    =   (sqrt(pow(calc_eDiffInp0[1],2)+pow(calc_eDiffOutp0[1],2)))/2.0;
+  calc_DiffInMOutp0[1]     =   ((calc_DiffInp0[1]/pow(calc_eDiffInp0[1],2)) - (calc_DiffOutp0[1]/pow(calc_eDiffOutp0[1],2))) /((1/pow(calc_eDiffInp0[1],2)) + (1/pow(calc_eDiffOutp0[1],2)));
+  calc_eDiffInMOutp0[1]    =   sqrt(1/((1/pow(calc_eDiffInp0[1],2)) + (1/pow(calc_eDiffOutp0[1],2))));
+
+  TLatex* tDiffYPosInPOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangePos[0]*0.85, Form("IN+OUT: %2.2f #pm %2.2f",calc_DiffInPOutp0[1],calc_eDiffInPOutp0[1]));
+  tDiffYPosInPOut->SetTextSize(textSize[0]);
+  tDiffYPosInPOut->SetTextColor(kBlack);
+  TLatex* tDiffYPosInMOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangePos[0]*1.10, Form("IN-OUT: %2.2f #pm %2.2f",calc_DiffInMOutp0[1],calc_eDiffInMOutp0[1]));
+  tDiffYPosInMOut->SetTextSize(textSize[0]);
+  tDiffYPosInMOut->SetTextColor(kBlack);
+
+  tDiffYPosInPOut->Draw();
+  tDiffYPosInMOut->Draw();
 
 
   pad112->cd(3);  
@@ -1014,8 +1045,8 @@ int main(Int_t argc,Char_t* argv[]){
   statsDiffXSlopeIn->SetFillColor(kWhite); 
   statsDiffXSlopeOut->SetTextColor(kRed);
   statsDiffXSlopeOut->SetFillColor(kWhite);
-  statsDiffXSlopeIn->SetTextSize(0.045);
-  statsDiffXSlopeOut->SetTextSize(0.045);
+  statsDiffXSlopeIn->SetTextSize(textSize[0]);
+  statsDiffXSlopeOut->SetTextSize(textSize[0]);
   statsDiffXSlopeIn->SetX1NDC(x_lo_stat_in4);    statsDiffXSlopeIn->SetX2NDC(x_hi_stat_in4); 
   statsDiffXSlopeIn->SetY1NDC(y_lo_stat_in4);    statsDiffXSlopeIn->SetY2NDC(y_hi_stat_in4);
   statsDiffXSlopeOut->SetX1NDC(x_lo_stat_out4);  statsDiffXSlopeOut->SetX2NDC(x_hi_stat_out4); 
@@ -1030,6 +1061,21 @@ int main(Int_t argc,Char_t* argv[]){
   calc_eDiffOutp0[2]       =   fitfun3Out->GetParError(0);
   calc_DiffOutChisquare[2] =   fitfun3Out->GetChisquare();
   calc_DiffOutNDF[2]       =   fitfun3Out->GetNDF();
+
+  calc_DiffInPOutp0[2]     =   (calc_DiffInp0[2]+calc_DiffOutp0[2])/2.0;
+  calc_eDiffInPOutp0[2]    =   (sqrt(pow(calc_eDiffInp0[2],2)+pow(calc_eDiffOutp0[2],2)))/2.0;
+  calc_DiffInMOutp0[2]     =   ((calc_DiffInp0[2]/pow(calc_eDiffInp0[2],2)) - (calc_DiffOutp0[2]/pow(calc_eDiffOutp0[2],2))) /((1/pow(calc_eDiffInp0[2],2)) + (1/pow(calc_eDiffOutp0[2],2)));
+  calc_eDiffInMOutp0[2]    =   sqrt(1/((1/pow(calc_eDiffInp0[2],2)) + (1/pow(calc_eDiffOutp0[2],2))));
+
+  TLatex* tDiffXSlopePosInPOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangeAng[0]*0.85, Form("IN+OUT: %2.2f #pm %2.2f",calc_DiffInPOutp0[2],calc_eDiffInPOutp0[2]));
+  tDiffXSlopePosInPOut->SetTextSize(textSize[0]);
+  tDiffXSlopePosInPOut->SetTextColor(kBlack);
+  TLatex* tDiffXSlopePosInMOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangeAng[0]*1.10, Form("IN-OUT: %2.2f #pm %2.2f",calc_DiffInMOutp0[2],calc_eDiffInMOutp0[2]));
+  tDiffXSlopePosInMOut->SetTextSize(textSize[0]);
+  tDiffXSlopePosInMOut->SetTextColor(kBlack);
+
+  tDiffXSlopePosInPOut->Draw();
+  tDiffXSlopePosInMOut->Draw();
 
 
   TLatex* tDiffAngIn = new TLatex(dummyArraySize*0.2,YRangeAng[0]*1.15, "HWP-IN");
@@ -1097,8 +1143,8 @@ int main(Int_t argc,Char_t* argv[]){
   statsDiffYSlopeIn->SetFillColor(kWhite); 
   statsDiffYSlopeOut->SetTextColor(kRed);
   statsDiffYSlopeOut->SetFillColor(kWhite);
-  statsDiffYSlopeIn->SetTextSize(0.045);
-  statsDiffYSlopeOut->SetTextSize(0.045);
+  statsDiffYSlopeIn->SetTextSize(textSize[0]);
+  statsDiffYSlopeOut->SetTextSize(textSize[0]);
   statsDiffYSlopeIn->SetX1NDC(x_lo_stat_in4);    statsDiffYSlopeIn->SetX2NDC(x_hi_stat_in4); 
   statsDiffYSlopeIn->SetY1NDC(y_lo_stat_in4);    statsDiffYSlopeIn->SetY2NDC(y_hi_stat_in4);
   statsDiffYSlopeOut->SetX1NDC(x_lo_stat_out4);  statsDiffYSlopeOut->SetX2NDC(x_hi_stat_out4); 
@@ -1117,6 +1163,20 @@ int main(Int_t argc,Char_t* argv[]){
   tDiffAngIn->Draw();
   tDiffAngOut->Draw();
 
+  calc_DiffInPOutp0[3]     =   (calc_DiffInp0[3]+calc_DiffOutp0[3])/2.0;
+  calc_eDiffInPOutp0[3]    =   (sqrt(pow(calc_eDiffInp0[3],2)+pow(calc_eDiffOutp0[3],2)))/2.0;
+  calc_DiffInMOutp0[3]     =   ((calc_DiffInp0[3]/pow(calc_eDiffInp0[3],2)) - (calc_DiffOutp0[3]/pow(calc_eDiffOutp0[3],2))) /((1/pow(calc_eDiffInp0[3],2)) + (1/pow(calc_eDiffOutp0[3],2)));
+  calc_eDiffInMOutp0[3]    =   sqrt(1/((1/pow(calc_eDiffInp0[3],2)) + (1/pow(calc_eDiffOutp0[3],2))));
+
+  TLatex* tDiffYSlopePosInPOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangeAng[0]*0.85, Form("IN+OUT: %2.2f #pm %2.2f",calc_DiffInPOutp0[3],calc_eDiffInPOutp0[3]));
+  tDiffYSlopePosInPOut->SetTextSize(textSize[0]);
+  tDiffYSlopePosInPOut->SetTextColor(kBlack);
+  TLatex* tDiffYSlopePosInMOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangeAng[0]*1.10, Form("IN-OUT: %2.2f #pm %2.2f",calc_DiffInMOutp0[3],calc_eDiffInMOutp0[3]));
+  tDiffYSlopePosInMOut->SetTextSize(textSize[0]);
+  tDiffYSlopePosInMOut->SetTextColor(kBlack);
+
+  tDiffYSlopePosInPOut->Draw();
+  tDiffYSlopePosInMOut->Draw();
 
   pad112->cd(5);  
   TGraphErrors * diffEGraphIN = new TGraphErrors((Int_t)run1in.size(),dummyINaxis,diffEin.data(),myzero.data(),diffEEr2in.data());
@@ -1172,8 +1232,8 @@ int main(Int_t argc,Char_t* argv[]){
   statsDiffEIn->SetFillColor(kWhite); 
   statsDiffEOut->SetTextColor(kRed);
   statsDiffEOut->SetFillColor(kWhite);
-  statsDiffEIn->SetTextSize(0.045);
-  statsDiffEOut->SetTextSize(0.045);
+  statsDiffEIn->SetTextSize(textSize[0]);
+  statsDiffEOut->SetTextSize(textSize[0]);
   statsDiffEIn->SetX1NDC(x_lo_stat_in4);    statsDiffEIn->SetX2NDC(x_hi_stat_in4); 
   statsDiffEIn->SetY1NDC(y_lo_stat_in4);    statsDiffEIn->SetY2NDC(y_hi_stat_in4);
   statsDiffEOut->SetX1NDC(x_lo_stat_out4);  statsDiffEOut->SetX2NDC(x_hi_stat_out4); 
@@ -1189,6 +1249,20 @@ int main(Int_t argc,Char_t* argv[]){
   calc_DiffOutChisquare[4] =   fitfun5Out->GetChisquare();
   calc_DiffOutNDF[4]       =   fitfun5Out->GetNDF();
 
+  calc_DiffInPOutp0[4]     =   (calc_DiffInp0[4]+calc_DiffOutp0[4])/2.0;
+  calc_eDiffInPOutp0[4]    =   (sqrt(pow(calc_eDiffInp0[4],2)+pow(calc_eDiffOutp0[4],2)))/2.0;
+  calc_DiffInMOutp0[4]     =   ((calc_DiffInp0[4]/pow(calc_eDiffInp0[4],2)) - (calc_DiffOutp0[4]/pow(calc_eDiffOutp0[4],2))) /((1/pow(calc_eDiffInp0[4],2)) + (1/pow(calc_eDiffOutp0[4],2)));
+  calc_eDiffInMOutp0[4]    =   sqrt(1/((1/pow(calc_eDiffInp0[4],2)) + (1/pow(calc_eDiffOutp0[4],2))));
+
+  TLatex* tDiffEPosInPOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangeE[0]*0.85, Form("IN+OUT: %2.2f #pm %2.2f",calc_DiffInPOutp0[4],calc_eDiffInPOutp0[4]));
+  tDiffEPosInPOut->SetTextSize(textSize[0]);
+  tDiffEPosInPOut->SetTextColor(kBlack);
+  TLatex* tDiffEPosInMOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangeE[0]*1.10, Form("IN-OUT: %2.2f #pm %2.2f",calc_DiffInMOutp0[4],calc_eDiffInMOutp0[4]));
+  tDiffEPosInMOut->SetTextSize(textSize[0]);
+  tDiffEPosInMOut->SetTextColor(kBlack);
+
+  tDiffEPosInPOut->Draw();
+  tDiffEPosInMOut->Draw();
 
   TLatex* tDiffEIn = new TLatex(dummyArraySize*0.2,YRangeE[0]*1.15, "HWP-IN");
   tDiffEIn->SetTextSize(0.06);
@@ -1253,8 +1327,8 @@ int main(Int_t argc,Char_t* argv[]){
   statsDiffChargeIn->SetFillColor(kWhite); 
   statsDiffChargeOut->SetTextColor(kRed);
   statsDiffChargeOut->SetFillColor(kWhite);
-  statsDiffChargeIn->SetTextSize(0.045);
-  statsDiffChargeOut->SetTextSize(0.045);
+  statsDiffChargeIn->SetTextSize(textSize[0]);
+  statsDiffChargeOut->SetTextSize(textSize[0]);
   statsDiffChargeIn->SetX1NDC(x_lo_stat_in4);    statsDiffChargeIn->SetX2NDC(x_hi_stat_in4); 
   statsDiffChargeIn->SetY1NDC(y_lo_stat_in4);    statsDiffChargeIn->SetY2NDC(y_hi_stat_in4);
   statsDiffChargeOut->SetX1NDC(x_lo_stat_out4);  statsDiffChargeOut->SetX2NDC(x_hi_stat_out4); 
@@ -1269,6 +1343,21 @@ int main(Int_t argc,Char_t* argv[]){
   calc_eDiffOutp0[5]       =   fitfun6Out->GetParError(0);
   calc_DiffOutChisquare[5] =   fitfun6Out->GetChisquare();
   calc_DiffOutNDF[5]       =   fitfun6Out->GetNDF();
+
+  calc_DiffInPOutp0[5]     =   (calc_DiffInp0[5]+calc_DiffOutp0[5])/2.0;
+  calc_eDiffInPOutp0[5]    =   (sqrt(pow(calc_eDiffInp0[5],2)+pow(calc_eDiffOutp0[5],2)))/2.0;
+  calc_DiffInMOutp0[5]     =   ((calc_DiffInp0[5]/pow(calc_eDiffInp0[5],2)) - (calc_DiffOutp0[5]/pow(calc_eDiffOutp0[5],2))) /((1/pow(calc_eDiffInp0[5],2)) + (1/pow(calc_eDiffOutp0[5],2)));
+  calc_eDiffInMOutp0[5]    =   sqrt(1/((1/pow(calc_eDiffInp0[5],2)) + (1/pow(calc_eDiffOutp0[5],2))));
+
+  TLatex* tDiffChargePosInPOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangeQ[0]*0.85, Form("IN+OUT: %2.2f #pm %2.2f",calc_DiffInPOutp0[5],calc_eDiffInPOutp0[5]));
+  tDiffChargePosInPOut->SetTextSize(textSize[0]);
+  tDiffChargePosInPOut->SetTextColor(kBlack);
+  TLatex* tDiffChargePosInMOut = new TLatex(dummyArraySize*1.93*xScalePlot,YRangeQ[0]*1.10, Form("IN-OUT: %2.2f #pm %2.2f",calc_DiffInMOutp0[5],calc_eDiffInMOutp0[5]));
+  tDiffChargePosInMOut->SetTextSize(textSize[0]);
+  tDiffChargePosInMOut->SetTextColor(kBlack);
+
+  tDiffChargePosInPOut->Draw();
+  tDiffChargePosInMOut->Draw();
 
   TLatex* tDiffQIn = new TLatex(dummyArraySize*0.2,YRangeQ[0]*1.15, "HWP-IN");
   tDiffQIn->SetTextSize(0.06);

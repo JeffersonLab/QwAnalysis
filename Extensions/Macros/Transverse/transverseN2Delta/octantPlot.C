@@ -7,6 +7,7 @@
 
 using namespace std;
 #include "NurClass.h"
+#include <TGaxis.h>
 
 int main(Int_t argc,Char_t* argv[]){
 
@@ -19,6 +20,8 @@ int main(Int_t argc,Char_t* argv[]){
   Bool_t SCALE = 0;
   Bool_t FIGURE = 0;
   Bool_t PRELIMINARY = 0;
+
+  Double_t figSize = 2.0;
 
 
   //   TString database="qw_run2_pass1";
@@ -48,20 +51,22 @@ int main(Int_t argc,Char_t* argv[]){
   TString showFit1,showFit2,showFit3,showSinFit,showCosFit;
 
   /* Canvas and Pad and Scale parameters */
-  Int_t canvasSize[4] ={1600,1000,1200,650};
+  Int_t canvasSize[4] ={1600*figSize,1200*figSize,1200*figSize,650*figSize};
   Double_t pad1x[2] = {0.005,0.995};
   Double_t pad1y[2] = {0.935,0.995};
   Double_t pad2x[2] = {0.005,0.995};
+//   Double_t pad2y[2] = {0.005,0.995};
   Double_t pad2y[2] = {0.005,0.925};
   Double_t markerSize[6] = {0.9,0.7,0.7,0.5,1.2,0.8};
   Double_t legendCoordinates[4] = {0.1,0.900,0.75,0.995};
   Double_t yScale[2] = {-10.0,10.0};
   Double_t waterMark[2] = {2.5,-1.0};
-
+  Double_t statTextSize[2] = {0.072,0.065};
 
   Double_t x_lo_stat_in4,y_lo_stat_in4,x_hi_stat_in4,y_hi_stat_in4,x_lo_stat_out4,y_lo_stat_out4,x_hi_stat_out4,y_hi_stat_out4;
-  x_lo_stat_in4=0.76;y_lo_stat_in4=0.64;x_hi_stat_in4=0.99;y_hi_stat_in4=0.95;
-  x_lo_stat_out4=0.76;y_lo_stat_out4=0.30;x_hi_stat_out4=0.99;y_hi_stat_out4=0.61;
+//   x_lo_stat_in4=0.76;y_lo_stat_in4=0.64;x_hi_stat_in4=0.99;y_hi_stat_in4=0.95;
+  x_lo_stat_in4=0.70;y_lo_stat_in4=0.64;x_hi_stat_in4=0.99;y_hi_stat_in4=0.95;
+  x_lo_stat_out4=0.70;y_lo_stat_out4=0.30;x_hi_stat_out4=0.99;y_hi_stat_out4=0.61;
   Double_t x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4;
   x_lo_leg4=0.76;y_lo_leg4=0.10;x_hi_leg4=0.99;y_hi_leg4=0.27;
 
@@ -340,6 +345,7 @@ int main(Int_t argc,Char_t* argv[]){
   gStyle->SetOptStat(0000000);
   gStyle->SetStatY(0.99);
   gStyle->SetStatX(0.99);
+//   gStyle->SetStatW(0.15);
   gStyle->SetStatW(0.15);
   gStyle->SetStatH(0.5);
   
@@ -464,7 +470,7 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("No textfile %sdirPlot/resultText/%s_%s_%s_%s_beam_parameter_differences_regression_%s_%s_%s.txt%s exist for the configuration. Exiting program!\n",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data()  ,normal);
     return -1;
   }
   diffAvg.close();
@@ -515,7 +521,7 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("No textfile: %sdirPlot/resultText/%s_%s_%s_%s_%s_%s_regression_%s_%s_senX_%s.txt%s exist for the configuration. Exiting program!\n",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data(),deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(), normal);
     return -1;
   }
   senXAvg.close();
@@ -546,7 +552,7 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("No textfile: %sdirPlot/resultText/%s_%s_%s_%s_%s_%s_regression_%s_%s_senY_%s.txt%s exist for the configuration. Exiting program!\n",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data(),deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(), normal);
     return -1;
   }
   senYAvg.close();
@@ -577,7 +583,7 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("No textfile: %sdirPlot/resultText/%s_%s_%s_%s_%s_%s_regression_%s_%s_senXSlope_%s.txt%s exist for the configuration. Exiting program!\n",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data(),deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(), normal);
     return -1;
   }
   senXSlopeAvg.close();
@@ -608,7 +614,7 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("No textfile: %sdirPlot/resultText/%s_%s_%s_%s_%s_%s_regression_%s_%s_senYSlope_%s.txt%s exist for the configuration. Exiting program!\n",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data(),deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(), normal);
     return -1;
   }
   senYSlopeAvg.close();
@@ -639,7 +645,7 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("No textfile: %sdirPlot/resultText/%s_%s_%s_%s_%s_%s_regression_%s_%s_senE_%s.txt%s exist for the configuration. Exiting program!\n",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data(),deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(), normal);
     return -1;
   }
   senEAvg.close();
@@ -670,14 +676,14 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("No textfile: %sdirPlot/resultText/%s_%s_%s_%s_%s_%s_regression_%s_%s_senCharge_%s.txt%s exist for the configuration. Exiting program!\n",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data(),deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data(), normal);
     return -1;
   }
   senChargeAvg.close();
 
   for ( Int_t i=0; i<8; i++) {
-    avgModCorTotalIn[i] = avgModCorXIn[i]+avgModCorYIn[i]+avgModCorXSlopeIn[i]+avgModCorYSlopeIn[i]+avgModCorYSlopeIn[i]+avgModCorEIn[i]+avgModCorChargeIn[i];
-    avgModCorTotalOut[i] = avgModCorXOut[i]+avgModCorYOut[i]+avgModCorXSlopeOut[i]+avgModCorYSlopeOut[i]+avgModCorYSlopeOut[i]+avgModCorEOut[i]+avgModCorChargeOut[i];
+    avgModCorTotalIn[i] = avgModCorXIn[i]+avgModCorYIn[i]+avgModCorXSlopeIn[i]+avgModCorYSlopeIn[i]+avgModCorEIn[i]+avgModCorChargeIn[i];
+    avgModCorTotalOut[i] = avgModCorXOut[i]+avgModCorYOut[i]+avgModCorXSlopeOut[i]+avgModCorYSlopeOut[i]+avgModCorEOut[i]+avgModCorChargeOut[i];
     cout <<"MD-"<<i+1<<blue<<" TotalIn = "<<avgModCorTotalIn[i]<<red<<"\tTotalOut = "<<avgModCorTotalIn[i]<<normal<<endl;
   }
 
@@ -757,18 +763,19 @@ int main(Int_t argc,Char_t* argv[]){
   //   gStyle->SetPadTopMargin(0.18);
   gStyle->SetPadTopMargin(0.05);
   gStyle->SetPadBottomMargin(0.15);
-  gStyle->SetPadRightMargin(0.25);
+//   gStyle->SetPadRightMargin(0.25);
+  gStyle->SetPadRightMargin(0.31);
   gStyle->SetPadLeftMargin(0.10);
 
   gStyle->SetNdivisions(507,"y");
 
   // histo parameters
-  gStyle->SetTitleYOffset(0.85);
+  gStyle->SetTitleYOffset(0.65);
   gStyle->SetTitleXOffset(0.95);
-  gStyle->SetLabelSize(0.06,"x");
-  gStyle->SetLabelSize(0.06,"y");
-  gStyle->SetTitleSize(0.06,"x");
-  gStyle->SetTitleSize(0.06,"y");
+  gStyle->SetLabelSize(0.08,"x");
+  gStyle->SetLabelSize(0.08,"y");
+  gStyle->SetTitleSize(0.08,"x");
+  gStyle->SetTitleSize(0.08,"y");
   gStyle->SetTitleX(0.12);
   gStyle->SetTitleW(0.28);
   gStyle->SetTitleBorderSize(0);
@@ -784,6 +791,7 @@ int main(Int_t argc,Char_t* argv[]){
   gStyle->SetLabelFont(42,"y");
   gStyle->SetLabelFont(42,"x");
 
+//   gStyle->SetFitFormat("%3.2g");
   gDirectory->Delete("*");
 
   Double_t det_range[2],fit_range[2];
@@ -807,10 +815,10 @@ int main(Int_t argc,Char_t* argv[]){
   showCosFit = "FIT = p_{0} + p_{1}cos[#frac{#pi}{4}(x-1)]";
   showSinFit = "FIT = p_{0} + p_{1}sin[#frac{#pi}{4}(x-1)]";
 
-  TString titleSen = Form("%s (%s, %s A): Regression-%s %s %s Sensitivity "
+  TString titleSen = Form("%s (%s, %s A): Regression-%s %s %s Sensitivity. FIT = #frac{#partialA}{#partialT} + p^{T}sin/cos[#frac{#pi}{4}(x-1)] "
 			    ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),device.Data(),deviceTitle.Data());
 
-  TString titleCor = Form("%s (%s, %s A): Regression-%s %s %s Corrections "
+  TString titleCor = Form("%s (%s, %s A): Regression-%s %s %s Corrections. FIT = C_{T} + p^{T}sin/cos[#frac{#pi}{4}(x-1)]"
 			    ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),device.Data(),deviceTitle.Data());
 
 
@@ -824,13 +832,18 @@ int main(Int_t argc,Char_t* argv[]){
   pad11->Draw();
   pad12->Draw();
   pad11->cd();
-  TLatex * t11 = new TLatex(0.06,0.3,Form("%s",titleSen.Data()));
+  TLatex * t11 = new TLatex(0.01,0.3,Form("%s",titleSen.Data()));
   t11->SetTextSize(0.5);
   t11->Draw();
   pad12->cd();
   pad12->Divide(2,3);
 
   /********************************************************/
+  TLine * line0 = new TLine(0.95, 0.0, 8.30, 0.0);
+  line0->SetLineStyle(10);
+  line0->SetLineWidth(1);
+//   line0->SetLineColor(kGray+1);
+  line0->SetLineColor(kBlack);
 
   pad12->cd(1);
 
@@ -852,7 +865,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenXGraphOut->SetName("SenXGraphOut");
   SenXGraphOut->SetMarkerColor(kBlack);
   SenXGraphOut->SetLineColor(kBlack);
-  SenXGraphOut->SetMarkerStyle(21);
+  SenXGraphOut->SetMarkerStyle(25);
   SenXGraphOut->SetMarkerSize(markerSize[1]);
   SenXGraphOut->SetLineWidth(1);
   SenXGraphOut->Fit("cosFit","EMRF0Q");
@@ -865,7 +878,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenXGraph->Add(SenXGraphIn);
   SenXGraph->Add(SenXGraphOut);
   SenXGraph->Draw("AP");
-  SenXGraph->SetTitle(Form("X : %s",showCosFit.Data()));
+//   SenXGraph->SetTitle(Form("X : %s",showCosFit.Data()));
   SenXGraph->GetXaxis()->SetNdivisions(8,0,0);
   SenXGraph->GetXaxis()->SetTitle(Form("Octant"));
   SenXGraph->GetYaxis()->SetTitle("X Sensitivity [ppb/nm]");
@@ -880,12 +893,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsSenXIn->SetFillColor(kWhite); 
   statsSenXOut->SetTextColor(kBlack);
   statsSenXOut->SetFillColor(kWhite);
-  statsSenXIn->SetTextSize(0.045);
-  statsSenXOut->SetTextSize(0.045);
+  statsSenXIn->SetTextSize(statTextSize[0]);
+  statsSenXOut->SetTextSize(statTextSize[0]);
+  statsSenXIn->SetFitFormat("5.3g");
+  statsSenXOut->SetFitFormat("5.3g");
+//   statsSenXIn->SetX1NDC(x_lo_stat_in4);    statsSenXIn->SetX2NDC(x_hi_stat_in4); 
+//   statsSenXIn->SetY1NDC(y_lo_stat_in4);    statsSenXIn->SetY2NDC(y_hi_stat_in4);
+//   statsSenXOut->SetX1NDC(x_lo_stat_out4);  statsSenXOut->SetX2NDC(x_hi_stat_out4); 
+//   statsSenXOut->SetY1NDC(y_lo_stat_out4);  statsSenXOut->SetY2NDC(y_hi_stat_out4);
   statsSenXIn->SetX1NDC(x_lo_stat_in4);    statsSenXIn->SetX2NDC(x_hi_stat_in4); 
-  statsSenXIn->SetY1NDC(y_lo_stat_in4);    statsSenXIn->SetY2NDC(y_hi_stat_in4);
+  statsSenXIn->SetY1NDC(0.55);    statsSenXIn->SetY2NDC(0.95);
   statsSenXOut->SetX1NDC(x_lo_stat_out4);  statsSenXOut->SetX2NDC(x_hi_stat_out4); 
-  statsSenXOut->SetY1NDC(y_lo_stat_out4);  statsSenXOut->SetY2NDC(y_hi_stat_out4);
+  statsSenXOut->SetY1NDC(0.10);  statsSenXOut->SetY2NDC(0.50);
 
   Double_t calc_SenXInp0        =   fitSenXIn->GetParameter(0);
   Double_t calc_SenXInp1        =   fitSenXIn->GetParameter(1);
@@ -905,16 +924,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_SenXOutChisquare =   fitSenXOut->GetChisquare();
   Double_t calc_SenXOutNDF       =   fitSenXOut->GetNDF();
 
-  TLegend *legSenX = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legSenX->AddEntry("SenXGraphIn",  Form("In X = %2.2f #pm %2.2f",calc_SenXInp0,calc_eSenXInp0),"lp");
-  legSenX->AddEntry("SenXGraphOut",  Form("Out X = %2.2f #pm %2.2f",calc_SenXOutp0,calc_eSenXOutp0),"lp");
-  legSenX->SetTextSize(0.040);
+  line0->Draw("same");
+
+  TLegend *legSenX = new TLegend(0.12,0.82,0.22,0.94);
+//   legSenX->AddEntry("SenXGraphIn",  Form("In X = %2.2f #pm %2.2f",calc_SenXInp0,calc_eSenXInp0),"lp");
+//   legSenX->AddEntry("SenXGraphOut",  Form("Out X = %2.2f #pm %2.2f",calc_SenXOutp0,calc_eSenXOutp0),"lp");
+  legSenX->AddEntry("SenXGraphIn",  Form("IN"),"lp");
+  legSenX->AddEntry("SenXGraphOut",  Form("OUT"),"lp");
+  legSenX->SetTextSize(0.055);
   legSenX->SetFillColor(0);
-  legSenX->SetBorderSize(2);
+  legSenX->SetBorderSize(0);
   legSenX->Draw();
 
   fitSenXIn->Draw("same");
   fitSenXOut->Draw("same");
+
+  fitSenXIn->SetParNames("#frac{#partialA}{#partialX}_{IN}","p^{X}_{IN}");
+  fitSenXOut->SetParNames("#frac{#partialA}{#partialX}_{OUT}","p^{X}_{OUT}");
 
   gPad->Update();
 
@@ -940,7 +966,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenXSlopeGraphOut->SetName("SenXSlopeGraphOut");
   SenXSlopeGraphOut->SetMarkerColor(kBlack);
   SenXSlopeGraphOut->SetLineColor(kBlack);
-  SenXSlopeGraphOut->SetMarkerStyle(22);
+  SenXSlopeGraphOut->SetMarkerStyle(26);
   SenXSlopeGraphOut->SetMarkerSize(markerSize[0]);
   SenXSlopeGraphOut->SetLineWidth(1);
   SenXSlopeGraphOut->Fit("cosFit","EMRF0Q");
@@ -953,7 +979,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenXSlopeGraph->Add(SenXSlopeGraphIn);
   SenXSlopeGraph->Add(SenXSlopeGraphOut);
   SenXSlopeGraph->Draw("AP");
-  SenXSlopeGraph->SetTitle(Form("X' : %s",showCosFit.Data()));
+//   SenXSlopeGraph->SetTitle(Form("X' : %s",showCosFit.Data()));
   SenXSlopeGraph->GetXaxis()->SetNdivisions(8,0,0);
   SenXSlopeGraph->GetXaxis()->SetTitle(Form("Octant"));
   SenXSlopeGraph->GetYaxis()->SetTitle("X' Sensitivity [ppb/nrad]");
@@ -968,12 +994,19 @@ int main(Int_t argc,Char_t* argv[]){
   statsSenXSlopeIn->SetFillColor(kWhite); 
   statsSenXSlopeOut->SetTextColor(kBlack);
   statsSenXSlopeOut->SetFillColor(kWhite);
-  statsSenXSlopeIn->SetTextSize(0.045);
-  statsSenXSlopeOut->SetTextSize(0.045);
+  statsSenXSlopeIn->SetTextSize(statTextSize[0]);
+  statsSenXSlopeOut->SetTextSize(statTextSize[0]);
+  statsSenXSlopeIn->SetFitFormat("5.3g");
+  statsSenXSlopeOut->SetFitFormat("5.3g");
+//   statsSenXSlopeIn->SetX1NDC(x_lo_stat_in4);    statsSenXSlopeIn->SetX2NDC(x_hi_stat_in4); 
+//   statsSenXSlopeIn->SetY1NDC(y_lo_stat_in4);    statsSenXSlopeIn->SetY2NDC(y_hi_stat_in4);
+//   statsSenXSlopeOut->SetX1NDC(x_lo_stat_out4);  statsSenXSlopeOut->SetX2NDC(x_hi_stat_out4); 
+//   statsSenXSlopeOut->SetY1NDC(y_lo_stat_out4);  statsSenXSlopeOut->SetY2NDC(y_hi_stat_out4);
   statsSenXSlopeIn->SetX1NDC(x_lo_stat_in4);    statsSenXSlopeIn->SetX2NDC(x_hi_stat_in4); 
-  statsSenXSlopeIn->SetY1NDC(y_lo_stat_in4);    statsSenXSlopeIn->SetY2NDC(y_hi_stat_in4);
+  statsSenXSlopeIn->SetY1NDC(0.55);    statsSenXSlopeIn->SetY2NDC(0.95);
   statsSenXSlopeOut->SetX1NDC(x_lo_stat_out4);  statsSenXSlopeOut->SetX2NDC(x_hi_stat_out4); 
-  statsSenXSlopeOut->SetY1NDC(y_lo_stat_out4);  statsSenXSlopeOut->SetY2NDC(y_hi_stat_out4);
+  statsSenXSlopeOut->SetY1NDC(0.10);  statsSenXSlopeOut->SetY2NDC(0.50);
+
 
   Double_t calc_SenXSlopeInp0        =   fitSenXSlopeIn->GetParameter(0);
   Double_t calc_SenXSlopeInp1        =   fitSenXSlopeIn->GetParameter(1);
@@ -993,16 +1026,25 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_SenXSlopeOutChisquare =   fitSenXSlopeOut->GetChisquare();
   Double_t calc_SenXSlopeOutNDF       =   fitSenXSlopeOut->GetNDF();
 
-  TLegend *legSenXSlope = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legSenXSlope->AddEntry("SenXSlopeGraphIn",  Form("In X' = %2.2f #pm %2.2f",calc_SenXSlopeInp0,calc_eSenXSlopeInp0),"lp");
-  legSenXSlope->AddEntry("SenXSlopeGraphOut",  Form("Out X' = %2.2f #pm %2.2f",calc_SenXSlopeOutp0,calc_eSenXSlopeOutp0),"lp");
-  legSenXSlope->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legSenXSlope = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legSenXSlope->AddEntry("SenXSlopeGraphIn",  Form("In X' = %2.2f #pm %2.2f",calc_SenXSlopeInp0,calc_eSenXSlopeInp0),"lp");
+//   legSenXSlope->AddEntry("SenXSlopeGraphOut",  Form("Out X' = %2.2f #pm %2.2f",calc_SenXSlopeOutp0,calc_eSenXSlopeOutp0),"lp");
+  TLegend *legSenXSlope = new TLegend(0.12,0.18,0.22,0.30);
+  legSenXSlope->AddEntry("SenXSlopeGraphIn",  Form("IN"),"lp");
+  legSenXSlope->AddEntry("SenXSlopeGraphOut",  Form("OUT"),"lp");
+  legSenXSlope->SetTextSize(0.055);
   legSenXSlope->SetFillColor(0);
-  legSenXSlope->SetBorderSize(2);
+  legSenXSlope->SetBorderSize(0);
   legSenXSlope->Draw();
 
   fitSenXSlopeIn->Draw("same");
   fitSenXSlopeOut->Draw("same");
+
+  fitSenXSlopeIn->SetParNames("#frac{#partialA}{#partialX'}_{IN}","p^{X'}_{IN}");
+  fitSenXSlopeOut->SetParNames("#frac{#partialA}{#partialX'}_{OUT}","p^{X'}_{OUT}");
+
+
 
   gPad->Update();
 
@@ -1028,7 +1070,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenYGraphOut->SetName("SenYGraphOut");
   SenYGraphOut->SetMarkerColor(kBlack);
   SenYGraphOut->SetLineColor(kBlack);
-  SenYGraphOut->SetMarkerStyle(21);
+  SenYGraphOut->SetMarkerStyle(25);
   SenYGraphOut->SetMarkerSize(markerSize[1]);
   SenYGraphOut->SetLineWidth(1);
   SenYGraphOut->Fit("sinFit","EMRF0Q");
@@ -1041,7 +1083,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenYGraph->Add(SenYGraphIn);
   SenYGraph->Add(SenYGraphOut);
   SenYGraph->Draw("AP");
-  SenYGraph->SetTitle(Form("Y : %s",showSinFit.Data()));
+//   SenYGraph->SetTitle(Form("Y : %s",showSinFit.Data()));
   SenYGraph->GetXaxis()->SetNdivisions(8,0,0);
   SenYGraph->GetXaxis()->SetTitle(Form("Octant"));
   SenYGraph->GetYaxis()->SetTitle("Y Sensitivity [ppb/nm]");
@@ -1056,12 +1098,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsSenYIn->SetFillColor(kWhite); 
   statsSenYOut->SetTextColor(kBlack);
   statsSenYOut->SetFillColor(kWhite);
-  statsSenYIn->SetTextSize(0.045);
-  statsSenYOut->SetTextSize(0.045);
+  statsSenYIn->SetTextSize(statTextSize[0]);
+  statsSenYOut->SetTextSize(statTextSize[0]);
+  statsSenYIn->SetFitFormat("5.3g");
+  statsSenYOut->SetFitFormat("5.3g");
+//   statsSenYIn->SetX1NDC(x_lo_stat_in4);    statsSenYIn->SetX2NDC(x_hi_stat_in4); 
+//   statsSenYIn->SetY1NDC(y_lo_stat_in4);    statsSenYIn->SetY2NDC(y_hi_stat_in4);
+//   statsSenYOut->SetX1NDC(x_lo_stat_out4);  statsSenYOut->SetX2NDC(x_hi_stat_out4); 
+//   statsSenYOut->SetY1NDC(y_lo_stat_out4);  statsSenYOut->SetY2NDC(y_hi_stat_out4);
   statsSenYIn->SetX1NDC(x_lo_stat_in4);    statsSenYIn->SetX2NDC(x_hi_stat_in4); 
-  statsSenYIn->SetY1NDC(y_lo_stat_in4);    statsSenYIn->SetY2NDC(y_hi_stat_in4);
+  statsSenYIn->SetY1NDC(0.55);    statsSenYIn->SetY2NDC(0.95);
   statsSenYOut->SetX1NDC(x_lo_stat_out4);  statsSenYOut->SetX2NDC(x_hi_stat_out4); 
-  statsSenYOut->SetY1NDC(y_lo_stat_out4);  statsSenYOut->SetY2NDC(y_hi_stat_out4);
+  statsSenYOut->SetY1NDC(0.10);  statsSenYOut->SetY2NDC(0.50);
 
   Double_t calc_SenYInp0        =   fitSenYIn->GetParameter(0);
   Double_t calc_SenYInp1        =   fitSenYIn->GetParameter(1);
@@ -1081,16 +1129,24 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_SenYOutChisquare =   fitSenYOut->GetChisquare();
   Double_t calc_SenYOutNDF       =   fitSenYOut->GetNDF();
 
-  TLegend *legSenY = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legSenY->AddEntry("SenYGraphIn",  Form("In Y = %2.2f #pm %2.2f",calc_SenYInp0,calc_eSenYInp0),"lp");
-  legSenY->AddEntry("SenYGraphOut",  Form("Out Y = %2.2f #pm %2.2f",calc_SenYOutp0,calc_eSenYOutp0),"lp");
-  legSenY->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legSenY = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legSenY->AddEntry("SenYGraphIn",  Form("In Y = %2.2f #pm %2.2f",calc_SenYInp0,calc_eSenYInp0),"lp");
+//   legSenY->AddEntry("SenYGraphOut",  Form("Out Y = %2.2f #pm %2.2f",calc_SenYOutp0,calc_eSenYOutp0),"lp");
+  TLegend *legSenY = new TLegend(0.12,0.82,0.22,0.94);
+  legSenY->AddEntry("SenYGraphIn",  Form("IN"),"lp");
+  legSenY->AddEntry("SenYGraphOut",  Form("OUT"),"lp");
+  legSenY->SetTextSize(0.055);
   legSenY->SetFillColor(0);
-  legSenY->SetBorderSize(2);
+  legSenY->SetBorderSize(0);
   legSenY->Draw();
 
   fitSenYIn->Draw("same");
   fitSenYOut->Draw("same");
+
+  fitSenYIn->SetParNames("#frac{#partialA}{#partialY}_{IN}","p^{Y}_{IN}");
+  fitSenYOut->SetParNames("#frac{#partialA}{#partialY}_{OUT}","p^{Y}_{OUT}");
+
 
   gPad->Update();
 
@@ -1116,7 +1172,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenYSlopeGraphOut->SetName("SenYSlopeGraphOut");
   SenYSlopeGraphOut->SetMarkerColor(kBlack);
   SenYSlopeGraphOut->SetLineColor(kBlack);
-  SenYSlopeGraphOut->SetMarkerStyle(22);
+  SenYSlopeGraphOut->SetMarkerStyle(26);
   SenYSlopeGraphOut->SetMarkerSize(markerSize[0]);
   SenYSlopeGraphOut->SetLineWidth(1);
   SenYSlopeGraphOut->Fit("sinFit","EMRF0Q");
@@ -1129,7 +1185,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenYSlopeGraph->Add(SenYSlopeGraphIn);
   SenYSlopeGraph->Add(SenYSlopeGraphOut);
   SenYSlopeGraph->Draw("AP");
-  SenYSlopeGraph->SetTitle(Form("Y' : %s",showSinFit.Data()));
+//   SenYSlopeGraph->SetTitle(Form("Y' : %s",showSinFit.Data()));
   SenYSlopeGraph->GetXaxis()->SetNdivisions(8,0,0);
   SenYSlopeGraph->GetXaxis()->SetTitle(Form("Octant"));
   SenYSlopeGraph->GetYaxis()->SetTitle("Y' Sensitivity [ppb/nrad]");
@@ -1144,12 +1200,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsSenYSlopeIn->SetFillColor(kWhite); 
   statsSenYSlopeOut->SetTextColor(kBlack);
   statsSenYSlopeOut->SetFillColor(kWhite);
-  statsSenYSlopeIn->SetTextSize(0.045);
-  statsSenYSlopeOut->SetTextSize(0.045);
+  statsSenYSlopeIn->SetTextSize(statTextSize[0]);
+  statsSenYSlopeOut->SetTextSize(statTextSize[0]);
+  statsSenYSlopeIn->SetFitFormat("5.3g");
+  statsSenYSlopeOut->SetFitFormat("5.3g");
+//   statsSenYSlopeIn->SetX1NDC(x_lo_stat_in4);    statsSenYSlopeIn->SetX2NDC(x_hi_stat_in4); 
+//   statsSenYSlopeIn->SetY1NDC(y_lo_stat_in4);    statsSenYSlopeIn->SetY2NDC(y_hi_stat_in4);
+//   statsSenYSlopeOut->SetX1NDC(x_lo_stat_out4);  statsSenYSlopeOut->SetX2NDC(x_hi_stat_out4); 
+//   statsSenYSlopeOut->SetY1NDC(y_lo_stat_out4);  statsSenYSlopeOut->SetY2NDC(y_hi_stat_out4);
   statsSenYSlopeIn->SetX1NDC(x_lo_stat_in4);    statsSenYSlopeIn->SetX2NDC(x_hi_stat_in4); 
-  statsSenYSlopeIn->SetY1NDC(y_lo_stat_in4);    statsSenYSlopeIn->SetY2NDC(y_hi_stat_in4);
+  statsSenYSlopeIn->SetY1NDC(0.55);    statsSenYSlopeIn->SetY2NDC(0.95);
   statsSenYSlopeOut->SetX1NDC(x_lo_stat_out4);  statsSenYSlopeOut->SetX2NDC(x_hi_stat_out4); 
-  statsSenYSlopeOut->SetY1NDC(y_lo_stat_out4);  statsSenYSlopeOut->SetY2NDC(y_hi_stat_out4);
+  statsSenYSlopeOut->SetY1NDC(0.10);  statsSenYSlopeOut->SetY2NDC(0.50);
 
   Double_t calc_SenYSlopeInp0        =   fitSenYSlopeIn->GetParameter(0);
   Double_t calc_SenYSlopeInp1        =   fitSenYSlopeIn->GetParameter(1);
@@ -1169,16 +1231,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_SenYSlopeOutChisquare =   fitSenYSlopeOut->GetChisquare();
   Double_t calc_SenYSlopeOutNDF       =   fitSenYSlopeOut->GetNDF();
 
-  TLegend *legSenYSlope = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legSenYSlope->AddEntry("SenYSlopeGraphIn",  Form("In Y' = %2.2f #pm %2.2f",calc_SenYSlopeInp0,calc_eSenYSlopeInp0),"lp");
-  legSenYSlope->AddEntry("SenYSlopeGraphOut",  Form("Out Y' = %2.2f #pm %2.2f",calc_SenYSlopeOutp0,calc_eSenYSlopeOutp0),"lp");
-  legSenYSlope->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legSenYSlope = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legSenYSlope->AddEntry("SenYSlopeGraphIn",  Form("In Y' = %2.2f #pm %2.2f",calc_SenYSlopeInp0,calc_eSenYSlopeInp0),"lp");
+//   legSenYSlope->AddEntry("SenYSlopeGraphOut",  Form("Out Y' = %2.2f #pm %2.2f",calc_SenYSlopeOutp0,calc_eSenYSlopeOutp0),"lp");
+  TLegend *legSenYSlope = new TLegend(0.12,0.18,0.22,0.30);
+  legSenYSlope->AddEntry("SenYSlopeGraphIn",  Form("IN"),"lp");
+  legSenYSlope->AddEntry("SenYSlopeGraphOut",  Form("OUT"),"lp");
+  legSenYSlope->SetTextSize(0.055);
   legSenYSlope->SetFillColor(0);
-  legSenYSlope->SetBorderSize(2);
+  legSenYSlope->SetBorderSize(0);
   legSenYSlope->Draw();
 
   fitSenYSlopeIn->Draw("same");
   fitSenYSlopeOut->Draw("same");
+
+  fitSenYSlopeIn->SetParNames("#frac{#partialA}{#partialY'}_{IN}","p^{Y'}_{IN}");
+  fitSenYSlopeOut->SetParNames("#frac{#partialA}{#partialY'}_{OUT}","p^{Y'}_{OUT}");
 
   gPad->Update();
 
@@ -1204,7 +1273,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenEGraphOut->SetName("SenEGraphOut");
   SenEGraphOut->SetMarkerColor(kBlack);
   SenEGraphOut->SetLineColor(kBlack);
-  SenEGraphOut->SetMarkerStyle(20);
+  SenEGraphOut->SetMarkerStyle(24);
   SenEGraphOut->SetMarkerSize(markerSize[0]);
   SenEGraphOut->SetLineWidth(1);
   SenEGraphOut->Fit("cosFit","EMRF0Q");
@@ -1217,7 +1286,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenEGraph->Add(SenEGraphIn);
   SenEGraph->Add(SenEGraphOut);
   SenEGraph->Draw("AP");
-  SenEGraph->SetTitle(Form("E : %s",showCosFit.Data()));
+//   SenEGraph->SetTitle(Form("E : %s",showCosFit.Data()));
   SenEGraph->GetXaxis()->SetNdivisions(8,0,0);
   SenEGraph->GetXaxis()->SetTitle(Form("Octant"));
   SenEGraph->GetYaxis()->SetTitle("E Sensitivity [ppb/ppb]");
@@ -1225,6 +1294,7 @@ int main(Int_t argc,Char_t* argv[]){
   SenEGraph->GetYaxis()->CenterTitle();
   TAxis *xaxisSenEGraph= SenEGraph->GetXaxis();
 //   xaxisSenEGraph->SetLimits(det_range[0],det_range[1]);
+//   SenEGraph->GetYaxis()->SetRangeUser(-8.0,0.0);
 
   TPaveStats *statsSenEIn =(TPaveStats*)SenEGraphIn->GetListOfFunctions()->FindObject("stats");
   TPaveStats *statsSenEOut =(TPaveStats*)SenEGraphOut->GetListOfFunctions()->FindObject("stats");
@@ -1232,12 +1302,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsSenEIn->SetFillColor(kWhite); 
   statsSenEOut->SetTextColor(kBlack);
   statsSenEOut->SetFillColor(kWhite);
-  statsSenEIn->SetTextSize(0.045);
-  statsSenEOut->SetTextSize(0.045);
+  statsSenEIn->SetTextSize(statTextSize[0]);
+  statsSenEOut->SetTextSize(statTextSize[0]);
+  statsSenEIn->SetFitFormat("5.3g");
+  statsSenEOut->SetFitFormat("5.3g");
+//   statsSenEIn->SetX1NDC(x_lo_stat_in4);    statsSenEIn->SetX2NDC(x_hi_stat_in4); 
+//   statsSenEIn->SetY1NDC(y_lo_stat_in4);    statsSenEIn->SetY2NDC(y_hi_stat_in4);
+//   statsSenEOut->SetX1NDC(x_lo_stat_out4);  statsSenEOut->SetX2NDC(x_hi_stat_out4); 
+//   statsSenEOut->SetY1NDC(y_lo_stat_out4);  statsSenEOut->SetY2NDC(y_hi_stat_out4);
   statsSenEIn->SetX1NDC(x_lo_stat_in4);    statsSenEIn->SetX2NDC(x_hi_stat_in4); 
-  statsSenEIn->SetY1NDC(y_lo_stat_in4);    statsSenEIn->SetY2NDC(y_hi_stat_in4);
+  statsSenEIn->SetY1NDC(0.55);    statsSenEIn->SetY2NDC(0.95);
   statsSenEOut->SetX1NDC(x_lo_stat_out4);  statsSenEOut->SetX2NDC(x_hi_stat_out4); 
-  statsSenEOut->SetY1NDC(y_lo_stat_out4);  statsSenEOut->SetY2NDC(y_hi_stat_out4);
+  statsSenEOut->SetY1NDC(0.10);  statsSenEOut->SetY2NDC(0.50);
 
   Double_t calc_SenEInp0        =   fitSenEIn->GetParameter(0);
   Double_t calc_SenEInp1        =   fitSenEIn->GetParameter(1);
@@ -1257,16 +1333,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_SenEOutChisquare =   fitSenEOut->GetChisquare();
   Double_t calc_SenEOutNDF       =   fitSenEOut->GetNDF();
 
-  TLegend *legSenE = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legSenE->AddEntry("SenEGraphIn",  Form("In E = %2.2f #pm %2.2f",calc_SenEInp0,calc_eSenEInp0),"lp");
-  legSenE->AddEntry("SenEGraphOut",  Form("Out E = %2.2f #pm %2.2f",calc_SenEOutp0,calc_eSenEOutp0),"lp");
-  legSenE->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legSenE = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legSenE->AddEntry("SenEGraphIn",  Form("In E = %2.2f #pm %2.2f",calc_SenEInp0,calc_eSenEInp0),"lp");
+//   legSenE->AddEntry("SenEGraphOut",  Form("Out E = %2.2f #pm %2.2f",calc_SenEOutp0,calc_eSenEOutp0),"lp");
+  TLegend *legSenE = new TLegend(0.12,0.82,0.22,0.94);
+  legSenE->AddEntry("SenEGraphIn",  Form("IN"),"lp");
+  legSenE->AddEntry("SenEGraphOut",  Form("OUT"),"lp");
+  legSenE->SetTextSize(0.055);
   legSenE->SetFillColor(0);
-  legSenE->SetBorderSize(2);
+  legSenE->SetBorderSize(0);
   legSenE->Draw();
 
   fitSenEIn->Draw("same");
   fitSenEOut->Draw("same");
+
+  fitSenEIn->SetParNames("#frac{#partialA}{#partialE}_{IN}","p^{E}_{IN}");
+  fitSenEOut->SetParNames("#frac{#partialA}{#partialE}_{OUT}","p^{E}_{OUT}");
 
   gPad->Update();
 
@@ -1305,14 +1388,18 @@ int main(Int_t argc,Char_t* argv[]){
   SenChargeGraph->Add(SenChargeGraphIn);
   SenChargeGraph->Add(SenChargeGraphOut);
   SenChargeGraph->Draw("AP");
-  SenChargeGraph->SetTitle(Form("A_{Q} : %s",showCosFit.Data()));
+//   SenChargeGraph->SetTitle(Form("A_{Q} : %s",showCosFit.Data()));
   SenChargeGraph->GetXaxis()->SetNdivisions(8,0,0);
   SenChargeGraph->GetXaxis()->SetTitle(Form("Octant"));
-  SenChargeGraph->GetYaxis()->SetTitle("Charge Sensitivity [ppb/ppb]");
+  SenChargeGraph->GetYaxis()->SetTitle("A_{Q} Sensitivity [ppb/ppb]");
   SenChargeGraph->GetXaxis()->CenterTitle();
   SenChargeGraph->GetYaxis()->CenterTitle();
+//   TGaxis::SetMaxDigits(3);
+//   Int_t TGaxis::fgMaxDigits = 5;
   TAxis *xaxisSenChargeGraph= SenChargeGraph->GetXaxis();
 //   xaxisSenChargeGraph->SetLimits(det_range[0],det_range[1]);
+//   TGaxis *yaxisSenChargeGraph = (TGaxis*)SenChargeGraph->GetYaxis();
+//   yaxisSenChargeGraph->SetMaxDigits(1);
 
   TPaveStats *statsSenChargeIn =(TPaveStats*)SenChargeGraphIn->GetListOfFunctions()->FindObject("stats");
   TPaveStats *statsSenChargeOut =(TPaveStats*)SenChargeGraphOut->GetListOfFunctions()->FindObject("stats");
@@ -1320,12 +1407,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsSenChargeIn->SetFillColor(kWhite); 
   statsSenChargeOut->SetTextColor(kBlack);
   statsSenChargeOut->SetFillColor(kWhite);
-  statsSenChargeIn->SetTextSize(0.045);
-  statsSenChargeOut->SetTextSize(0.045);
+  statsSenChargeIn->SetTextSize(statTextSize[0]);
+  statsSenChargeOut->SetTextSize(statTextSize[0]);
+  statsSenChargeIn->SetFitFormat("5.2g");
+  statsSenChargeOut->SetFitFormat("5.2g");
+//   statsSenChargeIn->SetX1NDC(x_lo_stat_in4);    statsSenChargeIn->SetX2NDC(x_hi_stat_in4); 
+//   statsSenChargeIn->SetY1NDC(y_lo_stat_in4);    statsSenChargeIn->SetY2NDC(y_hi_stat_in4);
+//   statsSenChargeOut->SetX1NDC(x_lo_stat_out4);  statsSenChargeOut->SetX2NDC(x_hi_stat_out4); 
+//   statsSenChargeOut->SetY1NDC(y_lo_stat_out4);  statsSenChargeOut->SetY2NDC(y_hi_stat_out4);
   statsSenChargeIn->SetX1NDC(x_lo_stat_in4);    statsSenChargeIn->SetX2NDC(x_hi_stat_in4); 
-  statsSenChargeIn->SetY1NDC(y_lo_stat_in4);    statsSenChargeIn->SetY2NDC(y_hi_stat_in4);
+  statsSenChargeIn->SetY1NDC(0.55);    statsSenChargeIn->SetY2NDC(0.95);
   statsSenChargeOut->SetX1NDC(x_lo_stat_out4);  statsSenChargeOut->SetX2NDC(x_hi_stat_out4); 
-  statsSenChargeOut->SetY1NDC(y_lo_stat_out4);  statsSenChargeOut->SetY2NDC(y_hi_stat_out4);
+  statsSenChargeOut->SetY1NDC(0.10);  statsSenChargeOut->SetY2NDC(0.50);
 
   Double_t calc_SenChargeInp0        =   fitSenChargeIn->GetParameter(0);
   Double_t calc_SenChargeInp1        =   fitSenChargeIn->GetParameter(1);
@@ -1345,16 +1438,24 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_SenChargeOutChisquare =   fitSenChargeOut->GetChisquare();
   Double_t calc_SenChargeOutNDF       =   fitSenChargeOut->GetNDF();
 
-  TLegend *legSenCharge = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legSenCharge->AddEntry("SenChargeGraphIn",  Form("In A_{Q} = %2.2f #pm %2.2f",calc_SenChargeInp0,calc_eSenChargeInp0),"lp");
-  legSenCharge->AddEntry("SenChargeGraphOut",  Form("Out A_{Q} = %2.2f #pm %2.2f",calc_SenChargeOutp0,calc_eSenChargeOutp0),"lp");
+  line0->Draw("same");
+//   TLegend *legSenCharge = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legSenCharge->AddEntry("SenChargeGraphIn",  Form("In A_{Q} = %2.2f #pm %2.2f",calc_SenChargeInp0,calc_eSenChargeInp0),"lp");
+//   legSenCharge->AddEntry("SenChargeGraphOut",  Form("Out A_{Q} = %2.2f #pm %2.2f",calc_SenChargeOutp0,calc_eSenChargeOutp0),"lp");
+  TLegend *legSenCharge = new TLegend(0.12,0.82,0.22,0.94);
+  legSenCharge->AddEntry("SenChargeGraphIn",  Form("IN"),"lp");
+  legSenCharge->AddEntry("SenChargeGraphOut",  Form("OUT"),"lp");
   legSenCharge->SetTextSize(0.040);
   legSenCharge->SetFillColor(0);
-  legSenCharge->SetBorderSize(2);
+  legSenCharge->SetBorderSize(0);
   legSenCharge->Draw();
 
   fitSenChargeIn->Draw("same");
   fitSenChargeOut->Draw("same");
+
+  fitSenChargeIn->SetParNames("#frac{#partialA}{#partialA_{Q}}_{IN}","p^{A_{Q}}_{IN}");
+  fitSenChargeOut->SetParNames("#frac{#partialA}{#partialA_{Q}}_{OUT}","p^{A_{Q}}_{OUT}");
+
 
   gPad->Update();
 
@@ -1377,7 +1478,7 @@ int main(Int_t argc,Char_t* argv[]){
   /********************************************************/
   /********************************************************/
   /********************************************************/
-
+  gStyle->SetOptFit(0111);
 
   TCanvas * c2 = new TCanvas("canvas2", titleCor,0,0,canvasSize[0],canvasSize[1]);
   c2->Draw();
@@ -1389,7 +1490,7 @@ int main(Int_t argc,Char_t* argv[]){
   pad21->Draw();
   pad22->Draw();
   pad21->cd();
-  TLatex * t21 = new TLatex(0.06,0.3,Form("%s",titleCor.Data()));
+  TLatex * t21 = new TLatex(0.01,0.3,Form("%s",titleCor.Data()));
   t21->SetTextSize(0.5);
   t21->Draw();
   pad22->cd();
@@ -1417,7 +1518,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorXGraphOut->SetName("CorXGraphOut");
   CorXGraphOut->SetMarkerColor(kBlack);
   CorXGraphOut->SetLineColor(kBlack);
-  CorXGraphOut->SetMarkerStyle(21);
+  CorXGraphOut->SetMarkerStyle(25);
   CorXGraphOut->SetMarkerSize(markerSize[1]);
   CorXGraphOut->SetLineWidth(1);
   CorXGraphOut->Fit("cosFit","B0Q");
@@ -1430,7 +1531,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorXGraph->Add(CorXGraphIn);
   CorXGraph->Add(CorXGraphOut);
   CorXGraph->Draw("AP");
-  CorXGraph->SetTitle(Form("X : %s",showCosFit.Data()));
+//   CorXGraph->SetTitle(Form("X : %s",showCosFit.Data()));
   CorXGraph->GetXaxis()->SetNdivisions(8,0,0);
   CorXGraph->GetXaxis()->SetTitle(Form("Octant"));
   CorXGraph->GetYaxis()->SetTitle("X Correction [ppb]");
@@ -1445,12 +1546,19 @@ int main(Int_t argc,Char_t* argv[]){
   statsCorXIn->SetFillColor(kWhite); 
   statsCorXOut->SetTextColor(kBlack);
   statsCorXOut->SetFillColor(kWhite);
-  statsCorXIn->SetTextSize(0.045);
-  statsCorXOut->SetTextSize(0.045);
+  statsCorXIn->SetTextSize(statTextSize[0]);
+  statsCorXOut->SetTextSize(statTextSize[0]);
+  statsCorXIn->SetFitFormat("5.3g");
+  statsCorXOut->SetFitFormat("5.3g");
+//   statsCorXIn->SetX1NDC(x_lo_stat_in4);    statsCorXIn->SetX2NDC(x_hi_stat_in4); 
+//   statsCorXIn->SetY1NDC(y_lo_stat_in4);    statsCorXIn->SetY2NDC(y_hi_stat_in4);
+//   statsCorXOut->SetX1NDC(x_lo_stat_out4);  statsCorXOut->SetX2NDC(x_hi_stat_out4); 
+//   statsCorXOut->SetY1NDC(y_lo_stat_out4);  statsCorXOut->SetY2NDC(y_hi_stat_out4);
   statsCorXIn->SetX1NDC(x_lo_stat_in4);    statsCorXIn->SetX2NDC(x_hi_stat_in4); 
-  statsCorXIn->SetY1NDC(y_lo_stat_in4);    statsCorXIn->SetY2NDC(y_hi_stat_in4);
+  statsCorXIn->SetY1NDC(0.55);    statsCorXIn->SetY2NDC(0.95);
   statsCorXOut->SetX1NDC(x_lo_stat_out4);  statsCorXOut->SetX2NDC(x_hi_stat_out4); 
-  statsCorXOut->SetY1NDC(y_lo_stat_out4);  statsCorXOut->SetY2NDC(y_hi_stat_out4);
+  statsCorXOut->SetY1NDC(0.10);  statsCorXOut->SetY2NDC(0.50);
+
 
   Double_t calc_CorXInp0        =   fitCorXIn->GetParameter(0);
   Double_t calc_CorXInp1        =   fitCorXIn->GetParameter(1);
@@ -1470,16 +1578,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_CorXOutChisquare =   fitCorXOut->GetChisquare();
   Double_t calc_CorXOutNDF       =   fitCorXOut->GetNDF();
 
-  TLegend *legCorX = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legCorX->AddEntry("CorXGraphIn",  Form("In X = %2.2f #pm %2.2f",calc_CorXInp0,calc_eCorXInp0),"lp");
-  legCorX->AddEntry("CorXGraphOut",  Form("Out X = %2.2f #pm %2.2f",calc_CorXOutp0,calc_eCorXOutp0),"lp");
-  legCorX->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legCorX = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legCorX->AddEntry("CorXGraphIn",  Form("In X = %2.2f #pm %2.2f",calc_CorXInp0,calc_eCorXInp0),"lp");
+//   legCorX->AddEntry("CorXGraphOut",  Form("Out X = %2.2f #pm %2.2f",calc_CorXOutp0,calc_eCorXOutp0),"lp");
+  TLegend *legCorX = new TLegend(0.12,0.82,0.22,0.94);
+  legCorX->AddEntry("CorXGraphIn",  Form("IN"),"lp");
+  legCorX->AddEntry("CorXGraphOut",  Form("OUT"),"lp");
+  legCorX->SetTextSize(0.055);
   legCorX->SetFillColor(0);
-  legCorX->SetBorderSize(2);
+  legCorX->SetBorderSize(0);
   legCorX->Draw();
 
   fitCorXIn->Draw("same");
   fitCorXOut->Draw("same");
+
+  fitCorXIn->SetParNames("C_{X-IN}","p^{X}_{IN}");
+  fitCorXOut->SetParNames("C_{X-OUT}","p^{X}_{OUT}");
 
   gPad->Update();
 
@@ -1505,7 +1620,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorXSlopeGraphOut->SetName("CorXSlopeGraphOut");
   CorXSlopeGraphOut->SetMarkerColor(kBlack);
   CorXSlopeGraphOut->SetLineColor(kBlack);
-  CorXSlopeGraphOut->SetMarkerStyle(22);
+  CorXSlopeGraphOut->SetMarkerStyle(26);
   CorXSlopeGraphOut->SetMarkerSize(markerSize[0]);
   CorXSlopeGraphOut->SetLineWidth(1);
   CorXSlopeGraphOut->Fit("cosFit","B0Q");
@@ -1518,7 +1633,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorXSlopeGraph->Add(CorXSlopeGraphIn);
   CorXSlopeGraph->Add(CorXSlopeGraphOut);
   CorXSlopeGraph->Draw("AP");
-  CorXSlopeGraph->SetTitle(Form("X' : %s",showCosFit.Data()));
+//   CorXSlopeGraph->SetTitle(Form("X' : %s",showCosFit.Data()));
   CorXSlopeGraph->GetXaxis()->SetNdivisions(8,0,0);
   CorXSlopeGraph->GetXaxis()->SetTitle(Form("Octant"));
   CorXSlopeGraph->GetYaxis()->SetTitle("X' Correction [ppb]");
@@ -1533,12 +1648,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsCorXSlopeIn->SetFillColor(kWhite); 
   statsCorXSlopeOut->SetTextColor(kBlack);
   statsCorXSlopeOut->SetFillColor(kWhite);
-  statsCorXSlopeIn->SetTextSize(0.045);
-  statsCorXSlopeOut->SetTextSize(0.045);
+  statsCorXSlopeIn->SetTextSize(statTextSize[0]);
+  statsCorXSlopeOut->SetTextSize(statTextSize[0]);
+  statsCorXSlopeIn->SetFitFormat("5.3g");
+  statsCorXSlopeOut->SetFitFormat("5.3g");
+//   statsCorXSlopeIn->SetX1NDC(x_lo_stat_in4);    statsCorXSlopeIn->SetX2NDC(x_hi_stat_in4); 
+//   statsCorXSlopeIn->SetY1NDC(y_lo_stat_in4);    statsCorXSlopeIn->SetY2NDC(y_hi_stat_in4);
+//   statsCorXSlopeOut->SetX1NDC(x_lo_stat_out4);  statsCorXSlopeOut->SetX2NDC(x_hi_stat_out4); 
+//   statsCorXSlopeOut->SetY1NDC(y_lo_stat_out4);  statsCorXSlopeOut->SetY2NDC(y_hi_stat_out4);
   statsCorXSlopeIn->SetX1NDC(x_lo_stat_in4);    statsCorXSlopeIn->SetX2NDC(x_hi_stat_in4); 
-  statsCorXSlopeIn->SetY1NDC(y_lo_stat_in4);    statsCorXSlopeIn->SetY2NDC(y_hi_stat_in4);
+  statsCorXSlopeIn->SetY1NDC(0.55);    statsCorXSlopeIn->SetY2NDC(0.95);
   statsCorXSlopeOut->SetX1NDC(x_lo_stat_out4);  statsCorXSlopeOut->SetX2NDC(x_hi_stat_out4); 
-  statsCorXSlopeOut->SetY1NDC(y_lo_stat_out4);  statsCorXSlopeOut->SetY2NDC(y_hi_stat_out4);
+  statsCorXSlopeOut->SetY1NDC(0.10);  statsCorXSlopeOut->SetY2NDC(0.50);
 
   Double_t calc_CorXSlopeInp0        =   fitCorXSlopeIn->GetParameter(0);
   Double_t calc_CorXSlopeInp1        =   fitCorXSlopeIn->GetParameter(1);
@@ -1558,16 +1679,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_CorXSlopeOutChisquare =   fitCorXSlopeOut->GetChisquare();
   Double_t calc_CorXSlopeOutNDF       =   fitCorXSlopeOut->GetNDF();
 
-  TLegend *legCorXSlope = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legCorXSlope->AddEntry("CorXSlopeGraphIn",  Form("In X' = %2.2f #pm %2.2f",calc_CorXSlopeInp0,calc_eCorXSlopeInp0),"lp");
-  legCorXSlope->AddEntry("CorXSlopeGraphOut",  Form("Out X' = %2.2f #pm %2.2f",calc_CorXSlopeOutp0,calc_eCorXSlopeOutp0),"lp");
-  legCorXSlope->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legCorXSlope = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legCorXSlope->AddEntry("CorXSlopeGraphIn",  Form("In X' = %2.2f #pm %2.2f",calc_CorXSlopeInp0,calc_eCorXSlopeInp0),"lp");
+//   legCorXSlope->AddEntry("CorXSlopeGraphOut",  Form("Out X' = %2.2f #pm %2.2f",calc_CorXSlopeOutp0,calc_eCorXSlopeOutp0),"lp");
+  TLegend *legCorXSlope = new TLegend(0.12,0.18,0.22,0.30);
+  legCorXSlope->AddEntry("CorXSlopeGraphIn",  Form("IN"),"lp");
+  legCorXSlope->AddEntry("CorXSlopeGraphOut",  Form("OUT"),"lp");
+  legCorXSlope->SetTextSize(0.055);
   legCorXSlope->SetFillColor(0);
-  legCorXSlope->SetBorderSize(2);
+  legCorXSlope->SetBorderSize(0);
   legCorXSlope->Draw();
 
   fitCorXSlopeIn->Draw("same");
   fitCorXSlopeOut->Draw("same");
+
+  fitCorXSlopeIn->SetParNames("C_{X'-IN}","p^{X'}_{IN}");
+  fitCorXSlopeOut->SetParNames("C_{X'-OUT}","p^{X'}_{OUT}");
 
   gPad->Update();
 
@@ -1593,7 +1721,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorYGraphOut->SetName("CorYGraphOut");
   CorYGraphOut->SetMarkerColor(kBlack);
   CorYGraphOut->SetLineColor(kBlack);
-  CorYGraphOut->SetMarkerStyle(21);
+  CorYGraphOut->SetMarkerStyle(25);
   CorYGraphOut->SetMarkerSize(markerSize[1]);
   CorYGraphOut->SetLineWidth(1);
   CorYGraphOut->Fit("sinFit","B0Q");
@@ -1606,7 +1734,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorYGraph->Add(CorYGraphIn);
   CorYGraph->Add(CorYGraphOut);
   CorYGraph->Draw("AP");
-  CorYGraph->SetTitle(Form("Y : %s",showSinFit.Data()));
+//   CorYGraph->SetTitle(Form("Y : %s",showSinFit.Data()));
   CorYGraph->GetXaxis()->SetNdivisions(8,0,0);
   CorYGraph->GetXaxis()->SetTitle(Form("Octant"));
   CorYGraph->GetYaxis()->SetTitle("Y Correction [ppb]");
@@ -1621,12 +1749,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsCorYIn->SetFillColor(kWhite); 
   statsCorYOut->SetTextColor(kBlack);
   statsCorYOut->SetFillColor(kWhite);
-  statsCorYIn->SetTextSize(0.045);
-  statsCorYOut->SetTextSize(0.045);
+  statsCorYIn->SetTextSize(statTextSize[0]);
+  statsCorYOut->SetTextSize(statTextSize[0]);
+  statsCorYIn->SetFitFormat("5.3g");
+  statsCorYOut->SetFitFormat("5.3g");
+//   statsCorYIn->SetX1NDC(x_lo_stat_in4);    statsCorYIn->SetX2NDC(x_hi_stat_in4); 
+//   statsCorYIn->SetY1NDC(y_lo_stat_in4);    statsCorYIn->SetY2NDC(y_hi_stat_in4);
+//   statsCorYOut->SetX1NDC(x_lo_stat_out4);  statsCorYOut->SetX2NDC(x_hi_stat_out4); 
+//   statsCorYOut->SetY1NDC(y_lo_stat_out4);  statsCorYOut->SetY2NDC(y_hi_stat_out4);
   statsCorYIn->SetX1NDC(x_lo_stat_in4);    statsCorYIn->SetX2NDC(x_hi_stat_in4); 
-  statsCorYIn->SetY1NDC(y_lo_stat_in4);    statsCorYIn->SetY2NDC(y_hi_stat_in4);
+  statsCorYIn->SetY1NDC(0.55);    statsCorYIn->SetY2NDC(0.95);
   statsCorYOut->SetX1NDC(x_lo_stat_out4);  statsCorYOut->SetX2NDC(x_hi_stat_out4); 
-  statsCorYOut->SetY1NDC(y_lo_stat_out4);  statsCorYOut->SetY2NDC(y_hi_stat_out4);
+  statsCorYOut->SetY1NDC(0.10);  statsCorYOut->SetY2NDC(0.50);
 
   Double_t calc_CorYInp0        =   fitCorYIn->GetParameter(0);
   Double_t calc_CorYInp1        =   fitCorYIn->GetParameter(1);
@@ -1646,16 +1780,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_CorYOutChisquare =   fitCorYOut->GetChisquare();
   Double_t calc_CorYOutNDF       =   fitCorYOut->GetNDF();
 
-  TLegend *legCorY = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legCorY->AddEntry("CorYGraphIn",  Form("In Y = %2.2f #pm %2.2f",calc_CorYInp0,calc_eCorYInp0),"lp");
-  legCorY->AddEntry("CorYGraphOut",  Form("Out Y = %2.2f #pm %2.2f",calc_CorYOutp0,calc_eCorYOutp0),"lp");
-  legCorY->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legCorY = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legCorY->AddEntry("CorYGraphIn",  Form("In Y = %2.2f #pm %2.2f",calc_CorYInp0,calc_eCorYInp0),"lp");
+//   legCorY->AddEntry("CorYGraphOut",  Form("Out Y = %2.2f #pm %2.2f",calc_CorYOutp0,calc_eCorYOutp0),"lp");
+  TLegend *legCorY = new TLegend(0.12,0.82,0.22,0.94);
+  legCorY->AddEntry("CorYGraphIn",  Form("IN"),"lp");
+  legCorY->AddEntry("CorYGraphOut",  Form("OUT"),"lp");
+  legCorY->SetTextSize(0.055);
   legCorY->SetFillColor(0);
-  legCorY->SetBorderSize(2);
+  legCorY->SetBorderSize(0);
   legCorY->Draw();
 
   fitCorYIn->Draw("same");
   fitCorYOut->Draw("same");
+
+  fitCorYIn->SetParNames("C_{Y-IN}","p^{Y}_{IN}");
+  fitCorYOut->SetParNames("C_{Y-OUT}","p^{Y}_{OUT}");
 
   gPad->Update();
 
@@ -1681,7 +1822,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorYSlopeGraphOut->SetName("CorYSlopeGraphOut");
   CorYSlopeGraphOut->SetMarkerColor(kBlack);
   CorYSlopeGraphOut->SetLineColor(kBlack);
-  CorYSlopeGraphOut->SetMarkerStyle(22);
+  CorYSlopeGraphOut->SetMarkerStyle(26);
   CorYSlopeGraphOut->SetMarkerSize(markerSize[0]);
   CorYSlopeGraphOut->SetLineWidth(1);
   CorYSlopeGraphOut->Fit("sinFit","B0Q");
@@ -1694,7 +1835,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorYSlopeGraph->Add(CorYSlopeGraphIn);
   CorYSlopeGraph->Add(CorYSlopeGraphOut);
   CorYSlopeGraph->Draw("AP");
-  CorYSlopeGraph->SetTitle(Form("Y' : %s",showSinFit.Data()));
+//   CorYSlopeGraph->SetTitle(Form("Y' : %s",showSinFit.Data()));
   CorYSlopeGraph->GetXaxis()->SetNdivisions(8,0,0);
   CorYSlopeGraph->GetXaxis()->SetTitle(Form("Octant"));
   CorYSlopeGraph->GetYaxis()->SetTitle("Y' Correction [ppb]");
@@ -1709,12 +1850,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsCorYSlopeIn->SetFillColor(kWhite); 
   statsCorYSlopeOut->SetTextColor(kBlack);
   statsCorYSlopeOut->SetFillColor(kWhite);
-  statsCorYSlopeIn->SetTextSize(0.045);
-  statsCorYSlopeOut->SetTextSize(0.045);
+  statsCorYSlopeIn->SetTextSize(statTextSize[0]);
+  statsCorYSlopeOut->SetTextSize(statTextSize[0]);
+  statsCorYSlopeIn->SetFitFormat("5.3g");
+  statsCorYSlopeOut->SetFitFormat("5.3g");
+//   statsCorYSlopeIn->SetX1NDC(x_lo_stat_in4);    statsCorYSlopeIn->SetX2NDC(x_hi_stat_in4); 
+//   statsCorYSlopeIn->SetY1NDC(y_lo_stat_in4);    statsCorYSlopeIn->SetY2NDC(y_hi_stat_in4);
+//   statsCorYSlopeOut->SetX1NDC(x_lo_stat_out4);  statsCorYSlopeOut->SetX2NDC(x_hi_stat_out4); 
+//   statsCorYSlopeOut->SetY1NDC(y_lo_stat_out4);  statsCorYSlopeOut->SetY2NDC(y_hi_stat_out4);
   statsCorYSlopeIn->SetX1NDC(x_lo_stat_in4);    statsCorYSlopeIn->SetX2NDC(x_hi_stat_in4); 
-  statsCorYSlopeIn->SetY1NDC(y_lo_stat_in4);    statsCorYSlopeIn->SetY2NDC(y_hi_stat_in4);
+  statsCorYSlopeIn->SetY1NDC(0.55);    statsCorYSlopeIn->SetY2NDC(0.95);
   statsCorYSlopeOut->SetX1NDC(x_lo_stat_out4);  statsCorYSlopeOut->SetX2NDC(x_hi_stat_out4); 
-  statsCorYSlopeOut->SetY1NDC(y_lo_stat_out4);  statsCorYSlopeOut->SetY2NDC(y_hi_stat_out4);
+  statsCorYSlopeOut->SetY1NDC(0.10);  statsCorYSlopeOut->SetY2NDC(0.50);
 
   Double_t calc_CorYSlopeInp0        =   fitCorYSlopeIn->GetParameter(0);
   Double_t calc_CorYSlopeInp1        =   fitCorYSlopeIn->GetParameter(1);
@@ -1734,16 +1881,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_CorYSlopeOutChisquare =   fitCorYSlopeOut->GetChisquare();
   Double_t calc_CorYSlopeOutNDF       =   fitCorYSlopeOut->GetNDF();
 
-  TLegend *legCorYSlope = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legCorYSlope->AddEntry("CorYSlopeGraphIn",  Form("In Y' = %2.2f #pm %2.2f",calc_CorYSlopeInp0,calc_eCorYSlopeInp0),"lp");
-  legCorYSlope->AddEntry("CorYSlopeGraphOut",  Form("Out Y' = %2.2f #pm %2.2f",calc_CorYSlopeOutp0,calc_eCorYSlopeOutp0),"lp");
-  legCorYSlope->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legCorYSlope = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legCorYSlope->AddEntry("CorYSlopeGraphIn",  Form("In Y' = %2.2f #pm %2.2f",calc_CorYSlopeInp0,calc_eCorYSlopeInp0),"lp");
+//   legCorYSlope->AddEntry("CorYSlopeGraphOut",  Form("Out Y' = %2.2f #pm %2.2f",calc_CorYSlopeOutp0,calc_eCorYSlopeOutp0),"lp");
+  TLegend *legCorYSlope = new TLegend(0.12,0.18,0.22,0.30);
+  legCorYSlope->AddEntry("CorYSlopeGraphIn",  Form("IN"),"lp");
+  legCorYSlope->AddEntry("CorYSlopeGraphOut",  Form("OUT"),"lp");
+  legCorYSlope->SetTextSize(0.055);
   legCorYSlope->SetFillColor(0);
-  legCorYSlope->SetBorderSize(2);
+  legCorYSlope->SetBorderSize(0);
   legCorYSlope->Draw();
 
   fitCorYSlopeIn->Draw("same");
   fitCorYSlopeOut->Draw("same");
+
+  fitCorYSlopeIn->SetParNames("C_{Y'-IN}","p^{Y'}_{IN}");
+  fitCorYSlopeOut->SetParNames("C_{Y'-OUT}","p^{Y'}_{OUT}");
 
   gPad->Update();
 
@@ -1769,7 +1923,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorEGraphOut->SetName("CorEGraphOut");
   CorEGraphOut->SetMarkerColor(kBlack);
   CorEGraphOut->SetLineColor(kBlack);
-  CorEGraphOut->SetMarkerStyle(20);
+  CorEGraphOut->SetMarkerStyle(24);
   CorEGraphOut->SetMarkerSize(markerSize[0]);
   CorEGraphOut->SetLineWidth(1);
   CorEGraphOut->Fit("cosFit","B0Q");
@@ -1782,7 +1936,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorEGraph->Add(CorEGraphIn);
   CorEGraph->Add(CorEGraphOut);
   CorEGraph->Draw("AP");
-  CorEGraph->SetTitle(Form("E : %s",showCosFit.Data()));
+//   CorEGraph->SetTitle(Form("E : %s",showCosFit.Data()));
   CorEGraph->GetXaxis()->SetNdivisions(8,0,0);
   CorEGraph->GetXaxis()->SetTitle(Form("Octant"));
   CorEGraph->GetYaxis()->SetTitle("E Correction [ppb]");
@@ -1797,12 +1951,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsCorEIn->SetFillColor(kWhite); 
   statsCorEOut->SetTextColor(kBlack);
   statsCorEOut->SetFillColor(kWhite);
-  statsCorEIn->SetTextSize(0.045);
-  statsCorEOut->SetTextSize(0.045);
+  statsCorEIn->SetTextSize(statTextSize[0]);
+  statsCorEOut->SetTextSize(statTextSize[0]);
+  statsCorEIn->SetFitFormat("5.3g");
+  statsCorEOut->SetFitFormat("5.3g");
+//   statsCorEIn->SetX1NDC(x_lo_stat_in4);    statsCorEIn->SetX2NDC(x_hi_stat_in4); 
+//   statsCorEIn->SetY1NDC(y_lo_stat_in4);    statsCorEIn->SetY2NDC(y_hi_stat_in4);
+//   statsCorEOut->SetX1NDC(x_lo_stat_out4);  statsCorEOut->SetX2NDC(x_hi_stat_out4); 
+//   statsCorEOut->SetY1NDC(y_lo_stat_out4);  statsCorEOut->SetY2NDC(y_hi_stat_out4);
   statsCorEIn->SetX1NDC(x_lo_stat_in4);    statsCorEIn->SetX2NDC(x_hi_stat_in4); 
-  statsCorEIn->SetY1NDC(y_lo_stat_in4);    statsCorEIn->SetY2NDC(y_hi_stat_in4);
+  statsCorEIn->SetY1NDC(0.55);    statsCorEIn->SetY2NDC(0.95);
   statsCorEOut->SetX1NDC(x_lo_stat_out4);  statsCorEOut->SetX2NDC(x_hi_stat_out4); 
-  statsCorEOut->SetY1NDC(y_lo_stat_out4);  statsCorEOut->SetY2NDC(y_hi_stat_out4);
+  statsCorEOut->SetY1NDC(0.10);  statsCorEOut->SetY2NDC(0.50);
 
   Double_t calc_CorEInp0        =   fitCorEIn->GetParameter(0);
   Double_t calc_CorEInp1        =   fitCorEIn->GetParameter(1);
@@ -1822,16 +1982,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_CorEOutChisquare =   fitCorEOut->GetChisquare();
   Double_t calc_CorEOutNDF       =   fitCorEOut->GetNDF();
 
-  TLegend *legCorE = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legCorE->AddEntry("CorEGraphIn",  Form("In E = %2.2f #pm %2.2f",calc_CorEInp0,calc_eCorEInp0),"lp");
-  legCorE->AddEntry("CorEGraphOut",  Form("Out E = %2.2f #pm %2.2f",calc_CorEOutp0,calc_eCorEOutp0),"lp");
-  legCorE->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legCorE = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legCorE->AddEntry("CorEGraphIn",  Form("In E = %2.2f #pm %2.2f",calc_CorEInp0,calc_eCorEInp0),"lp");
+//   legCorE->AddEntry("CorEGraphOut",  Form("Out E = %2.2f #pm %2.2f",calc_CorEOutp0,calc_eCorEOutp0),"lp");
+  TLegend *legCorE = new TLegend(0.12,0.82,0.22,0.94);
+  legCorE->AddEntry("CorEGraphIn",  Form("IN"),"lp");
+  legCorE->AddEntry("CorEGraphOut",  Form("OUT"),"lp");
+  legCorE->SetTextSize(0.055);
   legCorE->SetFillColor(0);
-  legCorE->SetBorderSize(2);
+  legCorE->SetBorderSize(0);
   legCorE->Draw();
 
   fitCorEIn->Draw("same");
   fitCorEOut->Draw("same");
+
+  fitCorEIn->SetParNames("C_{E-IN}","p^{E}_{IN}");
+  fitCorEOut->SetParNames("C_{E-OUT}","p^{E}_{OUT}");
 
   gPad->Update();
 
@@ -1870,10 +2037,10 @@ int main(Int_t argc,Char_t* argv[]){
   CorChargeGraph->Add(CorChargeGraphIn);
   CorChargeGraph->Add(CorChargeGraphOut);
   CorChargeGraph->Draw("AP");
-  CorChargeGraph->SetTitle(Form("A_{Q} : %s",showCosFit.Data()));
+//   CorChargeGraph->SetTitle(Form("A_{Q} : %s",showCosFit.Data()));
   CorChargeGraph->GetXaxis()->SetNdivisions(8,0,0);
   CorChargeGraph->GetXaxis()->SetTitle(Form("Octant"));
-  CorChargeGraph->GetYaxis()->SetTitle("Charge Correction [ppb]");
+  CorChargeGraph->GetYaxis()->SetTitle("A_{Q} Correction [ppb]");
   CorChargeGraph->GetXaxis()->CenterTitle();
   CorChargeGraph->GetYaxis()->CenterTitle();
   TAxis *xaxisCorChargeGraph= CorChargeGraph->GetXaxis();
@@ -1885,12 +2052,18 @@ int main(Int_t argc,Char_t* argv[]){
   statsCorChargeIn->SetFillColor(kWhite); 
   statsCorChargeOut->SetTextColor(kBlack);
   statsCorChargeOut->SetFillColor(kWhite);
-  statsCorChargeIn->SetTextSize(0.045);
-  statsCorChargeOut->SetTextSize(0.045);
+  statsCorChargeIn->SetTextSize(statTextSize[0]);
+  statsCorChargeOut->SetTextSize(statTextSize[0]);
+  statsCorChargeIn->SetFitFormat("5.3g");
+  statsCorChargeOut->SetFitFormat("5.3g");
+//   statsCorChargeIn->SetX1NDC(x_lo_stat_in4);    statsCorChargeIn->SetX2NDC(x_hi_stat_in4); 
+//   statsCorChargeIn->SetY1NDC(y_lo_stat_in4);    statsCorChargeIn->SetY2NDC(y_hi_stat_in4);
+//   statsCorChargeOut->SetX1NDC(x_lo_stat_out4);  statsCorChargeOut->SetX2NDC(x_hi_stat_out4); 
+//   statsCorChargeOut->SetY1NDC(y_lo_stat_out4);  statsCorChargeOut->SetY2NDC(y_hi_stat_out4);
   statsCorChargeIn->SetX1NDC(x_lo_stat_in4);    statsCorChargeIn->SetX2NDC(x_hi_stat_in4); 
-  statsCorChargeIn->SetY1NDC(y_lo_stat_in4);    statsCorChargeIn->SetY2NDC(y_hi_stat_in4);
+  statsCorChargeIn->SetY1NDC(0.55);    statsCorChargeIn->SetY2NDC(0.95);
   statsCorChargeOut->SetX1NDC(x_lo_stat_out4);  statsCorChargeOut->SetX2NDC(x_hi_stat_out4); 
-  statsCorChargeOut->SetY1NDC(y_lo_stat_out4);  statsCorChargeOut->SetY2NDC(y_hi_stat_out4);
+  statsCorChargeOut->SetY1NDC(0.10);  statsCorChargeOut->SetY2NDC(0.50);
 
   Double_t calc_CorChargeInp0        =   fitCorChargeIn->GetParameter(0);
   Double_t calc_CorChargeInp1        =   fitCorChargeIn->GetParameter(1);
@@ -1910,16 +2083,23 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_CorChargeOutChisquare =   fitCorChargeOut->GetChisquare();
   Double_t calc_CorChargeOutNDF       =   fitCorChargeOut->GetNDF();
 
-  TLegend *legCorCharge = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legCorCharge->AddEntry("CorChargeGraphIn",  Form("In A_{Q} = %2.2f #pm %2.2f",calc_CorChargeInp0,calc_eCorChargeInp0),"lp");
-  legCorCharge->AddEntry("CorChargeGraphOut",  Form("Out A_{Q} = %2.2f #pm %2.2f",calc_CorChargeOutp0,calc_eCorChargeOutp0),"lp");
-  legCorCharge->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legCorCharge = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legCorCharge->AddEntry("CorChargeGraphIn",  Form("In A_{Q} = %2.2f #pm %2.2f",calc_CorChargeInp0,calc_eCorChargeInp0),"lp");
+//   legCorCharge->AddEntry("CorChargeGraphOut",  Form("Out A_{Q} = %2.2f #pm %2.2f",calc_CorChargeOutp0,calc_eCorChargeOutp0),"lp");
+  TLegend *legCorCharge = new TLegend(0.12,0.82,0.22,0.94);
+  legCorCharge->AddEntry("CorChargeGraphIn",  Form("IN"),"lp");
+  legCorCharge->AddEntry("CorChargeGraphOut",  Form("OUT"),"lp");
+  legCorCharge->SetTextSize(0.055);
   legCorCharge->SetFillColor(0);
-  legCorCharge->SetBorderSize(2);
+  legCorCharge->SetBorderSize(0);
   legCorCharge->Draw();
 
   fitCorChargeIn->Draw("same");
   fitCorChargeOut->Draw("same");
+
+  fitCorChargeIn->SetParNames("C_{A_{Q}-IN}","p^{A_{Q}}_{IN}");
+  fitCorChargeOut->SetParNames("C_{A_{Q}-OUT}","p^{A_{Q}}_{OUT}");
 
   gPad->Update();
 
@@ -1954,7 +2134,7 @@ int main(Int_t argc,Char_t* argv[]){
   pad31->Draw();
   pad32->Draw();
   pad31->cd();
-  TLatex * t31 = new TLatex(0.06,0.3,Form("%s",titleCor.Data()));
+  TLatex * t31 = new TLatex(0.01,0.3,Form("%s",titleCor.Data()));
   t31->SetTextSize(0.5);
   t31->Draw();
   pad32->cd();
@@ -1982,7 +2162,7 @@ int main(Int_t argc,Char_t* argv[]){
   CorTotalGraphOut->SetName("CorTotalGraphOut");
   CorTotalGraphOut->SetMarkerColor(kBlack);
   CorTotalGraphOut->SetLineColor(kBlack);
-  CorTotalGraphOut->SetMarkerStyle(21);
+  CorTotalGraphOut->SetMarkerStyle(25);
   CorTotalGraphOut->SetMarkerSize(markerSize[0]);
   CorTotalGraphOut->SetLineWidth(1);
   CorTotalGraphOut->Fit("cosFit","B0Q");
@@ -1995,12 +2175,17 @@ int main(Int_t argc,Char_t* argv[]){
   CorTotalGraph->Add(CorTotalGraphIn);
   CorTotalGraph->Add(CorTotalGraphOut);
   CorTotalGraph->Draw("AP");
-  CorTotalGraph->SetTitle(Form("Total : %s",showCosFit.Data()));
+//   CorTotalGraph->SetTitle(Form("Total : %s",showCosFit.Data()));
   CorTotalGraph->GetXaxis()->SetNdivisions(8,0,0);
   CorTotalGraph->GetXaxis()->SetTitle(Form("Octant"));
   CorTotalGraph->GetYaxis()->SetTitle("Total Correction [ppb]");
   CorTotalGraph->GetXaxis()->CenterTitle();
   CorTotalGraph->GetYaxis()->CenterTitle();
+  CorTotalGraph->GetYaxis()->SetTitleOffset(0.75);
+  CorTotalGraph->GetYaxis()->SetLabelSize(0.07);
+  CorTotalGraph->GetYaxis()->SetTitleSize(0.07);
+  CorTotalGraph->GetXaxis()->SetLabelSize(0.07);
+  CorTotalGraph->GetXaxis()->SetTitleSize(0.07);
   TAxis *xaxisCorTotalGraph= CorTotalGraph->GetXaxis();
 //   xaxisCorTotalGraph->SetLimits(det_range[0],det_range[1]);
 
@@ -2010,8 +2195,10 @@ int main(Int_t argc,Char_t* argv[]){
   statsCorTotalIn->SetFillColor(kWhite); 
   statsCorTotalOut->SetTextColor(kBlack);
   statsCorTotalOut->SetFillColor(kWhite);
-  statsCorTotalIn->SetTextSize(0.045);
-  statsCorTotalOut->SetTextSize(0.045);
+  statsCorTotalIn->SetTextSize(0.060);
+  statsCorTotalOut->SetTextSize(0.060);
+  statsCorTotalIn->SetFitFormat("5.3g");
+  statsCorTotalOut->SetFitFormat("5.3g");
   statsCorTotalIn->SetX1NDC(x_lo_stat_in4);    statsCorTotalIn->SetX2NDC(x_hi_stat_in4); 
   statsCorTotalIn->SetY1NDC(y_lo_stat_in4);    statsCorTotalIn->SetY2NDC(y_hi_stat_in4);
   statsCorTotalOut->SetX1NDC(x_lo_stat_out4);  statsCorTotalOut->SetX2NDC(x_hi_stat_out4); 
@@ -2035,16 +2222,24 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t calc_CorTotalOutChisquare =   fitCorTotalOut->GetChisquare();
   Double_t calc_CorTotalOutNDF       =   fitCorTotalOut->GetNDF();
 
-  TLegend *legCorTotal = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
-  legCorTotal->AddEntry("CorTotalGraphIn",  Form("In Total = %1.1f #pm %1.1f",calc_CorTotalInp0,calc_eCorTotalInp0),"lp");
-  legCorTotal->AddEntry("CorTotalGraphOut",  Form("Out Total = %1.1f #pm %1.1f",calc_CorTotalOutp0,calc_eCorTotalOutp0),"lp");
-  legCorTotal->SetTextSize(0.040);
+  line0->Draw("same");
+//   TLegend *legCorTotal = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4);
+//   legCorTotal->AddEntry("CorTotalGraphIn",  Form("In Total = %1.1f #pm %1.1f",calc_CorTotalInp0,calc_eCorTotalInp0),"lp");
+//   legCorTotal->AddEntry("CorTotalGraphOut",  Form("Out Total = %1.1f #pm %1.1f",calc_CorTotalOutp0,calc_eCorTotalOutp0),"lp");
+  TLegend *legCorTotal = new TLegend(0.12,0.82,0.22,0.94);
+  legCorTotal->AddEntry("CorTotalGraphIn",  Form("IN"),"lp");
+  legCorTotal->AddEntry("CorTotalGraphOut",  Form("OUT"),"lp");
+  legCorTotal->SetTextSize(0.055);
   legCorTotal->SetFillColor(0);
-  legCorTotal->SetBorderSize(2);
+  legCorTotal->SetBorderSize(0);
   legCorTotal->Draw();
 
   fitCorTotalIn->Draw("same");
   fitCorTotalOut->Draw("same");
+
+  fitCorTotalIn->SetParNames("C_{Total-IN}","p^{Total}_{IN}");
+  fitCorTotalOut->SetParNames("C_{Total-OUT}","p^{Total}_{OUT}");
+
 
   gPad->Update();
 
@@ -2067,7 +2262,6 @@ int main(Int_t argc,Char_t* argv[]){
   /********************************************************/
   /********************************************************/
   /********************************************************/
-
 
   Char_t  textfileAsym[400],textfileAsymWrite[400];
   sprintf(textfileAsym,"dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_%s.txt"
@@ -2114,14 +2308,14 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("No textfile %s dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_%s.txt%s exist for the configuration. Exiting program!\n",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),deviceName.Data(),reg_set.Data(),reg_calc.Data(),database_stem.Data(),normal);
     return -1;
   }
   transverseMDAsym.close();
 
   /****************************************/
   /****************************************/
-
+  gStyle->SetOptFit(1111);
 
   TString title1;
   TString titleSummary = Form("%s (%s, %s A): Slug Avg. Sensitivity Correceted MD %s Asymmetries."
@@ -2143,7 +2337,7 @@ int main(Int_t argc,Char_t* argv[]){
   pad101->Draw();
   pad102->Draw();
   pad101->cd();
-  TLatex * t1 = new TLatex(0.06,0.3,Form("%s",title1.Data()));
+  TLatex * t1 = new TLatex(0.01,0.3,Form("%s",title1.Data()));
   t1->SetTextSize(0.5);
   t1->Draw();
   pad102->cd();
@@ -2421,7 +2615,7 @@ int main(Int_t argc,Char_t* argv[]){
   MyfileWrite.close();
 
 
-  TString saveSummaryPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_manual_reg_%s"
+  TString saveSummaryPlot = Form("dirPlot/resultPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_manual_reg_%s"
 				 ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
 				 ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
 

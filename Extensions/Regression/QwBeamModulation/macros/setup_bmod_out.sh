@@ -10,5 +10,7 @@ mkdir ${BMOD_OUT_DIR}/slopes
 mkdir ${BMOD_OUT_DIR}/macrocycle_slopes 
 mkdir ${BMOD_OUT_DIR}/coil_sensitivities
 mkdir ${BMOD_OUT_DIR}/rootfiles
+
+#cp $BMOD_SRC/config/setup_mpsonly.config $BMOD_SRC/config/setup_mpsonly${stem}.config 
 echo "${BMOD_SRC}"
-#cp ${BMOD_SRC}/config/setup.config ${BMOD_SRC}/config/setup_mpsonly${stem}.config 
+cp ${BMOD_SRC}/config/setup.config ${BMOD_SRC}/config/setup_mpsonly${stem}.config 

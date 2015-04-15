@@ -17,7 +17,9 @@
  designed to make life easier and happy. :-) and in this arena
  happy ROOT means a happy life.
 
- Entry Conditions:none
+ Entry Conditions:
+   - pass: the pass number
+   - filename: the runlist file name of interest
  Date: 05-13-2014
  Modified: 02-13-2014
  Assisted By: Wouter Deconinck

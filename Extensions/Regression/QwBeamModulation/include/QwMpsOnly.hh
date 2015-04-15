@@ -20,10 +20,12 @@
 class QwMpsOnly {
 
 private:
-  static const Int_t kNMaxMon = 6;
-  static const Int_t kNMaxDet = 50;
-  static const Int_t kNMod = 5;
-  static const Int_t kNMaxCoil = 5;
+  static const Int_t kNMaxMon = 100;//number used to allocate sufficient space
+  static const Int_t kNMaxDet = 100;
+  static const Int_t kNMaxCoil = 100;
+  static const Int_t kNMod = 5;//kNMod is distinct modulation patterns
+  static const Int_t kNCoil = 10;//actual number of coils is sine + cosine.
+  //This is distinct from fNCoil which is number of coils used in an analysis.
   static const Int_t kBranchSize = 13;
   static const Int_t kDeviceErrorCode = 6;
   static const Int_t kError = 1;
@@ -55,7 +57,7 @@ private:
   Int_t fReduceMatrix_yp;
   Int_t fReduceMatrix_e;
   Int_t fSensHumanReadable;
-  Int_t fNModType;
+  Int_t fNCoil;
   Int_t fPedestal;
   Int_t fNModEvents;
   Int_t fCurrentCut;
@@ -64,6 +66,7 @@ private:
 
 
   Double_t fDegPerMPS;
+  Double_t fEnergyCoefficientCorrectionFactor;
   Double_t fPreviousRampValue;
   Double_t fMaxRampNonLinearity;
   Double_t fLowRamp;//low bound on ramp for coefficient fits
@@ -72,7 +75,7 @@ private:
   Double_t fRampLength;
   Double_t fRampPeriod;
   Double_t fRampOffset;
-  Double_t fUnitConvert[kNMaxCoil];
+  Double_t fUnitConvert[kNMaxMon];
   Double_t rampPeriodFitRslt[4];
   Double_t rampPeriodFitRsltErr[4];
   Double_t rampOffsetFitRslt[4];
@@ -127,7 +130,9 @@ public :
 
   Double_t        newEbpm;
 
-  Int_t           ModulationEvents[kNMaxCoil];
+  Int_t           ModulationEvents[kNMod];
+  Double_t        Eigenvaluess[kNMaxCoil];
+  Double_t        Eigenvectors[kNMaxCoil][kNMaxMon];
   Double_t        AsymmetryCorrection[kNMaxDet];
   Double_t        AsymmetryCorrectionQ[kNMaxDet];
   Double_t        MonBranch[kNMaxMon][kBranchSize];  
@@ -135,7 +140,6 @@ public :
   Double_t        HMonBranch[kNMaxMon][kBranchSize];  
   Double_t        YMonBranch[kNMaxMon][kBranchSize];  
   Double_t        HDetBranch[kNMaxDet][kBranchSize];  
-  Double_t        CoilBranch[kNMaxCoil][kBranchSize];
   Double_t        DeviceAsymmetryCorrection[kNMaxDet][kNMaxMon];
   Double_t        AverageAsymmetryCorrection[kNMaxDet][kNMaxMon];
   Double_t        PositionDiffMean[kNMaxDet][kNMaxMon];
@@ -200,6 +204,7 @@ public :
   std::fstream slopes;
   std::fstream macrocycle_slopes;
   std::fstream macrocycle_coeffs;
+  std::fstream eigenvectors;
   std::fstream diagnostic;
   std::fstream coil_sens;
   std::fstream charge_sens;  
@@ -220,7 +225,6 @@ public :
   std::vector <Double_t> correction_charge;
   std::vector <Double_t> ChargeSensitivity;
   std::vector <Double_t> ChargeSensitivityError;
-
   std::vector < std::vector <Double_t> > CoilData;
   std::vector < std::vector <Double_t> > DetectorData;
   std::vector < std::vector <Double_t> > MonitorData;
@@ -320,8 +324,6 @@ public :
   void     SetupMpsBranchAddresses(Bool_t, Bool_t, Bool_t); 
   void     Show(Long64_t entry = -1);  
   void     Write(Bool_t);
-
-
 };
 
 #endif

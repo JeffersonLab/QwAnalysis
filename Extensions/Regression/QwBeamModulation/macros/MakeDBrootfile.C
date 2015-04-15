@@ -44,8 +44,8 @@ Int_t MakeDBrootfile(Int_t run_period = 1)
   TString reducedFileDir = "/net/data2/paschkelab2/reduced_slugfiles/";
   TString leafListFileName = reducedFileDir + "leafList.txt";
   reducedFileDir += Form("run%i/", run_period);
-  TString DBFileDir = Form("/net/data2/paschkelab2/DB_rootfiles/run%i/", 
-			   run_period);
+  TString DBFileDir = Form("%s/DB_rootfiles/run%i/", 
+			   gSystem->Getenv("DB_ROOTFILES"),run_period);
 
   //get list of leaves
   ////////////////////
@@ -69,8 +69,8 @@ Int_t MakeDBrootfile(Int_t run_period = 1)
 
   //get the DB rootfile
   /////////////////////
-  TFile *DBfile = TFile::Open(Form("/net/data2/paschkelab2/DB_rootfiles/run%i/"
-				   "HYDROGEN-CELL_off_tree.root", run_period));
+  TFile *DBfile = TFile::Open(Form("%s/run%i/HYDROGEN-CELL_off_tree.root", 
+				   gSystem->Getenv("DB_ROOTFILES"), run_period));
   if(DBfile==0){
     cout<<"DB rootfile not found. Exiting.\n";
     return -1;
@@ -192,8 +192,8 @@ Int_t MakeDBrootfile(Int_t run_period = 1)
 
   //create new DB friend tree
   ////////////////////////////
-  TFile *newfile = new TFile(Form("/net/data2/paschkelab2/DB_rootfiles/run%i/"
-				  "hydrogen_cell_reduced_tree.root",run_period),
+  TFile *newfile = new TFile(Form("%s/run%i/hydrogen_cell_reduced_tree.root",
+				  gSystem->Getenv("DB_ROOTFILES"), run_period),
 			     "recreate");
   if(newfile==0){
     cout<<"Warning. New reduced tree file failed to open. Exiting.\n";

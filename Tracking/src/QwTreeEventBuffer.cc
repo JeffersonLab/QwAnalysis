@@ -12,10 +12,11 @@
 // System headers
 #include <string>
 #include <cmath>
-#include "QwTreeEventBuffer.h"
+#include <cstring>
 
 // ROOT headers
 #include <TVector3.h>
+#include <TLeaf.h>
 
 // Qweak headers
 #include "QwLog.h"
@@ -72,6 +73,10 @@ QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
   ReserveVectors();
   // Initialize the tree vectors
   ClearVectors();
+
+  fEnableR2Hits = true;
+  fEnableR3Hits = true;
+  fEnableResolution = true;
   
   fNumOfSimulated_ValidTracks = 0;
   fNumOfSimulated_R2_PartialTracks = 0;
@@ -106,6 +111,26 @@ QwTreeEventBuffer::~QwTreeEventBuffer()
 
 
 /**
+ * Define the command line and config file options
+ * @param options Options object
+ */
+void QwTreeEventBuffer::DefineOptions(QwOptions& options)
+{
+  options.AddOptions("SimTracking options")("QwSimTracking.enable-r2-hits",
+                          po::value<bool>()->default_bool_value(true),
+                          "enable R2 hit reconstruction");
+  options.AddOptions("SimTracking options")("QwSimTracking.enable-r3-hits",
+                          po::value<bool>()->default_bool_value(true),
+                          "enable R3 hit reconstruction");
+  options.AddOptions("SimTracking options")("QwSimTracking.enable-resolution",
+                          po::value<bool>()->default_bool_value(true),
+                          "enable drift chamber resolution");
+  options.AddOptions("SimTracking options")("QwSimTracking.reconstruct-all",
+                          po::value<bool>()->default_bool_value(true),
+                          "attempt reconstruction of all events, regardless of software trigger");
+}
+
+/**
  * Process the options contained in the QwOptions object
  * @param options Options object
  */
@@ -113,6 +138,11 @@ void QwTreeEventBuffer::ProcessOptions(QwOptions &options)
 {
   fRunRange   = options.GetIntValuePair("run");
   fEventRange = options.GetIntValuePair("event");
+
+  fEnableR2Hits = options.GetValue<bool>("QwSimTracking.enable-r2-hits");
+  fEnableR3Hits = options.GetValue<bool>("QwSimTracking.enable-r3-hits");
+  fEnableResolution = options.GetValue<bool>("QwSimTracking.enable-resolution");
+  fReconstructAllEvents = options.GetValue<bool>("QwSimTracking.reconstruct-all");
 }
 
 
@@ -261,19 +291,17 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
   while (fCurrentEntryNumber / fNumberOfEntriesPerEvent == fCurrentEventNumber
       && fCurrentEntryNumber < fNumberOfEntries) {
 
-    bool r2Hit = false;
-    bool r3Hit = false;
     // Get the next entry from the ROOT tree
-    if(GetEntry(fCurrentEntryNumber++, r2Hit, r3Hit)== false)
-        continue;
+    if (GetEntry(fCurrentEntryNumber++) == false)
+      continue;
     
     // Add the smeared hit list
-    QwHitContainer* smearedhitlist = CreateHitList(false,r2Hit,r3Hit);
+    QwHitContainer* smearedhitlist = CreateHitList(fEnableResolution);
     fCurrentEvent->AddHitContainer(smearedhitlist);
     delete smearedhitlist;
 
     // Add the original hit list
-    QwHitContainer* originalhitlist = CreateHitList(false,r2Hit,r3Hit);
+    QwHitContainer* originalhitlist = CreateHitList(fEnableResolution);
     fOriginalEvent->AddHitContainer(originalhitlist);
     delete originalhitlist;
 
@@ -310,7 +338,6 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     // Assign the cross section to the reconstructed event for correct weighting
     fCurrentEvent->fCrossSection = fPrimary_CrossSection;
 
-#ifdef NEW_G4_DATA    
     for (size_t i=0; i<fCerenkov_PMT_PMTLeftNbOfPEs.size(); i++){
         fOriginalEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs.at(i) );
         fCurrentEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs.at(i) );
@@ -325,16 +352,6 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
         fOriginalEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs.at(i) );   
         fCurrentEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs.at(i) );
     }
-#else
-        fOriginalEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs );
-        fCurrentEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs );
-
-        fOriginalEvent->fMD_RightNbOfPEs.push_back( fCerenkov_PMT_PMTRightNbOfPEs );
-        fCurrentEvent->fMD_RightNbOfPEs.push_back( fCerenkov_PMT_PMTRightNbOfPEs );
-
-        fOriginalEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs );   
-        fCurrentEvent->fMD_TotalNbOfPEs.push_back( fCerenkov_PMT_PMTTotalNbOfPEs );    
-#endif
     
     std::vector<boost::shared_ptr<QwTreeLine> > treelinelist;
     treelinelist = CreateTreeLines(kRegionID2);
@@ -362,7 +379,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
  * Read the specified entry from the tree
  * @param entry Entry to read from ROOT tree
  */
-bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r3_hit)
+bool QwTreeEventBuffer::GetEntry(const unsigned int entry)
 {
   // Read event
   QwVerbose << "Reading entry " << entry << QwLog::endl;
@@ -528,27 +545,23 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r
 //   }
 
   fCerenkov_Light = false;
-#ifdef NEW_G4_DATA
   if(!fCerenkov_PMT_PMTTotalNbOfPEs.empty())
   {
     for(size_t i=0; i<fCerenkov_PMT_PMTTotalNbOfPEs.size(); i++)
     {
-      fCerenkov_Light = fCerenkov_Light || (fCerenkov_PMT_PMTTotalNbOfPEs.at(i) >0);
+      fCerenkov_Light = fCerenkov_Light || (fCerenkov_PMT_PMTTotalNbOfPEs.at(i) > 0);
     }
   }
   else if (!fCerenkov_PMT_PMTTotalNbOfHits.empty())
   {
     for(size_t i=0; i<fCerenkov_PMT_PMTTotalNbOfHits.size(); i++)
     {
-      fCerenkov_Light = fCerenkov_Light || (fCerenkov_PMT_PMTTotalNbOfHits.at(i) >0);
+      fCerenkov_Light = fCerenkov_Light || (fCerenkov_PMT_PMTTotalNbOfHits.at(i) > 0);
     }
   }
   else
     fCerenkov_Light = true;
   
-#else
-      fCerenkov_Light = fCerenkov_Light || (fCerenkov_PMT_PMTTotalNbOfHits >0);
-#endif
 
   
   if (fRegion2_HasBeenHit)
@@ -556,7 +569,6 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r
   
   if (fRegion2_HasBeenHit && fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light) {
     fNumOfSimulated_R2_TS_MD_Tracks++;
-    r2_hit = true;
   }
       
   if (fRegion3_HasBeenHit)
@@ -564,7 +576,6 @@ bool QwTreeEventBuffer::GetEntry(const unsigned int entry, bool& r2_hit, bool& r
   
   if (fRegion3_HasBeenHit && fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light) {
     fNumOfSimulated_R3_TS_MD_Tracks++;
-    r3_hit = true;
   }
   
   if (fRegion2_HasBeenHit && fRegion3_HasBeenHit)
@@ -734,7 +745,7 @@ std::vector<boost::shared_ptr<QwPartialTrack> > QwTreeEventBuffer::CreatePartial
  * @param resolution_effects Flag to enable resolution effects (default is true)
  * @return Hit list
  */
-QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, bool r2_hit, bool r3_hit) const
+QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) const
 {
   QwDebug << "Calling QwTreeEventBuffer::GetHitList ()" << QwLog::endl;
   
@@ -782,7 +793,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       hitlist->Append(hits);
     }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 1, package up." << QwLog::endl;
+    QwDebug << "No detector in region 1, front plane, package up." << QwLog::endl;
   }
 
   // Region 1 back chamber
@@ -805,516 +816,577 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       hitlist->Append(hits);
     }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 1, package up." << QwLog::endl;
+    QwDebug << "No detector in region 1, back plane, package up." << QwLog::endl;
   }
 
 
-  if (r2_hit) {
+  if (fEnableR2Hits &&
+     (fReconstructAllEvents ||
+     (fRegion2_HasBeenHit && fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light))) {
 
   // Region 2 front chambers (x,u,v,x',u',v')
   QwDebug << "Processing Region2_ChamberFront_WirePlane1: "
           << fRegion2_ChamberFront_WirePlane1_NbOfHits << " hit(s)." << QwLog::endl;
 
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-    detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(0);
-    for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberFront_WirePlane1_PackageID.at(i1) != package){  continue; }//Check if correct package
- 
-      //double xLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(0);
+      for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-//       std::cout<<"\nHDC front #1, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) - xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+        // Check if right package
+        if (fRegion2_ChamberFront_WirePlane1_PackageID.size() != 0 &&
+            fRegion2_ChamberFront_WirePlane1_PackageID.at(i1) != package)
+          continue;
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        // Set the hit number
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        // Add the hit to the hit list (it is copied) and delete local instance
-        hitlist->push_back(*hit);
-        delete hit;
+        //double xLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC front #1, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) - xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          // Set the hit number
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          // Add the hit to the hit list (it is copied) and delete local instance
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
     }
-   }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, front plane 1." << QwLog::endl;
+    QwVerbose << "No detector in region 2, front plane 1." << QwLog::endl;
   }
 
   QwDebug << "Processing Region2_ChamberFront_WirePlane2: "
-          << fRegion2_ChamberFront_WirePlane2_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberFront_WirePlane2_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-    detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(1);
-    for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberFront_WirePlane2_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC front #2, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(1);
+      for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberFront_WirePlane2_PackageID.size() != 0 &&
+            fRegion2_ChamberFront_WirePlane2_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberFront_WirePlane2_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC front #2, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
     }
-   }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, front plane 2." << QwLog::endl;
+    QwVerbose << "No detector in region 2, front plane 2." << QwLog::endl;
   }
 
   QwDebug << "Processing Region2_ChamberFront_WirePlane3: "
-          << fRegion2_ChamberFront_WirePlane3_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberFront_WirePlane3_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(2);
-     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberFront_WirePlane3_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionZ.at(i1);
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(2);
+      for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC front #3, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+        // Check if right package
+        if (fRegion2_ChamberFront_WirePlane3_PackageID.size() != 0 &&
+            fRegion2_ChamberFront_WirePlane3_PackageID.at(i1) != package)
+          continue;
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        //double xLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberFront_WirePlane3_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC front #3, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
-	}
+    }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, front plane 3." << QwLog::endl;
+    QwVerbose << "No detector in region 2, front plane 3." << QwLog::endl;
   }
 
   QwDebug << "Processing Region2_ChamberFront_WirePlane4: "
-          << fRegion2_ChamberFront_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberFront_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(3);
-     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-       if(fRegion2_ChamberFront_WirePlane4_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC front #4, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(3);
+      for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberFront_WirePlane4_PackageID.size() != 0 &&
+            fRegion2_ChamberFront_WirePlane4_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberFront_WirePlane4_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC front #4, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
-	}
+    }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, front plane 4." << QwLog::endl;
+    QwVerbose << "No detector in region 2, front plane 4." << QwLog::endl;
   }
 
   QwDebug << "Processing Region2_ChamberFront_WirePlane5: "
-          << fRegion2_ChamberFront_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberFront_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-    detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(4);
-    for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberFront_WirePlane1_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC front #5, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(4);
+      for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberFront_WirePlane5_PackageID.size() != 0 &&
+            fRegion2_ChamberFront_WirePlane5_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberFront_WirePlane5_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC front #5, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
-	}
+    }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, front plane 5." << QwLog::endl;
+    QwVerbose << "No detector in region 2, front plane 5." << QwLog::endl;
   }
 
   QwDebug << "Processing Region2_ChamberFront_WirePlane6: "
-          << fRegion2_ChamberFront_WirePlane6_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberFront_WirePlane6_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(5);
-     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberFront_WirePlane6_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC front #6, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(5);
+      for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberFront_WirePlane6_PackageID.size() != 0 &&
+            fRegion2_ChamberFront_WirePlane6_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberFront_WirePlane6_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC front #6, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
-	}
+    }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, front plane 6." << QwLog::endl;
+    QwVerbose << "No detector in region 2, front plane 6." << QwLog::endl;
   }
 
   // Region 2 back chambers (x,u,v,x',u',v')
   QwDebug << "Processing Region2_ChamberBack_WirePlane1: "
-          << fRegion2_ChamberBack_WirePlane1_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberBack_WirePlane1_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(6);
-     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberBack_WirePlane1_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC back #1, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(6);
+      for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberBack_WirePlane1_PackageID.size() != 0 &&
+            fRegion2_ChamberBack_WirePlane1_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberBack_WirePlane1_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC back #1, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
-	}
+    }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, back plane 1." << QwLog::endl;
+    QwVerbose << "No detector in region 2, back plane 1." << QwLog::endl;
   }
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane2: "
-          << fRegion2_ChamberBack_WirePlane2_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberBack_WirePlane2_NbOfHits << " hit(s)." << QwLog::endl;
   try {
     for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(7);
-     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberBack_WirePlane2_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC back #2, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(7);
+      for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberBack_WirePlane2_PackageID.size() != 0 &&
+            fRegion2_ChamberBack_WirePlane2_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberBack_WirePlane2_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC back #2, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
     }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, back plane 2." << QwLog::endl;
+    QwVerbose << "No detector in region 2, back plane 2." << QwLog::endl;
   }
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane3: "
-          << fRegion2_ChamberBack_WirePlane3_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberBack_WirePlane3_NbOfHits << " hit(s)." << QwLog::endl;
   try {
     for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(8);
-     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberBack_WirePlane3_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC back #3, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(8);
+      for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberBack_WirePlane3_PackageID.size() != 0 &&
+            fRegion2_ChamberBack_WirePlane3_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberBack_WirePlane3_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC back #3, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
     }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, back plane 3." << QwLog::endl;
+    QwVerbose << "No detector in region 2, back plane 3." << QwLog::endl;
   }
 
   if (is_R2WirePlane10_OK==true)
   {
-  QwDebug << "Processing Region2_ChamberBack_WirePlane4: "
-          << fRegion2_ChamberBack_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
-    
-  try {
-    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(9);
-     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberBack_WirePlane4_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC back #4, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+    QwDebug << "Processing Region2_ChamberBack_WirePlane4: "
+        << fRegion2_ChamberBack_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+    try {
+      for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+        detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(9);
+        for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      if ( drop_off_R2_plane10_hits > 0.0 &&  drop_off_R2_plane10_hits < 100) 
-      {
-        boost::mt19937 rng;
-        boost::uniform_real<double> u(0, 100);
-        static boost::variate_generator<boost::mt19937, boost::uniform_real<double> > gen(rng, u);
-        double random_percent = gen();
-        if( random_percent < drop_off_R2_plane10_hits )
-        {
-          //std::cout<<"rand()="<<random_percent<<", drop_off_R2_plane10_hits="<<drop_off_R2_plane10_hits<<std::endl;
-          hit = 0;
+          // Check if right package
+          if (fRegion2_ChamberBack_WirePlane4_PackageID.size() != 0 &&
+              fRegion2_ChamberBack_WirePlane4_PackageID.at(i1) != package)
+            continue;
+
+          //double xLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.at(i1);
+          //double yLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
+          double xGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionX.at(i1);
+          double yGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionY.at(i1);
+          //double zGlobalMC = fRegion2_ChamberBack_WirePlane4_PlaneGlobalPositionZ.at(i1);
+
+          // Convert global x-y to local x-y
+          double originX = detectorinfo->GetXPosition();
+          double originY = detectorinfo->GetYPosition();
+          //double originZ = detectorinfo->GetZPosition();
+          int octant = detectorinfo->GetOctant();
+
+          //       std::cout<<"\nHDC back #4, octant: "<<detectorinfo->GetOctant()<<"\n";
+          //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+          //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+          //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+          double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+          double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+          // Create the hit
+          QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+
+          if ( drop_off_R2_plane10_hits > 0.0 &&  drop_off_R2_plane10_hits < 100)
+          {
+            boost::mt19937 rng;
+            boost::uniform_real<double> u(0, 100);
+            static boost::variate_generator<boost::mt19937, boost::uniform_real<double> > gen(rng, u);
+            double random_percent = gen();
+            if( random_percent < drop_off_R2_plane10_hits )
+            {
+              //std::cout<<"rand()="<<random_percent<<", drop_off_R2_plane10_hits="<<drop_off_R2_plane10_hits<<std::endl;
+              hit = 0;
+            }
+          }
+
+          if (hit) {
+            if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+            hitlist->push_back(*hit);
+            delete hit;
+          }
         }
       }
-
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
-      }
-     }
+    } catch (std::exception&) {
+      QwVerbose << "No detector in region 2, back plane 4." << QwLog::endl;
     }
-  } catch (std::exception&) {
-    QwDebug << "No detector in region 2, back plane 4." << QwLog::endl;
-  }
   } // end of  if (is_R2WirePlane10_OK==true)
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane5: "
-          << fRegion2_ChamberBack_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberBack_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(10);
-     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberBack_WirePlane5_PackageID.at(i1) != package) continue; //Check if right package
-      //double xLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC back #5, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(10);
+      for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberBack_WirePlane5_PackageID.size() != 0 &&
+            fRegion2_ChamberBack_WirePlane5_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberBack_WirePlane5_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC back #5, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
-	}
+    }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, back plane 5." << QwLog::endl;
+    QwVerbose << "No detector in region 2, back plane 5." << QwLog::endl;
   }
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane6: "
-            << fRegion2_ChamberBack_WirePlane6_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion2_ChamberBack_WirePlane6_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(11);
-     for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion2_ChamberBack_WirePlane6_PackageID.at(i1) != package) continue; //Check if correct package
-      //double xLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.at(i1);
-      //double yLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
-      double xGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionX.at(i1);
-      double yGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionY.at(i1);
-      //double zGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionZ.at(i1);
-      
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      //double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      
-//       std::cout<<"\nHDC back #6, octant: "<<detectorinfo->GetOctant()<<"\n";
-//       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
-//                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
-//                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-             
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID2).in(package).at(11);
+      for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
 
-      // Create the hit
-      QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
-      if (hit) {
-        if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
-        hitlist->push_back(*hit);
-        delete hit;
+        // Check if right package
+        if (fRegion2_ChamberBack_WirePlane6_PackageID.size() != 0 &&
+            fRegion2_ChamberBack_WirePlane6_PackageID.at(i1) != package)
+          continue;
+
+        //double xLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.at(i1);
+        //double yLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
+        double xGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionX.at(i1);
+        double yGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionY.at(i1);
+        //double zGlobalMC = fRegion2_ChamberBack_WirePlane6_PlaneGlobalPositionZ.at(i1);
+
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        //double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+
+        //       std::cout<<"\nHDC back #6, octant: "<<detectorinfo->GetOctant()<<"\n";
+        //       std::cout<<"   origin xyz: "<<originX<<","<<originY<<","<<originZ<<"\n"
+        //                <<"   local xyz: "<<xLocalMC<<","<<yLocalMC<<"\n"
+        //                <<"   global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+
+        // Create the hit
+        QwHit* hit = CreateHitRegion2(detectorinfo,x,y,resolution_effects);
+        if (hit) {
+          if (set_hit_numbers) hit->SetHitNumber(hitcounter++);
+          hitlist->push_back(*hit);
+          delete hit;
+        }
       }
-     }
-	}
+    }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 2, back plane 6." << QwLog::endl;
+    QwVerbose << "No detector in region 2, back plane 6." << QwLog::endl;
   }
-  
+
   } // end of if (r2_hit)
   
   // The local reference frame in which the region 3 hits are stored in the MC
@@ -1350,344 +1422,367 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
   // rotation to obtain the slope with respect to the wire plane.  This means
   // a rotation over -theta around x for z,y.
 
-  if (r3_hit) {
+  if (fEnableR3Hits &&
+     (fReconstructAllEvents ||
+     (fRegion3_HasBeenHit && fTriggerScintillator_HasBeenHit && fCerenkov_HasBeenHit && fCerenkov_Light))) {
 
   //double originX0, originY0, originZ0;
   // Region 3 front planes (u,v)
   QwDebug << "Processing Region3_ChamberFront_WirePlaneU: "
-          << fRegion3_ChamberFront_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion3_ChamberFront_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	 for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
       detectorinfo = fDetectorInfo.in(kRegionID3).in(package).at(0);
       for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-      if(fRegion3_ChamberFront_WirePlaneU_PackageID.at(i1) != package) continue; //Check if correct package
-      QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
-      // We don't care about nutral particles, such as gamma and neutron
-      int pdgcode = fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1);
-      if (abs(pdgcode) != 11) continue;
+        // Check if right package
+        if (fRegion3_ChamberFront_WirePlaneU_PackageID.size() != 0 &&
+            fRegion3_ChamberFront_WirePlaneU_PackageID.at(i1) != package)
+          continue;
 
-      // Get the position and momentum in the MC frame (local and global)
-      //double xLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
-      //double yLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
-      //double zLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
-      double xGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
-      double yGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
-      double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
-      double pxGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
-      double pyGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
-      double pzGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
+        QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
-      double z = zGlobalMC - originZ;
+        // We don't care about nutral particles, such as gamma and neutron
+        int pdgcode = fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1);
+        if (abs(pdgcode) != 11) continue;
 
-      // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorPitchCos();
-      double sin_theta = detectorinfo->GetDetectorPitchSin();
+        // Get the position and momentum in the MC frame (local and global)
+        //double xLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
+        //double yLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
+        //double zLocalMC = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
+        double xGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
+        double yGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
+        double zGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
+        double pxGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
+        double pyGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
+        double pzGlobalMC = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
 
-      double xx = cos_theta*x - sin_theta*z;
-      double yy = y; //no change in y
-      double zz = sin_theta*x + cos_theta*z;
-      x = xx; y = yy; z = zz;
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+        double z = zGlobalMC - originZ;
 
-      // x = x/cos_theta;
-//
-//       std::cout<<"\nVDC front U, octant: "<<detectorinfo->GetOctant()<<", ";
-//       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
-//                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
-//                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-//
-//       std::cout<<"px: "<<pxGlobalMC<<", py: "<<pyGlobalMC<<", pz: "<<pzGlobalMC <<std::endl;
-//
-            
-      // rotation to octant 1 (local)
-      double px = pxGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
-      double py = pyGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
-      double pz = pzGlobalMC;
+        // Detector rotation over theta around the x axis in the MC frame
+        double cos_theta = detectorinfo->GetDetectorPitchCos();
+        double sin_theta = detectorinfo->GetDetectorPitchSin();
 
-      // Rotation over theta around y in octant 1 local frame
-      double pxLocalMC = cos_theta * px - sin_theta * pz;
-      double pyLocalMC = py; // no change in y
-      double pzLocalMC = sin_theta * px + cos_theta * pz;
+        double xx = cos_theta*x - sin_theta*z;
+        double yy = y; //no change in y
+        double zz = sin_theta*x + cos_theta*z;
+        x = xx; y = yy; z = zz;
 
-      // Slopes in the Qweak frame
-      double mx =  pxLocalMC / pzLocalMC;
-      double my =  pyLocalMC / pzLocalMC;
-      
-      // Fill a vector with the hits for this track
-      std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
+        // x = x/cos_theta;
+        //
+        //       std::cout<<"\nVDC front U, octant: "<<detectorinfo->GetOctant()<<", ";
+        //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+        //                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+        //                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+        //
+        //       std::cout<<"px: "<<pxGlobalMC<<", py: "<<pyGlobalMC<<", pz: "<<pzGlobalMC <<std::endl;
+        //
 
-      // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++)
-        if (set_hit_numbers)
-          hits[i].SetHitNumber(hitcounter++);
+        // rotation to octant 1 (local)
+        double px = pxGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
+        double py = pyGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
+        double pz = pzGlobalMC;
 
-      // Append this vector of hits to the QwHitContainer.
-      hitlist->Append(hits);
-    }
-   } //end of loop over packages
+        // Rotation over theta around y in octant 1 local frame
+        double pxLocalMC = cos_theta * px - sin_theta * pz;
+        double pyLocalMC = py; // no change in y
+        double pzLocalMC = sin_theta * px + cos_theta * pz;
+
+        // Slopes in the Qweak frame
+        double mx =  pxLocalMC / pzLocalMC;
+        double my =  pyLocalMC / pzLocalMC;
+
+        // Fill a vector with the hits for this track
+        std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
+
+        // Set the hit numbers
+        for (size_t i = 0; i < hits.size(); i++)
+          if (set_hit_numbers)
+            hits[i].SetHitNumber(hitcounter++);
+
+        // Append this vector of hits to the QwHitContainer.
+        hitlist->Append(hits);
+      }
+    } //end of loop over packages
   } catch (std::exception&) {
-    QwDebug << "No detector in region 3, front plane 0." << QwLog::endl;
+    QwVerbose << "No detector in region 3, front plane 0." << QwLog::endl;
   }
 
   QwDebug << "Processing Region3_ChamberFront_WirePlaneV: "
           << fRegion3_ChamberFront_WirePlaneV_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID3).in(package).at(1);
-     for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VECTOR_SIZE; i2++) {
-      if(fRegion3_ChamberFront_WirePlaneV_PackageID.at(i2) != package) continue; //Check if correct package
-      QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID3).in(package).at(1);
+      for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VECTOR_SIZE; i2++) {
 
-      // We don't care about nutral particles, such as gamma and neytron
-      int pdgcode = fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2);
-      if (abs(pdgcode) != 11) continue;
+        // Check if right package
+        if (fRegion3_ChamberFront_WirePlaneV_PackageID.size() != 0 &&
+            fRegion3_ChamberFront_WirePlaneV_PackageID.at(i2) != package)
 
-      // Get the position and momentum in the MC frame (local and global)
-      //double xLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
-      //double yLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
-      //double zLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
-      double xGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionX.at(i2);
-      double yGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionY.at(i2);
-      double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
-      double pxGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
-      double pyGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
-      double pzGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
+          continue;
 
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
-      double z = zGlobalMC - originZ;
+        QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
-      // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorPitchCos();
-      double sin_theta = detectorinfo->GetDetectorPitchSin();
+        // We don't care about nutral particles, such as gamma and neytron
+        int pdgcode = fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2);
+        if (abs(pdgcode) != 11) continue;
 
-      double xx = cos_theta*x - sin_theta*z;
-      double yy = y; //no change in y
-      double zz = sin_theta*x + cos_theta*z;
-      x = xx; y = yy; z = zz;
+        // Get the position and momentum in the MC frame (local and global)
+        //double xLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
+        //double yLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
+        //double zLocalMC = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
+        double xGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionX.at(i2);
+        double yGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionY.at(i2);
+        double zGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalPositionZ.at(i2);
+        double pxGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
+        double pyGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
+        double pzGlobalMC = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
 
-      // x = x/cos_theta;
-      
-//       std::cout<<"VDC front V, octant: "<<octant <<", ";
-//       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
-//                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
-//                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-// 
-//       std::cout<<"After rotation:"<<std::endl;
-//       std::cout<<"origin xyz: "<<xGlobalToLocal(originX,originY,octant)<<","<<yGlobalToLocal(originX,originY,octant)<<","<<originZ
-//                <<", local xyz: "<<x<<","<<y<<std::endl;
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+        double z = zGlobalMC - originZ;
 
-      // rotation to octant 1 (local)
-      double px = pxGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
-      double py = pyGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
-      double pz = pzGlobalMC;
+        // Detector rotation over theta around the x axis in the MC frame
+        double cos_theta = detectorinfo->GetDetectorPitchCos();
+        double sin_theta = detectorinfo->GetDetectorPitchSin();
 
-      // Rotation over theta around y in octant 1 local frame
-      double pxLocalMC = cos_theta * px - sin_theta * pz;
-      double pyLocalMC = py; // no change in y
-      double pzLocalMC = sin_theta * px + cos_theta * pz;
+        double xx = cos_theta*x - sin_theta*z;
+        double yy = y; //no change in y
+        double zz = sin_theta*x + cos_theta*z;
+        x = xx; y = yy; z = zz;
 
-      // Slopes in the Qweak frame
-      double mx =  pxLocalMC / pzLocalMC;
-      double my =  pyLocalMC / pzLocalMC;
-      
-      // Fill a vector with the hits for this track
-      std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
+        // x = x/cos_theta;
 
-      // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++)
-        if (set_hit_numbers)
-          hits[i].SetHitNumber(hitcounter++);
+        //       std::cout<<"VDC front V, octant: "<<octant <<", ";
+        //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+        //                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+        //                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+        //
+        //       std::cout<<"After rotation:"<<std::endl;
+        //       std::cout<<"origin xyz: "<<xGlobalToLocal(originX,originY,octant)<<","<<yGlobalToLocal(originX,originY,octant)<<","<<originZ
+        //                <<", local xyz: "<<x<<","<<y<<std::endl;
 
-      // Append this vector of hits to the QwHitContainer.
-      hitlist->Append(hits);
-     }
-	}
+        // rotation to octant 1 (local)
+        double px = pxGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
+        double py = pyGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
+        double pz = pzGlobalMC;
+
+        // Rotation over theta around y in octant 1 local frame
+        double pxLocalMC = cos_theta * px - sin_theta * pz;
+        double pyLocalMC = py; // no change in y
+        double pzLocalMC = sin_theta * px + cos_theta * pz;
+
+        // Slopes in the Qweak frame
+        double mx =  pxLocalMC / pzLocalMC;
+        double my =  pyLocalMC / pzLocalMC;
+
+        // Fill a vector with the hits for this track
+        std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
+
+        // Set the hit numbers
+        for (size_t i = 0; i < hits.size(); i++)
+          if (set_hit_numbers)
+            hits[i].SetHitNumber(hitcounter++);
+
+        // Append this vector of hits to the QwHitContainer.
+        hitlist->Append(hits);
+      }
+    }
   } catch (std::exception&) {
-    QwDebug << "No detector in region 3, front plane 1." << QwLog::endl;
+    QwVerbose << "No detector in region 3, front plane 1." << QwLog::endl;
   }
 
   // Region 3 back planes (u',v')
   QwDebug << "Processing Region3_ChamberBack_WirePlaneU: "
-          << fRegion3_ChamberBack_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion3_ChamberBack_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID3).in(package).at(2);
-     for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VECTOR_SIZE; i3++) {
-      if(fRegion3_ChamberBack_WirePlaneU_PackageID.at(i3) != package) continue; //Check if correct package
-      QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID3).in(package).at(2);
+      for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VECTOR_SIZE; i3++) {
 
-      // We don't care about nutral particles, such as gamma and neytron
-      int pdgcode = fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3);
-      if (abs(pdgcode) != 11) continue;
-      
-      // Get the position and momentum in the MC frame (local and global)
-      //double xLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
-      //double yLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
-      //double zLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
-      double xGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionX.at(i3);
-      double yGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionY.at(i3);
-      double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
-      double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
-      double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
-      double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
+        // Check if right package
+        if (fRegion3_ChamberBack_WirePlaneU_PackageID.size() != 0 &&
+            fRegion3_ChamberBack_WirePlaneU_PackageID.at(i3) != package)
+          continue;
 
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
-      double z = zGlobalMC - originZ;
+        QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
-      // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorPitchCos();
-      double sin_theta = detectorinfo->GetDetectorPitchSin();
+        // We don't care about nutral particles, such as gamma and neytron
+        int pdgcode = fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3);
+        if (abs(pdgcode) != 11) continue;
 
-      double xx = cos_theta*x - sin_theta*z;
-      double yy = y; //no change in y
-      double zz = sin_theta*x + cos_theta*z;
-      x = xx; y = yy; z = zz;
+        // Get the position and momentum in the MC frame (local and global)
+        //double xLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
+        //double yLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
+        //double zLocalMC = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
+        double xGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionX.at(i3);
+        double yGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionY.at(i3);
+        double zGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalPositionZ.at(i3);
+        double pxGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
+        double pyGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
+        double pzGlobalMC = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
 
-      // x = x/cos_theta;
-      
-//       std::cout<<"VDC back U, octant: "<<detectorinfo->GetOctant()<<", ";
-//       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
-//                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
-//                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-// 
-//       std::cout<<"After rotation:"<<std::endl;
-//       std::cout<<"origin xyz: "<<xGlobalToLocal(originX,originY,octant)<<","<<yGlobalToLocal(originX,originY,octant)<<","<<originZ
-//                <<", local xyz: "<<x<<","<<y<<std::endl;
-      
-      // rotation to octant 1 (local)
-      double px = pxGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
-      double py = pyGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
-      double pz = pzGlobalMC;
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+        double z = zGlobalMC - originZ;
 
-      // Rotation over theta around y in octant 1 local frame
-      double pxLocalMC = cos_theta * px - sin_theta * pz;
-      double pyLocalMC = py; // no change in y
-      double pzLocalMC = sin_theta * px + cos_theta * pz;
+        // Detector rotation over theta around the x axis in the MC frame
+        double cos_theta = detectorinfo->GetDetectorPitchCos();
+        double sin_theta = detectorinfo->GetDetectorPitchSin();
 
-      // Slopes in the Qweak frame
-      double mx =  pxLocalMC / pzLocalMC;
-      double my =  pyLocalMC / pzLocalMC;
-      
-      // Fill a vector with the hits for this track
-      std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
+        double xx = cos_theta*x - sin_theta*z;
+        double yy = y; //no change in y
+        double zz = sin_theta*x + cos_theta*z;
+        x = xx; y = yy; z = zz;
 
-      // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++)
-        if (set_hit_numbers)
-          hits[i].SetHitNumber(hitcounter++);
+        // x = x/cos_theta;
 
-      // Append this vector of hits to the QwHitContainer.
-      hitlist->Append(hits);
-     }
-	} //end of loop over package
+        //       std::cout<<"VDC back U, octant: "<<detectorinfo->GetOctant()<<", ";
+        //       std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+        //                <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+        //                <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+        //
+        //       std::cout<<"After rotation:"<<std::endl;
+        //       std::cout<<"origin xyz: "<<xGlobalToLocal(originX,originY,octant)<<","<<yGlobalToLocal(originX,originY,octant)<<","<<originZ
+        //                <<", local xyz: "<<x<<","<<y<<std::endl;
+
+        // rotation to octant 1 (local)
+        double px = pxGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
+        double py = pyGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
+        double pz = pzGlobalMC;
+
+        // Rotation over theta around y in octant 1 local frame
+        double pxLocalMC = cos_theta * px - sin_theta * pz;
+        double pyLocalMC = py; // no change in y
+        double pzLocalMC = sin_theta * px + cos_theta * pz;
+
+        // Slopes in the Qweak frame
+        double mx =  pxLocalMC / pzLocalMC;
+        double my =  pyLocalMC / pzLocalMC;
+
+        // Fill a vector with the hits for this track
+        std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
+
+        // Set the hit numbers
+        for (size_t i = 0; i < hits.size(); i++)
+          if (set_hit_numbers)
+            hits[i].SetHitNumber(hitcounter++);
+
+        // Append this vector of hits to the QwHitContainer.
+        hitlist->Append(hits);
+      }
+    } //end of loop over package
   } catch (std::exception&) {
-    QwDebug << "No detector in region 3, back plane 0." << QwLog::endl;
+    QwVerbose << "No detector in region 3, back plane 0." << QwLog::endl;
   }
 
   QwDebug << "Processing Region3_ChamberBack_WirePlaneV: "
-          << fRegion3_ChamberBack_WirePlaneV_NbOfHits << " hit(s)." << QwLog::endl;
+      << fRegion3_ChamberBack_WirePlaneV_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-	for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
-     detectorinfo = fDetectorInfo.in(kRegionID3).in(package).at(3);
-     for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VECTOR_SIZE; i4++) {
-     if(fRegion3_ChamberBack_WirePlaneV_PackageID.at(i4) != package) continue; //Check if correct package
-      QwDebug << "hit in " << *detectorinfo << QwLog::endl;
+    for (EQwDetectorPackage package = kPackage1; package <= kPackage2; package++) {
+      detectorinfo = fDetectorInfo.in(kRegionID3).in(package).at(3);
+      for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VECTOR_SIZE; i4++) {
 
-      // We don't care about nutral particles, such as gamma and neytron
-      int pdgcode = fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4);
-      if (abs(pdgcode) != 11) continue;
+        // Check if right package
+        if (fRegion3_ChamberBack_WirePlaneV_PackageID.size() != 0 &&
+            fRegion3_ChamberBack_WirePlaneV_PackageID.at(i4) != package)
+          continue;
 
-      // Get the position and momentum in the MC frame (local and global)
-      //double xLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
-      //double yLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
-      //double zLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
-      double xGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionX.at(i4);
-      double yGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionY.at(i4);
-      double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
-      double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
-      double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
-      double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
+        QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
-      // Convert global x-y to local x-y
-      double originX = detectorinfo->GetXPosition();
-      double originY = detectorinfo->GetYPosition();
-      double originZ = detectorinfo->GetZPosition();
-      int octant = detectorinfo->GetOctant();
-      double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
-      double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
-      double z = zGlobalMC - originZ;
+        // We don't care about nutral particles, such as gamma and neytron
+        int pdgcode = fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4);
+        if (abs(pdgcode) != 11) continue;
 
-      // Detector rotation over theta around the x axis in the MC frame
-      double cos_theta = detectorinfo->GetDetectorPitchCos();
-      double sin_theta = detectorinfo->GetDetectorPitchSin();
+        // Get the position and momentum in the MC frame (local and global)
+        //double xLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
+        //double yLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
+        //double zLocalMC = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
+        double xGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionX.at(i4);
+        double yGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionY.at(i4);
+        double zGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalPositionZ.at(i4);
+        double pxGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
+        double pyGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
+        double pzGlobalMC = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
 
-      double xx = cos_theta*x - sin_theta*z;
-      double yy = y; //no change in y
-      double zz = sin_theta*x + cos_theta*z;
-      x = xx; y = yy; z = zz;
+        // Convert global x-y to local x-y
+        double originX = detectorinfo->GetXPosition();
+        double originY = detectorinfo->GetYPosition();
+        double originZ = detectorinfo->GetZPosition();
+        int octant = detectorinfo->GetOctant();
+        double x = xGlobalToLocal(xGlobalMC,yGlobalMC,octant) -  xGlobalToLocal(originX,originY,3);
+        double y = yGlobalToLocal(xGlobalMC,yGlobalMC,octant) - yGlobalToLocal(originX,originY,3);
+        double z = zGlobalMC - originZ;
 
-      // x = x/cos_theta;
-      
-//
-//        std::cout<<"VDC back V, octant: "<<detectorinfo->GetOctant()<<", ";
-//        std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
-//                 <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
-//                 <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
-//
+        // Detector rotation over theta around the x axis in the MC frame
+        double cos_theta = detectorinfo->GetDetectorPitchCos();
+        double sin_theta = detectorinfo->GetDetectorPitchSin();
 
-      // rotation around z-axis to octant 1 (local)
-      double px = pxGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
-      double py = pyGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
-      double pz = pzGlobalMC;
+        double xx = cos_theta*x - sin_theta*z;
+        double yy = y; //no change in y
+        double zz = sin_theta*x + cos_theta*z;
+        x = xx; y = yy; z = zz;
 
-      // Rotation over theta around y in octant 1 local frame
-      double pxLocalMC = cos_theta * px - sin_theta * pz;
-      double pyLocalMC = py; // no change in y
-      double pzLocalMC = sin_theta * px + cos_theta * pz;
-      
-      // Slopes in the Qweak frame
-      double mx =  pxLocalMC / pzLocalMC;
-      double my =  pyLocalMC / pzLocalMC;
+        // x = x/cos_theta;
 
-      // Fill a vector with the hits for this track
-      std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
+        //
+        //        std::cout<<"VDC back V, octant: "<<detectorinfo->GetOctant()<<", ";
+        //        std::cout<<"origin xyz: "<<originX<<","<<originY<<","<<originZ
+        //                 <<", local xyz: "<<xLocalMC<<","<<yLocalMC<<","<<zLocalMC
+        //                 <<", global xyz:"<<xGlobalMC<<", "<<yGlobalMC<<", "<<zGlobalMC<<std::endl;
+        //
 
-      // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++)
-        if (set_hit_numbers)
-          hits[i].SetHitNumber(hitcounter++);
+        // rotation around z-axis to octant 1 (local)
+        double px = pxGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
+        double py = pyGlobalToLocal(pxGlobalMC, pyGlobalMC, octant);
+        double pz = pzGlobalMC;
 
-      // Append this vector of hits to the QwHitContainer.
-      hitlist->Append(hits);
-     }
-	} //end of loop over packages
+        // Rotation over theta around y in octant 1 local frame
+        double pxLocalMC = cos_theta * px - sin_theta * pz;
+        double pyLocalMC = py; // no change in y
+        double pzLocalMC = sin_theta * px + cos_theta * pz;
+
+        // Slopes in the Qweak frame
+        double mx =  pxLocalMC / pzLocalMC;
+        double my =  pyLocalMC / pzLocalMC;
+
+        // Fill a vector with the hits for this track
+        std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my,resolution_effects);
+
+        // Set the hit numbers
+        for (size_t i = 0; i < hits.size(); i++)
+          if (set_hit_numbers)
+            hits[i].SetHitNumber(hitcounter++);
+
+        // Append this vector of hits to the QwHitContainer.
+        hitlist->Append(hits);
+      }
+    } //end of loop over packages
   } catch (std::exception&) {
-    QwDebug << "No detector in region 3, back plane 1." << QwLog::endl;
+    QwVerbose << "No detector in region 3, back plane 1." << QwLog::endl;
   }
-  
+
   } // end of if (r3_hit)
 
   QwDebug << "Processing Trigger Scintillator: "
-          << fTriggerScintillator_Detector_NbOfHits << " hit(s)." << QwLog::endl;
+      << fTriggerScintillator_Detector_NbOfHits << " hit(s)." << QwLog::endl;
   try {
     detectorinfo = fDetectorInfo.in(kRegionIDTrig).in(kPackage1).at(0);
     for (int i = 0; i < fTriggerScintillator_Detector_NbOfHits && i < 1; i++) {
@@ -1709,12 +1804,12 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       hitlist->Append(hits);
     }
   } catch (std::exception&) {
-    QwDebug << "No detector in trigger scintillator." << QwLog::endl;
+    QwVerbose << "No detector in trigger scintillator." << QwLog::endl;
   }
 
 
   QwDebug << "Processing Cerenkov: "
-          << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
+      << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
   try {
     detectorinfo = fDetectorInfo.in(kRegionIDCer).in(kPackage1).at(0);
     for (int i = 0; i < fCerenkov_Detector_NbOfHits && i < 1; i++) {
@@ -1736,7 +1831,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects, 
       hitlist->Append(hits);
     }
   } catch (std::exception&) {
-    QwDebug << "No detector in cerenkov detector." << QwLog::endl;
+    QwVerbose << "No detector in cerenkov detector." << QwLog::endl;
   }
 
 
@@ -2495,12 +2590,10 @@ void QwTreeEventBuffer::ReserveVectors()
 //   fTriggerScintillator_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
 
   fCerenkov_Detector_DetectorID.reserve(VECTOR_SIZE);
-#ifdef NEW_G4_DATA
   fCerenkov_PMT_PMTTotalNbOfHits.reserve(VECTOR_SIZE);
   fCerenkov_PMT_PMTTotalNbOfPEs.reserve(VECTOR_SIZE);
   fCerenkov_PMT_PMTLeftNbOfPEs.reserve(VECTOR_SIZE);
   fCerenkov_PMT_PMTRightNbOfPEs.reserve(VECTOR_SIZE);
-#endif
 //   fCerenkov_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionZ.reserve(VECTOR_SIZE);
@@ -2858,17 +2951,10 @@ void QwTreeEventBuffer::ClearVectors()
   fCerenkov_Detector_DetectorID.clear();
   fCerenkov_Detector_HasBeenHit = 0;
   fCerenkov_Detector_NbOfHits = 0;
-#ifdef NEW_G4_DATA
   fCerenkov_PMT_PMTTotalNbOfHits.clear();
   fCerenkov_PMT_PMTTotalNbOfPEs.clear();
   fCerenkov_PMT_PMTLeftNbOfPEs.clear();
   fCerenkov_PMT_PMTRightNbOfPEs.clear();
-#else
-  fCerenkov_PMT_PMTTotalNbOfHits = 0;
-  fCerenkov_PMT_PMTTotalNbOfPEs = 0;
-  fCerenkov_PMT_PMTLeftNbOfPEs = 0;
-  fCerenkov_PMT_PMTRightNbOfPEs = 0;  
-#endif
   
   fCerenkov_Detector_HitLocalPositionX = 0.0;
   fCerenkov_Detector_HitLocalPositionY = 0.0;
@@ -2993,11 +3079,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane1_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane1.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.ParticleType",
-                &fRegion2_ChamberFront_WirePlane1_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PackageID",
-  		&fRegion2_ChamberFront_WirePlane1_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane1.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.ParticleType",
+        &fRegion2_ChamberFront_WirePlane1_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane1.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PackageID",
+        &fRegion2_ChamberFront_WirePlane1_PackageID);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneLocalPositionY",
@@ -3027,11 +3114,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane1_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane1.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.ParticleType",
-		&fRegion2_ChamberBack_WirePlane1_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PackageID",
-    	&fRegion2_ChamberBack_WirePlane1_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane1.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.ParticleType",
+        &fRegion2_ChamberBack_WirePlane1_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane1.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PackageID",
+        &fRegion2_ChamberBack_WirePlane1_PackageID);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PlaneLocalPositionY",
@@ -3062,11 +3150,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane2_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane2.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.ParticleType",
-		&fRegion2_ChamberFront_WirePlane2_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.PackageID",
-    	&fRegion2_ChamberFront_WirePlane2_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane2.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.ParticleType",
+        &fRegion2_ChamberFront_WirePlane2_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane2.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.PackageID",
+        &fRegion2_ChamberFront_WirePlane2_PackageID);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.PlaneLocalPositionY",
@@ -3096,11 +3185,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane2_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane2_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane2.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.ParticleType",
-		&fRegion2_ChamberBack_WirePlane2_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.PackageID",
-    	&fRegion2_ChamberBack_WirePlane2_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane2.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.ParticleType",
+        &fRegion2_ChamberBack_WirePlane2_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane2.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.PackageID",
+        &fRegion2_ChamberBack_WirePlane2_PackageID);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.PlaneLocalPositionY",
@@ -3131,11 +3221,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane3_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane3.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.ParticleType",
-		&fRegion2_ChamberFront_WirePlane3_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.PackageID",
-    		&fRegion2_ChamberFront_WirePlane3_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane3.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.ParticleType",
+        &fRegion2_ChamberFront_WirePlane3_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane3.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.PackageID",
+        &fRegion2_ChamberFront_WirePlane3_PackageID);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.PlaneLocalPositionY",
@@ -3165,11 +3256,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane3_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane3_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane3.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.ParticleType",
-		&fRegion2_ChamberBack_WirePlane3_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.PackageID",
-    	&fRegion2_ChamberBack_WirePlane3_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane3.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.ParticleType",
+        &fRegion2_ChamberBack_WirePlane3_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane3.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.PackageID",
+        &fRegion2_ChamberBack_WirePlane3_PackageID);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.PlaneLocalPositionY",
@@ -3200,11 +3292,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane4_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane4_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane4.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.ParticleType",
-		&fRegion2_ChamberFront_WirePlane4_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.PackageID",
-    	&fRegion2_ChamberFront_WirePlane4_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane4.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.ParticleType",
+        &fRegion2_ChamberFront_WirePlane4_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane4.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.PackageID",
+        &fRegion2_ChamberFront_WirePlane4_PackageID);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.PlaneLocalPositionY",
@@ -3234,11 +3327,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane4_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane4.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.ParticleType",
-		&fRegion2_ChamberBack_WirePlane4_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.PackageID",
-    	&fRegion2_ChamberBack_WirePlane4_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane4.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.ParticleType",
+        &fRegion2_ChamberBack_WirePlane4_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane4.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.PackageID",
+        &fRegion2_ChamberBack_WirePlane4_PackageID);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.PlaneLocalPositionY",
@@ -3269,11 +3363,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane5_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane5.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.ParticleType",
-		&fRegion2_ChamberFront_WirePlane5_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.PackageID",
-    	&fRegion2_ChamberFront_WirePlane5_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane5.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.ParticleType",
+        &fRegion2_ChamberFront_WirePlane5_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane5.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.PackageID",
+        &fRegion2_ChamberFront_WirePlane5_PackageID);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.PlaneLocalPositionY",
@@ -3303,11 +3398,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane5_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane5_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane5.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.ParticleType",
-		&fRegion2_ChamberBack_WirePlane5_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.PackageID",
-    	&fRegion2_ChamberBack_WirePlane5_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane5.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.ParticleType",
+        &fRegion2_ChamberBack_WirePlane5_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane5.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.PackageID",
+        &fRegion2_ChamberBack_WirePlane5_PackageID);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.PlaneLocalPositionY",
@@ -3338,11 +3434,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberFront_WirePlane6_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane6_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberFront.WirePlane6.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.ParticleType",
-		&fRegion2_ChamberFront_WirePlane6_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.PackageID",
-    	&fRegion2_ChamberFront_WirePlane6_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane6.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.ParticleType",
+        &fRegion2_ChamberFront_WirePlane6_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberFront.WirePlane6.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.PackageID",
+        &fRegion2_ChamberFront_WirePlane6_PackageID);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.PlaneLocalPositionY",
@@ -3372,11 +3469,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.NbOfHits",
 		&fRegion2_ChamberBack_WirePlane6_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("Region2.ChamberBack.WirePlane6.ParticleType"))
-      fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.ParticleType",
-		&fRegion2_ChamberBack_WirePlane6_ParticleType);
-  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.PackageID",
-    		&fRegion2_ChamberBack_WirePlane6_PackageID);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane6.ParticleType"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.ParticleType",
+        &fRegion2_ChamberBack_WirePlane6_ParticleType);
+  if(fTree->FindLeaf("Region2.ChamberBack.WirePlane6.PackageID"))
+    fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.PackageID",
+        &fRegion2_ChamberBack_WirePlane6_PackageID);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.PlaneLocalPositionX",
 		&fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX);
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane6.PlaneLocalPositionY",
@@ -3408,10 +3506,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion3_ChamberFront_WirePlaneU_HasBeenHit);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.NbOfHits",
 		&fRegion3_ChamberFront_WirePlaneU_NbOfHits);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.ParticleType",
-		&fRegion3_ChamberFront_WirePlaneU_ParticleType);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.PackageID",
-  		&fRegion3_ChamberFront_WirePlaneU_PackageID);
+  if(fTree->FindLeaf("Region3.ChamberFront.WirePlaneU.ParticleType"))
+    fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.ParticleType",
+        &fRegion3_ChamberFront_WirePlaneU_ParticleType);
+  if(fTree->FindLeaf("Region3.ChamberFront.WirePlaneU.PackageID"))
+    fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.PackageID",
+        &fRegion3_ChamberFront_WirePlaneU_PackageID);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalPositionX",
 		&fRegion3_ChamberFront_WirePlaneU_LocalPositionX);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalPositionY",
@@ -3447,10 +3547,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion3_ChamberFront_WirePlaneV_HasBeenHit);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.NbOfHits",
 		&fRegion3_ChamberFront_WirePlaneV_NbOfHits);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.ParticleType",
-		&fRegion3_ChamberFront_WirePlaneV_ParticleType);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.PackageID",
-  		&fRegion3_ChamberFront_WirePlaneV_PackageID);
+  if(fTree->FindLeaf("Region3.ChamberFront.WirePlaneV.ParticleType"))
+    fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.ParticleType",
+        &fRegion3_ChamberFront_WirePlaneV_ParticleType);
+  if(fTree->FindLeaf("Region3.ChamberFront.WirePlaneV.PackageID"))
+    fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.PackageID",
+        &fRegion3_ChamberFront_WirePlaneV_PackageID);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.LocalPositionX",
 		&fRegion3_ChamberFront_WirePlaneV_LocalPositionX);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.LocalPositionY",
@@ -3480,10 +3582,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion3_ChamberBack_WirePlaneU_HasBeenHit);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.NbOfHits",
 		&fRegion3_ChamberBack_WirePlaneU_NbOfHits);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.ParticleType",
-		&fRegion3_ChamberBack_WirePlaneU_ParticleType);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.PackageID",
- 		&fRegion3_ChamberBack_WirePlaneU_PackageID);
+  if(fTree->FindLeaf("Region3.ChamberBack.WirePlaneU.ParticleType"))
+    fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.ParticleType",
+        &fRegion3_ChamberBack_WirePlaneU_ParticleType);
+  if(fTree->FindLeaf("Region3.ChamberBack.WirePlaneU.PackageID"))
+    fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.PackageID",
+        &fRegion3_ChamberBack_WirePlaneU_PackageID);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.LocalPositionX",
 		&fRegion3_ChamberBack_WirePlaneU_LocalPositionX);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.LocalPositionY",
@@ -3513,10 +3617,12 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion3_ChamberBack_WirePlaneV_HasBeenHit);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.NbOfHits",
 		&fRegion3_ChamberBack_WirePlaneV_NbOfHits);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.ParticleType",
-		&fRegion3_ChamberBack_WirePlaneV_ParticleType);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.PackageID",
- 		&fRegion3_ChamberBack_WirePlaneV_PackageID);
+  if(fTree->FindLeaf("Region3.ChamberBack.WirePlaneV.ParticleType"))
+    fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.ParticleType",
+        &fRegion3_ChamberBack_WirePlaneV_ParticleType);
+  if(fTree->FindLeaf("Region3.ChamberBack.WirePlaneV.PackageID"))
+    fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.PackageID",
+        &fRegion3_ChamberBack_WirePlaneV_PackageID);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.LocalPositionX",
 		&fRegion3_ChamberBack_WirePlaneV_LocalPositionX);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.LocalPositionY",
@@ -3548,9 +3654,9 @@ void QwTreeEventBuffer::AttachBranches()
 		&fTriggerScintillator_Detector_HasBeenHit);
   fTree->SetBranchAddress("TriggerScintillator.Detector.NbOfHits",
 		&fTriggerScintillator_Detector_NbOfHits);
-  if(fTree->GetListOfLeaves()->FindObject("TriggerScintillator.Detector.ParticleType"))
-      fTree->SetBranchAddress("TriggerScintillator.Detector.ParticleType",
-		&fTriggerScintillator_Detector_ParticleType);
+  if(fTree->FindLeaf("TriggerScintillator.Detector.ParticleType"))
+    fTree->SetBranchAddress("TriggerScintillator.Detector.ParticleType",
+        &fTriggerScintillator_Detector_ParticleType);
   fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalPositionX",
 		&fTriggerScintillator_Detector_HitLocalPositionX);
   fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalPositionY",
@@ -3578,14 +3684,18 @@ void QwTreeEventBuffer::AttachBranches()
 		&fCerenkov_Detector_HasBeenHit);
   fTree->SetBranchAddress("Cerenkov.Detector.NbOfHits",
 		&fCerenkov_Detector_NbOfHits);
-  fTree->SetBranchAddress("Cerenkov.PMT.PMTTotalNbOfHits",
-                &fCerenkov_PMT_PMTTotalNbOfHits);
-  fTree->SetBranchAddress("Cerenkov.PMT.PMTTotalNbOfPEs",
-                &fCerenkov_PMT_PMTTotalNbOfPEs);
-  fTree->SetBranchAddress("Cerenkov.PMT.PMTLeftNbOfPEs",
-                &fCerenkov_PMT_PMTLeftNbOfPEs);
-  fTree->SetBranchAddress("Cerenkov.PMT.PMTRightNbOfPEs",
-                &fCerenkov_PMT_PMTRightNbOfPEs);
+  if (strcmp(fTree->FindLeaf("Cerenkov.PMT.PMTTotalNbOfHits")->GetTypeName(),"vector<Int_t>") == 0)
+    fTree->SetBranchAddress("Cerenkov.PMT.PMTTotalNbOfHits",
+        &fCerenkov_PMT_PMTTotalNbOfHits);
+  if (strcmp(fTree->FindLeaf("Cerenkov.PMT.PMTTotalNbOfPEs")->GetTypeName(),"vector<Int_t>") == 0)
+    fTree->SetBranchAddress("Cerenkov.PMT.PMTTotalNbOfPEs",
+        &fCerenkov_PMT_PMTTotalNbOfPEs);
+  if (strcmp(fTree->FindLeaf("Cerenkov.PMT.PMTLeftNbOfPEs")->GetTypeName(),"vector<Int_t>") == 0)
+    fTree->SetBranchAddress("Cerenkov.PMT.PMTLeftNbOfPEs",
+        &fCerenkov_PMT_PMTLeftNbOfPEs);
+  if (strcmp(fTree->FindLeaf("Cerenkov.PMT.PMTRightNbOfPEs")->GetTypeName(),"vector<Int_t>") == 0)
+    fTree->SetBranchAddress("Cerenkov.PMT.PMTRightNbOfPEs",
+        &fCerenkov_PMT_PMTRightNbOfPEs);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
 //		&fCerenkov_Detector_HitLocalPositionX);
 //  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",

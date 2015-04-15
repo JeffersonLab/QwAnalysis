@@ -75,7 +75,8 @@ int main(Int_t argc,Char_t* argv[]){
   timeinfo = localtime ( &rawtime );
 
 
-  Bool_t USLUMI_PLOT = 1;
+  Bool_t USLUMI_PLOT = 0;  
+  Bool_t USLUMI_PLOT2 = 1;
   Bool_t BKG_PLOT = 0;
 
   Bool_t FIGURE = 0;
@@ -455,14 +456,38 @@ int main(Int_t argc,Char_t* argv[]){
   std::vector <Double_t> asym1Erout,asym2Erout,asym3Erout,asym4Erout,asym5Erout,asym6Erout,asym7Erout,asym8Erout,asym9Erout;
   std::vector <Double_t> myzero;
 
+  std::vector <Double_t> run31in,run32in,run33in,run34in,run35in,run36in,run37in,run38in,run39in;
+  std::vector <Double_t> run31out,run32out,run33out,run34out,run35out,run36out,run37out,run38out,run39out;
+  std::vector <Double_t> asym31in,asym32in,asym33in,asym34in,asym35in,asym36in,asym37in,asym38in,asym39in;
+  std::vector <Double_t> asym31out,asym32out,asym33out,asym34out,asym35out,asym36out,asym37out,asym38out,asym39out;
+  std::vector <Double_t> asym31Erin,asym32Erin,asym33Erin,asym34Erin,asym35Erin,asym36Erin,asym37Erin,asym38Erin,asym39Erin;
+  std::vector <Double_t> asym31Erout,asym32Erout,asym33Erout,asym34Erout,asym35Erout,asym36Erout,asym37Erout,asym38Erout,asym39Erout;
+
+
   const Int_t det = 9;
   Double_t calc_AsymInp0[det],calc_eAsymInp0[det],calc_AsymInChisquare[det],calc_AsymInNDF[det];
   Double_t calc_AsymOutp0[det],calc_eAsymOutp0[det],calc_AsymOutChisquare[det],calc_AsymOutNDF[det];
+
+  const Int_t det3 = 5;
+  Double_t calc3_AsymInp0[det3],calc3_eAsymInp0[det3],calc3_AsymInChisquare[det3],calc3_AsymInNDF[det3];
+  Double_t calc3_AsymOutp0[det3],calc3_eAsymOutp0[det3],calc3_AsymOutChisquare[det3],calc3_AsymOutNDF[det3];
+
+  Double_t calc33_AsymInp0[det3],calc33_eAsymInp0[det3],calc33_AsymInChisquare[det3],calc33_AsymInNDF[det3];
+  Double_t calc33_AsymOutp0[det3],calc33_eAsymOutp0[det3],calc33_AsymOutChisquare[det3],calc33_AsymOutNDF[det3];
+  Double_t calc35_AsymInp0[det3],calc35_eAsymInp0[det3],calc35_AsymInChisquare[det3],calc35_AsymInNDF[det3];
+  Double_t calc35_AsymOutp0[det3],calc35_eAsymOutp0[det3],calc35_AsymOutChisquare[det3],calc35_AsymOutNDF[det3];
+  Double_t calc37_AsymInp0[det3],calc37_eAsymInp0[det3],calc37_AsymInChisquare[det3],calc37_AsymInNDF[det3];
+  Double_t calc37_AsymOutp0[det3],calc37_eAsymOutp0[det3],calc37_AsymOutChisquare[det3],calc37_AsymOutNDF[det3];
+
 
 
   runletAsym.open(Form("dirPlot/%s_%s_%s_%s_%s_%s_regression_%s_%s_%s_asym_%s.txt"
 			     ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data()
 			     ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),outputAvg.Data(),database_stem.Data()));
+
+  cout<<Form("dirPlot/%s_%s_%s_%s_%s_%s_regression_%s_%s_%s_asym_%s.txt"
+	     ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data()
+	     ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),outputAvg.Data(),database_stem.Data())<<endl;
 
    if (runletAsym.is_open()) {
    
@@ -601,6 +626,130 @@ int main(Int_t argc,Char_t* argv[]){
 //   printf("%s Checking %d\n%s",green,__LINE__,normal);
 
 
+
+
+  Int_t counter13=0;
+  ifstream runletAsym13;
+  const Int_t NUM13 = 500;
+  Double_t octant13[NUM13],run_number13[NUM13],asym13[NUM13],asymError13[NUM13],asymRMS13[NUM13];
+  TString hwp13[NUM13];
+
+
+
+  runletAsym13.open(Form("dirPlot/%s_%s_%s_%s_%sSum_%s_regression_%s_%s_%s_asym_%s.txt"
+			     ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data()
+			     ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),outputAvg.Data(),database_stem.Data()));
+
+  cout<<Form("dirPlot/%s_%s_%s_%s_%sSum_%s_regression_%s_%s_%s_asym_%s.txt"
+	     ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data()
+	     ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),outputAvg.Data(),database_stem.Data())<<endl;
+
+   if (runletAsym13.is_open()) {
+   
+    while(1) {
+      //       zero13[counter13]=0;
+      
+      runletAsym13 >> octant13[counter13] >> run_number13[counter13] >> hwp13[counter13]
+		   >> asym13[counter13]   >> asymError13[counter13]  >> asymRMS13[counter13] ;
+      
+      if (!runletAsym13.good()) break;
+      
+      if(hwp13[counter13]== "in"){
+	
+	if(octant13[counter13]==1) {
+	  run31in.push_back(run_number13[counter13]);
+	  asym31in.push_back(asym13[counter13]); 
+	  asym31Erin.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	if(octant13[counter13]==3) {
+	  run32in.push_back(run_number13[counter13]);
+	  asym32in.push_back(asym13[counter13]); 
+	  asym32Erin.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	if(octant13[counter13]==5) {
+	  run33in.push_back(run_number13[counter13]);
+	  asym33in.push_back(asym13[counter13]); 
+	  asym33Erin.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	if(octant13[counter13]==7) {
+	  run34in.push_back(run_number13[counter13]);
+	  asym34in.push_back(asym13[counter13]); 
+	  asym34Erin.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	if(octant13[counter13]==0) {
+	  run39in.push_back(run_number13[counter13]);
+	  asym39in.push_back(asym13[counter13]); 
+	  asym39Erin.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	
+	
+      }
+
+
+
+      if(hwp13[counter13]== "out"){
+	
+	if(octant13[counter13]==1) {
+	  run31out.push_back(run_number13[counter13]);
+	  asym31out.push_back(asym13[counter13]); 
+	  asym31Erout.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	if(octant13[counter13]==3) {
+	  run32out.push_back(run_number13[counter13]);
+	  asym32out.push_back(asym13[counter13]); 
+	  asym32Erout.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	if(octant13[counter13]==5) {
+	  run33out.push_back(run_number13[counter13]);
+	  asym33out.push_back(asym13[counter13]); 
+	  asym33Erout.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	if(octant13[counter13]==7) {
+	  run34out.push_back(run_number13[counter13]);
+	  asym34out.push_back(asym13[counter13]); 
+	  asym34Erout.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	if(octant13[counter13]==0) {
+	  run39out.push_back(run_number13[counter13]);
+	  asym39out.push_back(asym13[counter13]); 
+	  asym39Erout.push_back(asymError13[counter13]);
+	  myzero.push_back(0.0);
+	}
+	
+	
+      }
+      //       else{ cout<<green<<"Check Half Wave Plate settings "<<normal<<endl;}
+
+      
+      counter13++;
+    }
+   }
+   else {
+     printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+     return -1;
+   }
+   runletAsym13.close();
+
+
+
+
+
+
+
+
+
+
+
+
   TString title11;
   TString titleInOut = Form("%s (%s, %s A): Regression-%s %s %s Asymmetries."
 			    ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),device.Data(),deviceTitle.Data());
@@ -657,29 +806,6 @@ int main(Int_t argc,Char_t* argv[]){
 
   gDirectory->Delete("*");
 
-  if(USLUMI_PLOT){
-
-  TCanvas * c11 = new TCanvas("c11", titleInOut,0,0,1600,1000);
-  c11->Draw();
-  c11->SetBorderSize(0);
-  c11->cd();
-  TPad*pad111 = new TPad("pad111","pad111",pad1x[0],pad1y[0],pad1x[1],pad1y[1]);
-  TPad*pad112 = new TPad("pad112","pad112",pad2x[0],pad2y[0],pad2x[1],pad2y[1]);
-  pad111->SetFillColor(kWhite);
-  pad111->Draw();
-  pad112->Draw();
-  pad111->cd();
-  TLatex * t11 = new TLatex(0.00,0.3,Form("%s",titleInOut.Data()));
-  t11->SetTextSize(0.45);
-  t11->Draw();
-  pad112->cd();
-  pad112->Divide(3,3);
-
-  cout<<red<<__LINE__<<normal<<endl;
-//     di = i+1;
-
-//   pad112->cd(position1[i]);
-//   pad112->cd(1);
 
 
   Double_t dummyINaxis[(Int_t)run1in.size()];
@@ -737,6 +863,18 @@ int main(Int_t argc,Char_t* argv[]){
   TF1* fitfun9In  = new TF1("fitfun9In","pol0",-0.7,(Int_t)run1in.size());
   TF1* fitfun9Out = new TF1("fitfun9Out","pol0",run1in.size()-0.7,dummyOUTaxis[(Int_t)run1out.size()]);
 
+
+  TF1* fitfun31In  = new TF1("fitfun31In","pol0",-0.7,(Int_t)run1in.size());
+  TF1* fitfun31Out = new TF1("fitfun31Out","pol0",run1out.size()-0.7,dummyOUTaxis[(Int_t)run1out.size()]);
+  TF1* fitfun33In  = new TF1("fitfun33In","pol0",-0.7,(Int_t)run1in.size());
+  TF1* fitfun33Out = new TF1("fitfun33Out","pol0",run31in.size()-0.7,dummyOUTaxis[(Int_t)run1out.size()]);
+  TF1* fitfun35In  = new TF1("fitfun35In","pol0",-0.7,(Int_t)run1in.size());
+  TF1* fitfun35Out = new TF1("fitfun35Out","pol0",run31in.size()-0.7,dummyOUTaxis[(Int_t)run1out.size()]);
+  TF1* fitfun37In  = new TF1("fitfun37In","pol0",-0.7,(Int_t)run1in.size());
+  TF1* fitfun37Out = new TF1("fitfun37Out","pol0",run31in.size()-0.7,dummyOUTaxis[(Int_t)run1out.size()]);
+  TF1* fitfun39In  = new TF1("fitfun39In","pol0",-0.7,(Int_t)run1in.size());
+  TF1* fitfun39Out = new TF1("fitfun39Out","pol0",run31in.size()-0.7,dummyOUTaxis[(Int_t)run1out.size()]);
+
   cout<<red<<__LINE__<<normal<<endl;
 
   fitfun1In->SetParNames("A_{IN}");
@@ -757,6 +895,42 @@ int main(Int_t argc,Char_t* argv[]){
   fitfun8Out->SetParNames("A_{OUT}");
   fitfun9In->SetParNames("A_{IN}");
   fitfun9Out->SetParNames("A_{OUT}");
+
+  fitfun31In->SetParNames("A_{IN}");
+  fitfun31Out->SetParNames("A_{OUT}");
+  fitfun33In->SetParNames("A_{IN}");
+  fitfun33Out->SetParNames("A_{OUT}");
+  fitfun35In->SetParNames("A_{IN}");
+  fitfun35Out->SetParNames("A_{OUT}");
+  fitfun37In->SetParNames("A_{IN}");
+  fitfun37Out->SetParNames("A_{OUT}");
+  fitfun39In->SetParNames("A_{IN}");
+  fitfun39Out->SetParNames("A_{OUT}");
+
+
+  if(USLUMI_PLOT){
+
+  TCanvas * c11 = new TCanvas("c11", titleInOut,0,0,1600,1000);
+  c11->Draw();
+  c11->SetBorderSize(0);
+  c11->cd();
+  TPad*pad111 = new TPad("pad111","pad111",pad1x[0],pad1y[0],pad1x[1],pad1y[1]);
+  TPad*pad112 = new TPad("pad112","pad112",pad2x[0],pad2y[0],pad2x[1],pad2y[1]);
+  pad111->SetFillColor(kWhite);
+  pad111->Draw();
+  pad112->Draw();
+  pad111->cd();
+  TLatex * t11 = new TLatex(0.00,0.3,Form("%s",titleInOut.Data()));
+  t11->SetTextSize(0.45);
+  t11->Draw();
+  pad112->cd();
+  pad112->Divide(3,3);
+
+  cout<<red<<__LINE__<<normal<<endl;
+//     di = i+1;
+
+//   pad112->cd(position1[i]);
+//   pad112->cd(1);
 
 
 
@@ -863,6 +1037,20 @@ int main(Int_t argc,Char_t* argv[]){
   tAsymOut->SetTextColor(kRed);
   tAsymOut->Draw();
 
+  Double_t valuesum0,valueerror0,valuediff0,errordiff0;
+  valuesum0    = (calc_AsymInp0[0]+calc_AsymOutp0[0])/2.0;
+  valueerror0  = (sqrt(pow(calc_eAsymInp0[0],2)+pow(calc_eAsymOutp0[0],2)))/2.0;
+  valuediff0   = ((calc_AsymInp0[0]/pow(calc_eAsymInp0[0],2)) - (calc_AsymOutp0[0]/pow(calc_eAsymOutp0[0],2))) /((1/pow(calc_eAsymInp0[0],2)) + (1/pow(calc_eAsymOutp0[0],2)));
+  errordiff0   = sqrt(1/((1/(pow(calc_eAsymInp0[0],2)))+(1/pow(calc_eAsymOutp0[0],2))));
+
+  TLegend *legend0 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend0->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum0,valueerror0), "");
+  legend0->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff0,errordiff0), "");
+  legend0->SetFillColor(0);
+  legend0->SetTextAlign(31);
+  legend0->SetBorderSize(2);
+  legend0->SetTextSize(0.040);
+  legend0->Draw("");
 
   cout<<red<<__LINE__<<normal<<endl;
 
@@ -938,6 +1126,20 @@ int main(Int_t argc,Char_t* argv[]){
   tAsymIn->Draw();
   tAsymOut->Draw();
 
+  Double_t valuesum1,valueerror1,valuediff1,errordiff1;
+  valuesum1    = (calc_AsymInp0[1]+calc_AsymOutp0[1])/2.0;
+  valueerror1  = (sqrt(pow(calc_eAsymInp0[1],2)+pow(calc_eAsymOutp0[1],2)))/2.0;
+  valuediff1   = ((calc_AsymInp0[1]/pow(calc_eAsymInp0[1],2)) - (calc_AsymOutp0[1]/pow(calc_eAsymOutp0[1],2))) /((1/pow(calc_eAsymInp0[1],2)) + (1/pow(calc_eAsymOutp0[1],2)));
+  errordiff1   = sqrt(1/((1/(pow(calc_eAsymInp0[1],2)))+(1/pow(calc_eAsymOutp0[1],2))));
+
+  TLegend *legend1 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend1->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum1,valueerror1), "");
+  legend1->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff1,errordiff1), "");
+  legend1->SetFillColor(0);
+  legend1->SetTextAlign(31);
+  legend1->SetBorderSize(2);
+  legend1->SetTextSize(0.040);
+  legend1->Draw("");
 
 
   pad112->cd(6);  
@@ -1012,6 +1214,21 @@ int main(Int_t argc,Char_t* argv[]){
 
   tAsymIn->Draw();
   tAsymOut->Draw();
+
+  Double_t valuesum2,valueerror2,valuediff2,errordiff2;
+  valuesum2    = (calc_AsymInp0[2]+calc_AsymOutp0[2])/2.0;
+  valueerror2  = (sqrt(pow(calc_eAsymInp0[2],2)+pow(calc_eAsymOutp0[2],2)))/2.0;
+  valuediff2   = ((calc_AsymInp0[2]/pow(calc_eAsymInp0[2],2)) - (calc_AsymOutp0[2]/pow(calc_eAsymOutp0[2],2))) /((1/pow(calc_eAsymInp0[2],2)) + (1/pow(calc_eAsymOutp0[2],2)));
+  errordiff2   = sqrt(1/((1/(pow(calc_eAsymInp0[2],2)))+(1/pow(calc_eAsymOutp0[2],2))));
+
+  TLegend *legend2 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend2->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum2,valueerror2), "");
+  legend2->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff2,errordiff2), "");
+  legend2->SetFillColor(0);
+  legend2->SetTextAlign(31);
+  legend2->SetBorderSize(2);
+  legend2->SetTextSize(0.040);
+  legend2->Draw("");
 
 
   pad112->cd(8);  
@@ -1088,6 +1305,21 @@ int main(Int_t argc,Char_t* argv[]){
   tAsymIn->Draw();
   tAsymOut->Draw();
 
+  Double_t valuesum3,valueerror3,valuediff3,errordiff3;
+  valuesum3    = (calc_AsymInp0[3]+calc_AsymOutp0[3])/2.0;
+  valueerror3  = (sqrt(pow(calc_eAsymInp0[3],2)+pow(calc_eAsymOutp0[3],2)))/2.0;
+  valuediff3   = ((calc_AsymInp0[3]/pow(calc_eAsymInp0[3],2)) - (calc_AsymOutp0[3]/pow(calc_eAsymOutp0[3],2))) /((1/pow(calc_eAsymInp0[3],2)) + (1/pow(calc_eAsymOutp0[3],2)));
+  errordiff3   = sqrt(1/((1/(pow(calc_eAsymInp0[3],2)))+(1/pow(calc_eAsymOutp0[3],2))));
+
+  TLegend *legend3 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend3->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum3,valueerror3), "");
+  legend3->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff3,errordiff3), "");
+  legend3->SetFillColor(0);
+  legend3->SetTextAlign(31);
+  legend3->SetBorderSize(2);
+  legend3->SetTextSize(0.040);
+  legend3->Draw("");
+
 
   pad112->cd(1);  
   TGraphErrors * asym5GraphIN = new TGraphErrors((Int_t)run1in.size(),dummyINaxis,asym5in.data(),myzero.data(),asym5Erin.data());
@@ -1163,6 +1395,21 @@ int main(Int_t argc,Char_t* argv[]){
   tAsymIn->Draw();
   tAsymOut->Draw();
 
+  Double_t valuesum4,valueerror4,valuediff4,errordiff4;
+  valuesum4    = (calc_AsymInp0[4]+calc_AsymOutp0[4])/2.0;
+  valueerror4  = (sqrt(pow(calc_eAsymInp0[4],2)+pow(calc_eAsymOutp0[4],2)))/2.0;
+  valuediff4   = ((calc_AsymInp0[4]/pow(calc_eAsymInp0[4],2)) - (calc_AsymOutp0[4]/pow(calc_eAsymOutp0[4],2))) /((1/pow(calc_eAsymInp0[4],2)) + (1/pow(calc_eAsymOutp0[4],2)));
+  errordiff4   = sqrt(1/((1/(pow(calc_eAsymInp0[4],2)))+(1/pow(calc_eAsymOutp0[4],2))));
+
+  TLegend *legend4 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend4->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum4,valueerror4), "");
+  legend4->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff4,errordiff4), "");
+  legend4->SetFillColor(0);
+  legend4->SetTextAlign(31);
+  legend4->SetBorderSize(2);
+  legend4->SetTextSize(0.040);
+  legend4->Draw("");
+
 
   pad112->cd(3);
   TGraphErrors * asym6GraphIN = new TGraphErrors((Int_t)run1in.size(),dummyINaxis,asym6in.data(),myzero.data(),asym6Erin.data());
@@ -1236,6 +1483,21 @@ int main(Int_t argc,Char_t* argv[]){
 
   tAsymIn->Draw();
   tAsymOut->Draw();
+
+  Double_t valuesum5,valueerror5,valuediff5,errordiff5;
+  valuesum5    = (calc_AsymInp0[5]+calc_AsymOutp0[5])/2.0;
+  valueerror5  = (sqrt(pow(calc_eAsymInp0[5],2)+pow(calc_eAsymOutp0[5],2)))/2.0;
+  valuediff5   = ((calc_AsymInp0[5]/pow(calc_eAsymInp0[5],2)) - (calc_AsymOutp0[5]/pow(calc_eAsymOutp0[5],2))) /((1/pow(calc_eAsymInp0[5],2)) + (1/pow(calc_eAsymOutp0[5],2)));
+  errordiff5   = sqrt(1/((1/(pow(calc_eAsymInp0[5],2)))+(1/pow(calc_eAsymOutp0[5],2))));
+
+  TLegend *legend5 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend5->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum5,valueerror5), "");
+  legend5->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff5,errordiff5), "");
+  legend5->SetFillColor(0);
+  legend5->SetTextAlign(31);
+  legend5->SetBorderSize(2);
+  legend5->SetTextSize(0.040);
+  legend5->Draw("");
 
 
   pad112->cd(9);  
@@ -1311,6 +1573,21 @@ int main(Int_t argc,Char_t* argv[]){
   tAsymIn->Draw();
   tAsymOut->Draw();
 
+  Double_t valuesum6,valueerror6,valuediff6,errordiff6;
+  valuesum6    = (calc_AsymInp0[6]+calc_AsymOutp0[6])/2.0;
+  valueerror6  = (sqrt(pow(calc_eAsymInp0[6],2)+pow(calc_eAsymOutp0[6],2)))/2.0;
+  valuediff6   = ((calc_AsymInp0[6]/pow(calc_eAsymInp0[6],2)) - (calc_AsymOutp0[6]/pow(calc_eAsymOutp0[6],2))) /((1/pow(calc_eAsymInp0[6],2)) + (1/pow(calc_eAsymOutp0[6],2)));
+  errordiff6   = sqrt(1/((1/(pow(calc_eAsymInp0[6],2)))+(1/pow(calc_eAsymOutp0[6],2))));
+
+  TLegend *legend6 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend6->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum6,valueerror6), "");
+  legend6->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff6,errordiff6), "");
+  legend6->SetFillColor(0);
+  legend6->SetTextAlign(31);
+  legend6->SetBorderSize(2);
+  legend6->SetTextSize(0.040);
+  legend6->Draw("");
+
 
   pad112->cd(7);  
   TGraphErrors * asym8GraphIN = new TGraphErrors((Int_t)run1in.size(),dummyINaxis,asym8in.data(),myzero.data(),asym8Erin.data());
@@ -1385,6 +1662,20 @@ int main(Int_t argc,Char_t* argv[]){
   tAsymIn->Draw();
   tAsymOut->Draw();
 
+  Double_t valuesum7,valueerror7,valuediff7,errordiff7;
+  valuesum7    = (calc_AsymInp0[7]+calc_AsymOutp0[7])/2.0;
+  valueerror7  = (sqrt(pow(calc_eAsymInp0[7],2)+pow(calc_eAsymOutp0[7],2)))/2.0;
+  valuediff7   = ((calc_AsymInp0[7]/pow(calc_eAsymInp0[7],2)) - (calc_AsymOutp0[7]/pow(calc_eAsymOutp0[7],2))) /((1/pow(calc_eAsymInp0[7],2)) + (1/pow(calc_eAsymOutp0[7],2)));
+  errordiff7   = sqrt(1/((1/(pow(calc_eAsymInp0[7],2)))+(1/pow(calc_eAsymOutp0[7],2))));
+
+  TLegend *legend7 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend7->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum7,valueerror7), "");
+  legend7->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff7,errordiff7), "");
+  legend7->SetFillColor(0);
+  legend7->SetTextAlign(31);
+  legend7->SetBorderSize(2);
+  legend7->SetTextSize(0.040);
+  legend7->Draw("");
 
 
   pad112->cd(5);  
@@ -1489,7 +1780,441 @@ int main(Int_t argc,Char_t* argv[]){
     c11->Print(saveAllPlot+".C");
   }
 
+ /*********************************************************************/
   }
+ /*********************************************************************/
+
+  if(USLUMI_PLOT2){
+
+  TCanvas * c13 = new TCanvas("c13", titleInOut,0,0,1600,1000);
+  c13->Draw();
+  c13->SetBorderSize(0);
+  c13->cd();
+  TPad*pad131 = new TPad("pad131","pad131",pad1x[0],pad1y[0],pad1x[1],pad1y[1]);
+  TPad*pad132 = new TPad("pad132","pad132",pad2x[0],pad2y[0],pad2x[1],pad2y[1]);
+  pad131->SetFillColor(kWhite);
+  pad131->Draw();
+  pad132->Draw();
+  pad131->cd();
+  TLatex * t13 = new TLatex(0.00,0.3,Form("%s",titleInOut.Data()));
+  t13->SetTextSize(0.45);
+  t13->Draw();
+  pad132->cd();
+  pad132->Divide(3,3);
+
+
+
+  pad132->cd(4);
+  TGraphErrors * asym31GraphIN = new TGraphErrors((Int_t)run1in.size(),dummyINaxis,asym31in.data(),myzero.data(),asym31Erin.data());
+  asym31GraphIN->SetName("asym31GraphIN");
+  asym31GraphIN->SetMarkerColor(kBlue);
+  asym31GraphIN->SetLineColor(kBlue);
+  asym31GraphIN->SetMarkerStyle(20);
+  asym31GraphIN->SetMarkerSize(markerSize[0]);
+  asym31GraphIN->SetLineWidth(1);
+  //   asym1GraphIN->Draw("AP");
+  asym31GraphIN->Fit("fitfun31In","E M R F 0 Q");
+  fitfun31In->SetLineStyle(1);
+  fitfun31In->SetLineWidth(2);
+  fitfun31In->SetLineColor(kBlue);
+  fitfun31In->SetLineStyle(4);
+  fitfun31In->SetLineWidth(2);
+
+
+  //TGraphErrors * asym1GraphOUT = new TGraphErrors((Int_t)run1out.size(),run1out.data(),asym1out.data(),myzero.data(),asym1Erout.data());
+  TGraphErrors * asym31GraphOUT = new TGraphErrors((Int_t)run1out.size(),dummyOUTaxis,asym31out.data(),myzero.data(),asym31Erout.data());
+//   TGraphErrors * asym1GraphOUT = new TGraphErrors(counter11,dummyOUT,asym1OUT11,zero11,asym1Error1OUT11);
+  asym31GraphOUT->SetName("asym31GraphOUT");
+  asym31GraphOUT->SetMarkerColor(kRed);
+  asym31GraphOUT->SetLineColor(kRed);
+  asym31GraphOUT->SetMarkerStyle(24);
+  asym31GraphOUT->SetMarkerSize(markerSize[0]);
+  asym31GraphOUT->SetLineWidth(1);
+//   asym1GraphOUT->Draw("AP");
+  asym31GraphOUT->Fit("fitfun31Out","E M R F 0 Q");
+  fitfun31Out->SetLineStyle(1);
+  fitfun31Out->SetLineWidth(2);
+  fitfun31Out->SetLineColor(kRed);
+  fitfun31Out->SetLineStyle(5);
+  fitfun31Out->SetLineWidth(2);
+
+  TMultiGraph *asym31Graph = new TMultiGraph();
+  asym31Graph->Add(asym31GraphIN);
+  asym31Graph->Add(asym31GraphOUT);
+  asym31Graph->Draw("AP");
+  asym31Graph->SetTitle("");
+//   asym1Graph->GetXaxis()->SetNdivisions(25,0,0);
+  asym31Graph->GetXaxis()->SetTitle(Form("%s",xAxisTitle.Data()));
+  asym31Graph->GetYaxis()->SetTitle(Form("%s1 Sum Asym. [ppm]",device.Data()));
+  asym31Graph->GetXaxis()->CenterTitle();
+  asym31Graph->GetYaxis()->CenterTitle();
+//   asym1Graph->GetXaxis()->SetLimits(-1,dummyOUTaxis[(Int_t)run1out.size()]+1);
+  asym31Graph->GetXaxis()->SetLabelColor(0);
+  asym31Graph->GetYaxis()->SetRangeUser(YRange[0],YRange[1]);
+//   TAxis *xaxisAsym1Graph= asym1Graph->GetXaxis();
+//   xaxisAsym1Graph->SetLimits(16066.00,16066.14);
+//   pad112->Range(16064.77,-30.66847,16067.63,47.58539);
+
+  fitfun31In->Draw("same");
+  fitfun31Out->Draw("same");
+
+
+//   TAxis *xaxisAsym1Graph= asym1Graph->GetXaxis();
+//   xaxisAsym1Graph->SetLimits(run_number1IN11[0],run_number1IN11[0]+30);
+  
+  TPaveStats *statsAsym31In =(TPaveStats*)asym31GraphIN->GetListOfFunctions()->FindObject("stats");
+  TPaveStats *statsAsym31Out =(TPaveStats*)asym31GraphOUT->GetListOfFunctions()->FindObject("stats");
+  statsAsym31In->SetTextColor(kBlue);
+  statsAsym31In->SetFillColor(kWhite); 
+  statsAsym31Out->SetTextColor(kRed);
+  statsAsym31Out->SetFillColor(kWhite);
+  statsAsym31In->SetTextSize(0.045);
+  statsAsym31Out->SetTextSize(0.045);
+  statsAsym31In->SetX1NDC(x_lo_stat_in4);    statsAsym31In->SetX2NDC(x_hi_stat_in4); 
+  statsAsym31In->SetY1NDC(y_lo_stat_in4);    statsAsym31In->SetY2NDC(y_hi_stat_in4);
+  statsAsym31Out->SetX1NDC(x_lo_stat_out4);  statsAsym31Out->SetX2NDC(x_hi_stat_out4); 
+  statsAsym31Out->SetY1NDC(y_lo_stat_out4);  statsAsym31Out->SetY2NDC(y_hi_stat_out4);
+
+  calc3_AsymInp0[0]         =   fitfun31In->GetParameter(0);
+  calc3_eAsymInp0[0]        =   fitfun31In->GetParError(0);
+  calc3_AsymInChisquare[0]  =   fitfun31In->GetChisquare();
+  calc3_AsymInNDF[0]        =   fitfun31In->GetNDF();
+
+  calc3_AsymOutp0[0]        =   fitfun31Out->GetParameter(0);
+  calc3_eAsymOutp0[0]       =   fitfun31Out->GetParError(0);
+  calc3_AsymOutChisquare[0] =   fitfun31Out->GetChisquare();
+  calc3_AsymOutNDF[0]       =   fitfun31Out->GetNDF();
+
+
+//   TLatex* tAsymIn = new TLatex(5,-40,Form("%5.0f",run1in[0]));
+  TLatex* tAsym31In = new TLatex(dummyArraySize*0.2,YRange[0]*1.15, "HWP-IN");
+  tAsym31In->SetTextSize(0.06);
+  tAsym31In->SetTextColor(kBlue);
+  tAsym31In->Draw();
+//   TLatex* tAsymOut = new TLatex(17,-40,Form("%5.0f",run1out[0]));
+  TLatex* tAsym31Out = new TLatex(dummyArraySize*1.15,YRange[0]*1.15, "HWP-OUT");
+  tAsym31Out->SetTextSize(0.06);
+  tAsym31Out->SetTextColor(kRed);
+  tAsym31Out->Draw();
+
+  Double_t valuesum31,valueerror31,valuediff31,errordiff31;
+  valuesum31    = (calc3_AsymInp0[0]+calc3_AsymOutp0[0])/2.0;
+  valueerror31  = (sqrt(pow(calc3_eAsymInp0[0],2)+pow(calc3_eAsymOutp0[0],2)))/2.0;
+  valuediff31   = ((calc3_AsymInp0[0]/pow(calc3_eAsymInp0[0],2)) - (calc3_AsymOutp0[0]/pow(calc3_eAsymOutp0[0],2))) /((1/pow(calc3_eAsymInp0[0],2)) + (1/pow(calc3_eAsymOutp0[0],2)));
+  errordiff31   = sqrt(1/((1/(pow(calc3_eAsymInp0[0],2)))+(1/pow(calc3_eAsymOutp0[0],2))));
+
+  TLegend *legend31 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend31->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum31,valueerror31), "");
+  legend31->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff31,errordiff31), "");
+  legend31->SetFillColor(0);
+  legend31->SetTextAlign(31);
+  legend31->SetBorderSize(2);
+  legend31->SetTextSize(0.040);
+  legend31->Draw("");
+
+  //  cout<<red<<__LINE__<<normal<<endl;
+
+
+
+  pad132->cd(2);
+  TGraphErrors * asym33GraphIN = new TGraphErrors((Int_t)run1in.size(),dummyINaxis,asym33in.data(),myzero.data(),asym33Erin.data());
+  asym33GraphIN->SetName("asym33GraphIN");
+  asym33GraphIN->SetMarkerColor(kBlue);
+  asym33GraphIN->SetLineColor(kBlue);
+  asym33GraphIN->SetMarkerStyle(20);
+  asym33GraphIN->SetMarkerSize(markerSize[0]);
+  asym33GraphIN->SetLineWidth(1);
+  //   asym33GraphIN->Draw("AP");
+  asym33GraphIN->Fit("fitfun33In","E M R F 0 Q");
+  fitfun33In->SetLineStyle(1);
+  fitfun33In->SetLineWidth(2);
+  fitfun33In->SetLineColor(kBlue);
+  fitfun33In->SetLineStyle(4);
+  fitfun33In->SetLineWidth(2);
+
+
+  TGraphErrors * asym33GraphOUT = new TGraphErrors((Int_t)run1out.size(),dummyOUTaxis,asym33out.data(),myzero.data(),asym33Erout.data());
+  asym33GraphOUT->SetName("asym33GraphOUT");
+  asym33GraphOUT->SetMarkerColor(kRed);
+  asym33GraphOUT->SetLineColor(kRed);
+  asym33GraphOUT->SetMarkerStyle(24);
+  asym33GraphOUT->SetMarkerSize(markerSize[0]);
+  asym33GraphOUT->SetLineWidth(1);
+//   asym33GraphOUT->Draw("AP");
+  asym33GraphOUT->Fit("fitfun33Out","E M R F 0 Q");
+  fitfun33Out->SetLineStyle(1);
+  fitfun33Out->SetLineWidth(2);
+  fitfun33Out->SetLineColor(kRed);
+  fitfun33Out->SetLineStyle(5);
+  fitfun33Out->SetLineWidth(2);
+
+  TMultiGraph *asym33Graph = new TMultiGraph();
+  asym33Graph->Add(asym33GraphIN);
+  asym33Graph->Add(asym33GraphOUT);
+  asym33Graph->Draw("AP");
+  asym33Graph->SetTitle("");
+  asym33Graph->GetXaxis()->SetTitle(Form("%s",xAxisTitle.Data()));
+  asym33Graph->GetYaxis()->SetTitle(Form("%s3 Sum Asym. [ppm]",device.Data()));
+  asym33Graph->GetXaxis()->CenterTitle();
+  asym33Graph->GetYaxis()->CenterTitle();
+  asym33Graph->GetXaxis()->SetLabelColor(0);
+  asym33Graph->GetYaxis()->SetRangeUser(YRange[0],YRange[1]);
+
+  fitfun33In->Draw("same");
+  fitfun33Out->Draw("same");
+
+  TPaveStats *statsAsym33In =(TPaveStats*)asym33GraphIN->GetListOfFunctions()->FindObject("stats");
+  TPaveStats *statsAsym33Out =(TPaveStats*)asym33GraphOUT->GetListOfFunctions()->FindObject("stats");
+  statsAsym33In->SetTextColor(kBlue);
+  statsAsym33In->SetFillColor(kWhite); 
+  statsAsym33Out->SetTextColor(kRed);
+  statsAsym33Out->SetFillColor(kWhite);
+  statsAsym33In->SetTextSize(0.045);
+  statsAsym33Out->SetTextSize(0.045);
+  statsAsym33In->SetX1NDC(x_lo_stat_in4);    statsAsym33In->SetX2NDC(x_hi_stat_in4); 
+  statsAsym33In->SetY1NDC(y_lo_stat_in4);    statsAsym33In->SetY2NDC(y_hi_stat_in4);
+  statsAsym33Out->SetX1NDC(x_lo_stat_out4);  statsAsym33Out->SetX2NDC(x_hi_stat_out4); 
+  statsAsym33Out->SetY1NDC(y_lo_stat_out4);  statsAsym33Out->SetY2NDC(y_hi_stat_out4);
+
+  calc33_AsymInp0[0]         =   fitfun33In->GetParameter(0);
+  calc33_eAsymInp0[0]        =   fitfun33In->GetParError(0);
+  calc33_AsymInChisquare[0]  =   fitfun33In->GetChisquare();
+  calc33_AsymInNDF[0]        =   fitfun33In->GetNDF();
+
+  calc33_AsymOutp0[0]        =   fitfun33Out->GetParameter(0);
+  calc33_eAsymOutp0[0]       =   fitfun33Out->GetParError(0);
+  calc33_AsymOutChisquare[0] =   fitfun33Out->GetChisquare();
+  calc33_AsymOutNDF[0]       =   fitfun33Out->GetNDF();
+
+
+  TLatex* tAsym33In = new TLatex(dummyArraySize*0.2,YRange[0]*1.15, "HWP-IN");
+  tAsym33In->SetTextSize(0.06);
+  tAsym33In->SetTextColor(kBlue);
+  tAsym33In->Draw();
+  TLatex* tAsym33Out = new TLatex(dummyArraySize*1.15,YRange[0]*1.15, "HWP-OUT");
+  tAsym33Out->SetTextSize(0.06);
+  tAsym33Out->SetTextColor(kRed);
+  tAsym33Out->Draw();
+
+  Double_t valuesum33,valueerror33,valuediff33,errordiff33;
+  valuesum33    = (calc33_AsymInp0[0]+calc33_AsymOutp0[0])/2.0;
+  valueerror33  = (sqrt(pow(calc33_eAsymInp0[0],2)+pow(calc33_eAsymOutp0[0],2)))/2.0;
+  valuediff33   = ((calc33_AsymInp0[0]/pow(calc33_eAsymInp0[0],2)) - (calc33_AsymOutp0[0]/pow(calc33_eAsymOutp0[0],2))) /((1/pow(calc33_eAsymInp0[0],2)) + (1/pow(calc33_eAsymOutp0[0],2)));
+  errordiff33   = sqrt(1/((1/(pow(calc33_eAsymInp0[0],2)))+(1/pow(calc33_eAsymOutp0[0],2))));
+
+  TLegend *legend33 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend33->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum33,valueerror33), "");
+  legend33->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff33,errordiff33), "");
+  legend33->SetFillColor(0);
+  legend33->SetTextAlign(31);
+  legend33->SetBorderSize(2);
+  legend33->SetTextSize(0.040);
+  legend33->Draw("");
+
+
+  pad132->cd(6);
+  TGraphErrors * asym35GraphIN = new TGraphErrors((Int_t)run1in.size(),dummyINaxis,asym35in.data(),myzero.data(),asym35Erin.data());
+  asym35GraphIN->SetName("asym35GraphIN");
+  asym35GraphIN->SetMarkerColor(kBlue);
+  asym35GraphIN->SetLineColor(kBlue);
+  asym35GraphIN->SetMarkerStyle(20);
+  asym35GraphIN->SetMarkerSize(markerSize[0]);
+  asym35GraphIN->SetLineWidth(1);
+  asym35GraphIN->Fit("fitfun35In","E M R F 0 Q");
+  fitfun35In->SetLineStyle(1);
+  fitfun35In->SetLineWidth(2);
+  fitfun35In->SetLineColor(kBlue);
+  fitfun35In->SetLineStyle(4);
+  fitfun35In->SetLineWidth(2);
+
+
+  TGraphErrors * asym35GraphOUT = new TGraphErrors((Int_t)run1out.size(),dummyOUTaxis,asym35out.data(),myzero.data(),asym35Erout.data());
+  asym35GraphOUT->SetName("asym35GraphOUT");
+  asym35GraphOUT->SetMarkerColor(kRed);
+  asym35GraphOUT->SetLineColor(kRed);
+  asym35GraphOUT->SetMarkerStyle(24);
+  asym35GraphOUT->SetMarkerSize(markerSize[0]);
+  asym35GraphOUT->SetLineWidth(1);
+  asym35GraphOUT->Fit("fitfun35Out","E M R F 0 Q");
+  fitfun35Out->SetLineStyle(1);
+  fitfun35Out->SetLineWidth(2);
+  fitfun35Out->SetLineColor(kRed);
+  fitfun35Out->SetLineStyle(5);
+  fitfun35Out->SetLineWidth(2);
+
+  TMultiGraph *asym35Graph = new TMultiGraph();
+  asym35Graph->Add(asym35GraphIN);
+  asym35Graph->Add(asym35GraphOUT);
+  asym35Graph->Draw("AP");
+  asym35Graph->SetTitle("");
+  asym35Graph->GetXaxis()->SetTitle(Form("%s",xAxisTitle.Data()));
+  asym35Graph->GetYaxis()->SetTitle(Form("%s5 Sum Asym. [ppm]",device.Data()));
+  asym35Graph->GetXaxis()->CenterTitle();
+  asym35Graph->GetYaxis()->CenterTitle();
+  asym35Graph->GetXaxis()->SetLabelColor(0);
+  asym35Graph->GetYaxis()->SetRangeUser(YRange[0],YRange[1]);
+
+  fitfun35In->Draw("same");
+  fitfun35Out->Draw("same");
+
+  TPaveStats *statsAsym35In =(TPaveStats*)asym35GraphIN->GetListOfFunctions()->FindObject("stats");
+  TPaveStats *statsAsym35Out =(TPaveStats*)asym35GraphOUT->GetListOfFunctions()->FindObject("stats");
+  statsAsym35In->SetTextColor(kBlue);
+  statsAsym35In->SetFillColor(kWhite); 
+  statsAsym35Out->SetTextColor(kRed);
+  statsAsym35Out->SetFillColor(kWhite);
+  statsAsym35In->SetTextSize(0.045);
+  statsAsym35Out->SetTextSize(0.045);
+  statsAsym35In->SetX1NDC(x_lo_stat_in4);    statsAsym35In->SetX2NDC(x_hi_stat_in4); 
+  statsAsym35In->SetY1NDC(y_lo_stat_in4);    statsAsym35In->SetY2NDC(y_hi_stat_in4);
+  statsAsym35Out->SetX1NDC(x_lo_stat_out4);  statsAsym35Out->SetX2NDC(x_hi_stat_out4); 
+  statsAsym35Out->SetY1NDC(y_lo_stat_out4);  statsAsym35Out->SetY2NDC(y_hi_stat_out4);
+
+  calc35_AsymInp0[0]         =   fitfun35In->GetParameter(0);
+  calc35_eAsymInp0[0]        =   fitfun35In->GetParError(0);
+  calc35_AsymInChisquare[0]  =   fitfun35In->GetChisquare();
+  calc35_AsymInNDF[0]        =   fitfun35In->GetNDF();
+
+  calc35_AsymOutp0[0]        =   fitfun35Out->GetParameter(0);
+  calc35_eAsymOutp0[0]       =   fitfun35Out->GetParError(0);
+  calc35_AsymOutChisquare[0] =   fitfun35Out->GetChisquare();
+  calc35_AsymOutNDF[0]       =   fitfun35Out->GetNDF();
+
+
+  TLatex* tAsym35In = new TLatex(dummyArraySize*0.2,YRange[0]*1.15, "HWP-IN");
+  tAsym35In->SetTextSize(0.06);
+  tAsym35In->SetTextColor(kBlue);
+  tAsym35In->Draw();
+  TLatex* tAsym35Out = new TLatex(dummyArraySize*1.15,YRange[0]*1.15, "HWP-OUT");
+  tAsym35Out->SetTextSize(0.06);
+  tAsym35Out->SetTextColor(kRed);
+  tAsym35Out->Draw();
+
+  Double_t valuesum35,valueerror35,valuediff35,errordiff35;
+  valuesum35    = (calc35_AsymInp0[0]+calc35_AsymOutp0[0])/2.0;
+  valueerror35  = (sqrt(pow(calc35_eAsymInp0[0],2)+pow(calc35_eAsymOutp0[0],2)))/2.0;
+  valuediff35   = ((calc35_AsymInp0[0]/pow(calc35_eAsymInp0[0],2)) - (calc35_AsymOutp0[0]/pow(calc35_eAsymOutp0[0],2))) /((1/pow(calc35_eAsymInp0[0],2)) + (1/pow(calc35_eAsymOutp0[0],2)));
+  errordiff35   = sqrt(1/((1/(pow(calc35_eAsymInp0[0],2)))+(1/pow(calc35_eAsymOutp0[0],2))));
+
+  TLegend *legend35 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legend35->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum35,valueerror35), "");
+  legend35->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff35,errordiff35), "");
+  legend35->SetFillColor(0);
+  legend35->SetTextAlign(31);
+  legend35->SetBorderSize(2);
+  legend35->SetTextSize(0.040);
+  legend35->Draw("");
+
+
+//   pad132->cd(8);
+//   TGraphErrors * asym37GraphIN = new TGraphErrors((Int_t)run31in.size(),dummyINaxis,asym37in.data(),myzero.data(),asym37Erin.data());
+//   asym37GraphIN->SetName("asym37GraphIN");
+//   asym37GraphIN->SetMarkerColor(kBlue);
+//   asym37GraphIN->SetLineColor(kBlue);
+//   asym37GraphIN->SetMarkerStyle(20);
+//   asym37GraphIN->SetMarkerSize(markerSize[0]);
+//   asym37GraphIN->SetLineWidth(1);
+//   //   asym37GraphIN->Draw("AP");
+//   asym37GraphIN->Fit("fitfun37In","E M R F 0 Q");
+//   fitfun37In->SetLineStyle(1);
+//   fitfun37In->SetLineWidth(2);
+//   fitfun37In->SetLineColor(kBlue);
+//   fitfun37In->SetLineStyle(4);
+//   fitfun37In->SetLineWidth(2);
+
+
+//   TGraphErrors * asym37GraphOUT = new TGraphErrors((Int_t)run31out.size(),dummyOUTaxis,asym37out.data(),myzero.data(),asym37Erout.data());
+//   asym37GraphOUT->SetName("asym37GraphOUT");
+//   asym37GraphOUT->SetMarkerColor(kRed);
+//   asym37GraphOUT->SetLineColor(kRed);
+//   asym37GraphOUT->SetMarkerStyle(24);
+//   asym37GraphOUT->SetMarkerSize(markerSize[0]);
+//   asym37GraphOUT->SetLineWidth(1);
+// //   asym37GraphOUT->Draw("AP");
+//   asym37GraphOUT->Fit("fitfun37Out","E M R F 0 Q");
+//   fitfun37Out->SetLineStyle(1);
+//   fitfun37Out->SetLineWidth(2);
+//   fitfun37Out->SetLineColor(kRed);
+//   fitfun37Out->SetLineStyle(5);
+//   fitfun37Out->SetLineWidth(2);
+
+//   TMultiGraph *asym37Graph = new TMultiGraph();
+//   asym37Graph->Add(asym37GraphIN);
+//   asym37Graph->Add(asym37GraphOUT);
+//   asym37Graph->Draw("AP");
+//   asym37Graph->SetTitle("");
+//   asym37Graph->GetXaxis()->SetTitle(Form("%s",xAxisTitle.Data()));
+//   asym37Graph->GetYaxis()->SetTitle(Form("%s7 Sum Asym. [ppm]",device.Data()));
+//   asym37Graph->GetXaxis()->CenterTitle();
+//   asym37Graph->GetYaxis()->CenterTitle();
+//   asym37Graph->GetXaxis()->SetLabelColor(0);
+//   asym37Graph->GetYaxis()->SetRangeUser(YRange[0],YRange[1]);
+
+//   fitfun37In->Draw("same");
+//   fitfun37Out->Draw("same");
+
+//   TPaveStats *statsAsym37In =(TPaveStats*)asym37GraphIN->GetListOfFunctions()->FindObject("stats");
+//   TPaveStats *statsAsym37Out =(TPaveStats*)asym37GraphOUT->GetListOfFunctions()->FindObject("stats");
+//   statsAsym37In->SetTextColor(kBlue);
+//   statsAsym37In->SetFillColor(kWhite); 
+//   statsAsym37Out->SetTextColor(kRed);
+//   statsAsym37Out->SetFillColor(kWhite);
+//   statsAsym37In->SetTextSize(0.045);
+//   statsAsym37Out->SetTextSize(0.045);
+//   statsAsym37In->SetX1NDC(x_lo_stat_in4);    statsAsym37In->SetX2NDC(x_hi_stat_in4); 
+//   statsAsym37In->SetY1NDC(y_lo_stat_in4);    statsAsym37In->SetY2NDC(y_hi_stat_in4);
+//   statsAsym37Out->SetX1NDC(x_lo_stat_out4);  statsAsym37Out->SetX2NDC(x_hi_stat_out4); 
+//   statsAsym37Out->SetY1NDC(y_lo_stat_out4);  statsAsym37Out->SetY2NDC(y_hi_stat_out4);
+
+//   calc37_AsymInp0[0]         =   fitfun37In->GetParameter(0);
+//   calc37_eAsymInp0[0]        =   fitfun37In->GetParError(0);
+//   calc37_AsymInChisquare[0]  =   fitfun37In->GetChisquare();
+//   calc37_AsymInNDF[0]        =   fitfun37In->GetNDF();
+
+//   calc37_AsymOutp0[0]        =   fitfun37Out->GetParameter(0);
+//   calc37_eAsymOutp0[0]       =   fitfun37Out->GetParError(0);
+//   calc37_AsymOutChisquare[0] =   fitfun37Out->GetChisquare();
+//   calc37_AsymOutNDF[0]       =   fitfun37Out->GetNDF();
+
+
+//   TLatex* tAsym37In = new TLatex(dummyArraySize*0.2,YRange[0]*1.15, "HWP-IN");
+//   tAsym37In->SetTextSize(0.06);
+//   tAsym37In->SetTextColor(kBlue);
+//   tAsym37In->Draw();
+//   TLatex* tAsym37Out = new TLatex(dummyArraySize*1.15,YRange[0]*1.15, "HWP-OUT");
+//   tAsym37Out->SetTextSize(0.06);
+//   tAsym37Out->SetTextColor(kRed);
+//   tAsym37Out->Draw();
+
+//   Double_t valuesum37,valueerror37,valuediff37,errordiff37;
+//   valuesum37    = (calc37_AsymInp0[0]+calc37_AsymOutp0[0])/2.0;
+//   valueerror37  = (sqrt(pow(calc37_eAsymInp0[0],2)+pow(calc37_eAsymOutp0[0],2)))/2.0;
+//   valuediff37   = ((calc37_AsymInp0[0]/pow(calc37_eAsymInp0[0],2)) - (calc37_AsymOutp0[0]/pow(calc37_eAsymOutp0[0],2))) /((1/pow(calc37_eAsymInp0[0],2)) + (1/pow(calc37_eAsymOutp0[0],2)));
+//   errordiff37   = sqrt(1/((1/(pow(calc37_eAsymInp0[0],2)))+(1/pow(calc37_eAsymOutp0[0],2))));
+
+//   TLegend *legend37 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+//   legend37->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesum37,valueerror37), "");
+//   legend37->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediff37,errordiff37), "");
+//   legend37->SetFillColor(0);
+//   legend37->SetTextAlign(31);
+//   legend37->SetBorderSize(2);
+//   legend37->SetTextSize(0.040);
+//   legend37->Draw("");
+
+
+
+  TString saveAllPlot3 = Form("dirPlot/resultPlot/%s_%s_%s_%sSum_%s_%s_regression_%s_%s_all_plot_%s"
+			       ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),device.Data()
+			       ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
+
+  c13-> Update();
+//   c13->Print(saveAllPlot3+".png");
+
+
+
+  }
+
+
 
   /*********************************************************************/
   /*********************************************************************/
@@ -1876,6 +2601,21 @@ int main(Int_t argc,Char_t* argv[]){
   calc_AsymBkgOutChisquare[0] =   fitfunBkg1Out->GetChisquare();
   calc_AsymBkgOutNDF[0]       =   fitfunBkg1Out->GetNDF();
 
+  Double_t valuesumBkg1,valueerrorBkg1,valuediffBkg1,errordiffBkg1;
+  valuesumBkg1    = (calc_AsymBkgInp0[0]+calc_AsymBkgOutp0[0])/2.0;
+  valueerrorBkg1  = (sqrt(pow(calc_eAsymBkgInp0[0],2)+pow(calc_eAsymBkgOutp0[0],2)))/2.0;
+  valuediffBkg1   = ((calc_AsymBkgInp0[0]/pow(calc_eAsymBkgInp0[0],2)) - (calc_AsymBkgOutp0[0]/pow(calc_eAsymBkgOutp0[0],2))) /((1/pow(calc_eAsymBkgInp0[0],2)) + (1/pow(calc_eAsymBkgOutp0[0],2)));
+  errordiffBkg1   = sqrt(1/((1/(pow(calc_eAsymBkgInp0[0],2)))+(1/pow(calc_eAsymBkgOutp0[0],2))));
+
+  TLegend *legendBkg1 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legendBkg1->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesumBkg1,valueerrorBkg1), "");
+  legendBkg1->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediffBkg1,errordiffBkg1), "");
+  legendBkg1->SetFillColor(0);
+  legendBkg1->SetTextAlign(31);
+  legendBkg1->SetBorderSize(2);
+  legendBkg1->SetTextSize(0.040);
+  legendBkg1->Draw("");
+
 
   TLatex* tAsymBkg1In = new TLatex(dummyBkgArraySize*0.2,YRange[0]*1.15, "HWP-IN");
   tAsymBkg1In->SetTextSize(0.06);
@@ -1957,6 +2697,22 @@ int main(Int_t argc,Char_t* argv[]){
   calc_AsymBkgOutChisquare[1] =   fitfunBkg2Out->GetChisquare();
   calc_AsymBkgOutNDF[1]       =   fitfunBkg2Out->GetNDF();
 
+  Double_t valuesumBkg2,valueerrorBkg2,valuediffBkg2,errordiffBkg2;
+  valuesumBkg2    = (calc_AsymBkgInp0[1]+calc_AsymBkgOutp0[1])/2.0;
+  valueerrorBkg2  = (sqrt(pow(calc_eAsymBkgInp0[1],2)+pow(calc_eAsymBkgOutp0[1],2)))/2.0;
+  valuediffBkg2   = ((calc_AsymBkgInp0[1]/pow(calc_eAsymBkgInp0[1],2)) - (calc_AsymBkgOutp0[1]/pow(calc_eAsymBkgOutp0[1],2))) /((1/pow(calc_eAsymBkgInp0[1],2)) + (1/pow(calc_eAsymBkgOutp0[1],2)));
+  errordiffBkg2   = sqrt(1/((1/(pow(calc_eAsymBkgInp0[1],2)))+(1/pow(calc_eAsymBkgOutp0[1],2))));
+
+  TLegend *legendBkg2 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legendBkg2->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesumBkg2,valueerrorBkg2), "");
+  legendBkg2->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediffBkg2,errordiffBkg2), "");
+  legendBkg2->SetFillColor(0);
+  legendBkg2->SetTextAlign(31);
+  legendBkg2->SetBorderSize(2);
+  legendBkg2->SetTextSize(0.040);
+  legendBkg2->Draw("");
+
+
   TLatex* tAsymBkg2In = new TLatex(dummyBkgArraySize*0.2,YRange[0]*1.15, "HWP-IN");
   tAsymBkg2In->SetTextSize(0.06);
   tAsymBkg2In->SetTextColor(kBlue);
@@ -1966,7 +2722,7 @@ int main(Int_t argc,Char_t* argv[]){
   tAsymBkg2Out->SetTextColor(kRed);
   tAsymBkg2Out->Draw();
   }
-  else{cout<<red<<"No data for MD9 Barsum"<<normal<<endl;}
+  else{cout<<red<<"No data for MD9 Pos"<<normal<<endl;}
 
 
   if(datopt == 2){
@@ -2037,6 +2793,22 @@ int main(Int_t argc,Char_t* argv[]){
   calc_eAsymBkgOutp0[2]       =   fitfunBkg3Out->GetParError(0);
   calc_AsymBkgOutChisquare[2] =   fitfunBkg3Out->GetChisquare();
   calc_AsymBkgOutNDF[2]       =   fitfunBkg3Out->GetNDF();
+
+  Double_t valuesumBkg3,valueerrorBkg3,valuediffBkg3,errordiffBkg3;
+  valuesumBkg3    = (calc_AsymBkgInp0[2]+calc_AsymBkgOutp0[2])/2.0;
+  valueerrorBkg3  = (sqrt(pow(calc_eAsymBkgInp0[2],2)+pow(calc_eAsymBkgOutp0[2],2)))/2.0;
+  valuediffBkg3   = ((calc_AsymBkgInp0[2]/pow(calc_eAsymBkgInp0[2],2)) - (calc_AsymBkgOutp0[2]/pow(calc_eAsymBkgOutp0[2],2))) /((1/pow(calc_eAsymBkgInp0[2],2)) + (1/pow(calc_eAsymBkgOutp0[2],2)));
+  errordiffBkg3   = sqrt(1/((1/(pow(calc_eAsymBkgInp0[2],2)))+(1/pow(calc_eAsymBkgOutp0[2],2))));
+
+  TLegend *legendBkg3 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legendBkg3->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesumBkg3,valueerrorBkg3), "");
+  legendBkg3->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediffBkg3,errordiffBkg3), "");
+  legendBkg3->SetFillColor(0);
+  legendBkg3->SetTextAlign(31);
+  legendBkg3->SetBorderSize(2);
+  legendBkg3->SetTextSize(0.040);
+  legendBkg3->Draw("");
+
 
   TLatex* tAsymBkg3In = new TLatex(dummyBkgArraySize*0.2,YRange[0]*3*1.15, "HWP-IN");
   tAsymBkg3In->SetTextSize(0.06);
@@ -2116,6 +2888,22 @@ int main(Int_t argc,Char_t* argv[]){
   calc_eAsymBkgOutp0[3]       =   fitfunBkg4Out->GetParError(0);
   calc_AsymBkgOutChisquare[3] =   fitfunBkg4Out->GetChisquare();
   calc_AsymBkgOutNDF[3]       =   fitfunBkg4Out->GetNDF();
+
+  Double_t valuesumBkg4,valueerrorBkg4,valuediffBkg4,errordiffBkg4;
+  valuesumBkg4    = (calc_AsymBkgInp0[3]+calc_AsymBkgOutp0[3])/2.0;
+  valueerrorBkg4  = (sqrt(pow(calc_eAsymBkgInp0[3],2)+pow(calc_eAsymBkgOutp0[3],2)))/2.0;
+  valuediffBkg4   = ((calc_AsymBkgInp0[3]/pow(calc_eAsymBkgInp0[3],2)) - (calc_AsymBkgOutp0[3]/pow(calc_eAsymBkgOutp0[3],2))) /((1/pow(calc_eAsymBkgInp0[3],2)) + (1/pow(calc_eAsymBkgOutp0[3],2)));
+  errordiffBkg4   = sqrt(1/((1/(pow(calc_eAsymBkgInp0[3],2)))+(1/pow(calc_eAsymBkgOutp0[3],2))));
+
+  TLegend *legendBkg4 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legendBkg4->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesumBkg4,valueerrorBkg4), "");
+  legendBkg4->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediffBkg4,errordiffBkg4), "");
+  legendBkg4->SetFillColor(0);
+  legendBkg4->SetTextAlign(31);
+  legendBkg4->SetBorderSize(2);
+  legendBkg4->SetTextSize(0.040);
+  legendBkg4->Draw("");
+
 
   TLatex* tAsymBkg4In = new TLatex(dummyBkgArraySize*0.2,YRange[0]*3*1.15, "HWP-IN");
   tAsymBkg4In->SetTextSize(0.06);
@@ -2273,6 +3061,21 @@ int main(Int_t argc,Char_t* argv[]){
   calc_eAsymBkgOutp0[5]       =   fitfunBkg6Out->GetParError(0);
   calc_AsymBkgOutChisquare[5] =   fitfunBkg6Out->GetChisquare();
   calc_AsymBkgOutNDF[5]       =   fitfunBkg6Out->GetNDF();
+
+  Double_t valuesumBkg6,valueerrorBkg6,valuediffBkg6,errordiffBkg6;
+  valuesumBkg6    = (calc_AsymBkgInp0[5]+calc_AsymBkgOutp0[5])/2.0;
+  valueerrorBkg6  = (sqrt(pow(calc_eAsymBkgInp0[5],2)+pow(calc_eAsymBkgOutp0[5],2)))/2.0;
+  valuediffBkg6   = ((calc_AsymBkgInp0[5]/pow(calc_eAsymBkgInp0[5],2)) - (calc_AsymBkgOutp0[5]/pow(calc_eAsymBkgOutp0[5],2))) /((1/pow(calc_eAsymBkgInp0[5],2)) + (1/pow(calc_eAsymBkgOutp0[5],2)));
+  errordiffBkg6   = sqrt(1/((1/(pow(calc_eAsymBkgInp0[5],2)))+(1/pow(calc_eAsymBkgOutp0[5],2))));
+
+  TLegend *legendBkg6 = new TLegend(x_lo_leg4,y_lo_leg4,x_hi_leg4,y_hi_leg4,"","brNDC");
+  legendBkg6->AddEntry((TObject*)0, Form("A_{(IN+OUT)/2} = %4.2f#pm%4.2f",valuesumBkg6,valueerrorBkg6), "");
+  legendBkg6->AddEntry((TObject*)0, Form("A_{measured} = %4.2f#pm%4.2f",valuediffBkg6,errordiffBkg6), "");
+  legendBkg6->SetFillColor(0);
+  legendBkg6->SetTextAlign(31);
+  legendBkg6->SetBorderSize(2);
+  legendBkg6->SetTextSize(0.040);
+  legendBkg6->Draw("");
 
   TLatex* tAsymBkg6In = new TLatex(dummyBkgArraySize*0.2,YRange[0]*3*1.15, "HWP-IN");
   tAsymBkg6In->SetTextSize(0.06);

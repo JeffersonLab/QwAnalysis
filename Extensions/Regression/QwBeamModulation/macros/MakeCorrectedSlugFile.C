@@ -117,8 +117,10 @@ Int_t MakeCorrectedSlugFile(int slug, TString stem ="")
 
   TString rootFileDir = Form("/net/data2/paschkelab2/reduced_slugfiles/run%i/", 
 			     run_period);
+  TString outFileDir = Form("/net/data2/paschkelab1/reduced_slugfiles/run%i/", 
+			     run_period);
   TString rootFileName_in = rootFileDir + Form("reduced_slug%i.root", slug);
-  TString rootFileName_out = rootFileDir + 
+  TString rootFileName_out = outFileDir + 
     Form("corrected_slug%i%s.root", slug, stem.Data());
 
   

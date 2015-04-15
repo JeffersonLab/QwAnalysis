@@ -5,12 +5,12 @@
 
 stem=$1
 slopeListsDir="${BMOD_OUT}${stem}/slopelists/"
-prefix="slopeList_asym_qwk_md1barsum."
+prefix="slopeList_asym_qwk_mdallbars."
 filename="${slopeListsDir}run_ranges.dat"
 
 
 cd $slopeListsDir
-ls ${prefix}* |sed 's/slopeList_asym_qwk_md1barsum.//g' |sed 's/-/  /g' |sed 's/.dat//g' > $filename
+ls ${prefix}* |sed 's/slopeList_asym_qwk_mdallbars.//g' |sed 's/-/  /g' |sed 's/.dat//g' > $filename
 cd ${BMOD_SRC}/macros
 
 run_period=1

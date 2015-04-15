@@ -931,7 +931,7 @@ clean: clean.evio
 clean.exes:
 # Removes executables
 	@$(ECHO) Removing executables
-	@$(RM) `$(LS) $(QW_BIN)/* | $(SED) 's/^.*\.pl$$//g' | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
+	@$(RM) `$(LS) $(QW_BIN)/* | $(SED) 's/^.*\.pl$$//g' | $(SED) 's/^.*\.sh$$//g' | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
 
 clean.olddotfiles:
 	@$(RM) .dirs .libdepend .libdepend2 .exedepend .exedepend2 .mains .dictdepend .exes .objdepend .dicts .incdirs .srcdirs $(SETUP)/.MapFileBaseAddress

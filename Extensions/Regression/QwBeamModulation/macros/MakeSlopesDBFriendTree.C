@@ -274,7 +274,7 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
 	  TString name;
 	  sl_file>>name>>slp>>err;
 	  getline(sl_file, ln);
-	  cout<<slp<<" "<<err<<endl;
+	  //	  cout<<slp<<" "<<err<<endl;
 	  int idx;
 	  for(idx=0; idx<nMON; ++idx){
 	    if(MonitorList[idx].Contains(name.Data())){

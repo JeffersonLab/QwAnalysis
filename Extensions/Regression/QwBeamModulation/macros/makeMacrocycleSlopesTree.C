@@ -9,12 +9,9 @@
 #include "TTree.h"
 #include "TChain.h"
 
-// Example of Root macro to copy a subset of a Tree to a new Tree
-// Only selected entries are copied to the new Tree.
-
 //Declare constants
 /////////////////////////////////////////////////////////
-const Int_t nDET = 60, nMON = 5, nMOD = 5, nCOIL = 10;
+const Int_t nDET = 60, nMON = 10, nMOD = 5, nCOIL = 10;
 const Double_t  errorFlag = -999999, DegToRad = 0.0174532925199432955;
 /////////////////////////////////////////////////////////
 
@@ -70,7 +67,7 @@ Int_t GetMonitorAndDetectorLists(TChain *ch, TString *monitorList,
   string str;
   ifstream file(config);
 
-  for(int i=0;i<5;i++){
+  for(int i=0;i<nMON;i++){
     char id[4] = "   ", monitr[20] = "                   ";
     file>>id>>monitr;
     getline(file, str);
@@ -105,8 +102,8 @@ Int_t GetMonitorAndDetectorLists(TChain *ch, TString *monitorList,
   return nDet;
 }
 
-void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939, 
-			       Int_t  run_end = 19000, 
+void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
+			       Int_t run_start = 9939, Int_t  run_end = 19000, 
 			       Double_t fUnitConvertTargetSlope = 1.0e4,
 			       Int_t chisq = 1) {
 
@@ -118,10 +115,10 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
   Bool_t debug = 0;
   string line;
   Int_t size = 9, nDet;
-  Double_t slopesUnitConvert[5];
+  Double_t slopesUnitConvert[nMON];
   TFile *newfile; 
   TTree *newTree = new TTree("slopes", "slopes"); 
-  TString MonitorList[nMOD], DetectorList[nDET];
+  TString MonitorList[nMON], DetectorList[nDET];
   /////////////////////////////////////////////////////////
 
 
@@ -201,7 +198,9 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
   vector<Double_t>  vRun, vSlug, vMacrocycle, vFirstEntry, vLastEntry, vId;
   vector< vector<Double_t> > vCyclet;
   vector< vector< vector<Double_t> > > vDetectorSlope, vDetectorSlopeError;
+  vector<vector<vector<Double_t> > > vMonMean, vMonMeanErr;
   vector<vector<vector<Double_t> > > vMonCoeffs, vMonCoeffsErr;
+  vector<vector<vector<Double_t> > > vDetMean, vDetMeanErr;
   vector<vector<vector<Double_t> > > vDetCoeffs, vDetCoeffsErr;
   vector<vector<vector<Double_t> > > vSineRes, vSineResErr;
   vector<vector<vector<Double_t> > > vCosineRes, vCosineResErr;
@@ -215,16 +214,24 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
     vDetectorSlopeError[idet].resize(nMON);
   }
 
+  vMonMean.resize(nMON);
+  vMonMeanErr.resize(nMON);
   vMonCoeffs.resize(nMON);
   vMonCoeffsErr.resize(nMON);
   for(int imon=0;imon<nMON;imon++){
+    vMonMean[imon].resize(nMOD);
+    vMonMeanErr[imon].resize(nMOD);
     vMonCoeffs[imon].resize(nCOIL);
     vMonCoeffsErr[imon].resize(nCOIL);
   }
 
+  vDetMean.resize(nDet);
+  vDetMeanErr.resize(nDet);
   vDetCoeffs.resize(nDet);
   vDetCoeffsErr.resize(nDet);
   for(int idet=0;idet<nDet;idet++){
+    vDetMean[idet].resize(nMOD);
+    vDetMeanErr[idet].resize(nMOD);
     vDetCoeffs[idet].resize(nCOIL);
     vDetCoeffsErr[idet].resize(nCOIL);
   }
@@ -269,7 +276,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
       ifstream resCosFile(Form("%s/macrocycle_slopes/run%iCosineAmpl%s.dat",
 			       output_dir.Data(), (int)run, name));
       ifstream coeffsFile(Form("%s/macrocycle_slopes/coil_coeffs_%i%s.dat",
-			       output_dir.Data(), (int)run, name));
+			       output_dir.Data(),(int)run, name));
       if(CheckFile(slopesFile) && CheckFile(resSinFile)
  	 &&CheckFile(resCosFile) && CheckFile(coeffsFile)){
 	cout<<"All files found for run "<<run<<".\n";
@@ -364,7 +371,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
 	  char pref[4] = "   ", mon[25] = "                        ";
 	  coeffsFile>>pref;
 	  if(!(strcmp(pref, "mon")==0)){
-	    cout<<"Coefficients file not in expected format. Exiting.\n";
+	    cout<<"Coefficients file not in expected format. "<<pref<<" Exiting.\n";
 	    return;
 	  }
 	  coeffsFile>>mon;
@@ -377,14 +384,18 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
 	  Double_t unitConv = (MonitorList[imon].Contains("Slope") ? 
 			       1.0e6/fUnitConvertTargetSlope : 1000.);
 	  for(int icoil=0;icoil<nCOIL;icoil++){
-	    char coef[20] = "                   ", 
-	      coef_err[20] = "                   " ;
+	    TString coef, coef_err, mean, mean_err;
 	    coeffsFile>>coef>>coef_err;
 	    if(debug) 
-	      cout<<MonitorList[imon].Data()<<" "<<atof(coef)<<" "
-		  <<atof(coef_err)<<endl;
-	    vMonCoeffs[imon][icoil].push_back(atof(coef) * unitConv);
-	    vMonCoeffsErr[imon][icoil].push_back(atof(coef_err) * unitConv);
+	      cout<<MonitorList[imon].Data()<<" "<<coef.Atof()<<" "
+		  <<coef_err.Atof()<<endl;
+	    vMonCoeffs[imon][icoil].push_back(coef.Atof() * unitConv);
+	    vMonCoeffsErr[imon][icoil].push_back(coef_err.Atof() * unitConv);
+	    if(icoil<nMOD && include_fit_mean){
+	      coeffsFile>>mean>>mean_err;
+	      vMonMean[imon][icoil].push_back(mean.Atof() * unitConv);
+	      vMonMeanErr[imon][icoil].push_back(mean_err.Atof() * unitConv);
+	    }
 	    getline(coeffsFile, line);
 	  }
 	}
@@ -410,14 +421,18 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
 	  getline(coeffsFile, line);
 	  Double_t unitConv = 1.0e6;
 	  for(int icoil=0;icoil<nCOIL;icoil++){
-	    char coef[20] = "                   ", 
-	      coef_err[20] = "                   ";
+	    TString coef, coef_err, mean, mean_err;
 	    coeffsFile>>coef>>coef_err;
 	    if(debug) 
-	      cout<<DetectorList[idet].Data()<<" "<<atof(coef)<<" "
-		  <<atof(coef_err)<<endl;
-	    vDetCoeffs[idet][icoil].push_back(atof(coef) * unitConv);
-	    vDetCoeffsErr[idet][icoil].push_back(atof(coef_err) * unitConv);
+	      cout<<DetectorList[idet].Data()<<" "<<coef.Atof()<<" "
+		  <<coef_err.Atof()<<endl;
+	    vDetCoeffs[idet][icoil].push_back(coef.Atof() * unitConv);
+	    vDetCoeffsErr[idet][icoil].push_back(coef_err.Atof() * unitConv);
+	    if(icoil<nMOD && include_fit_mean){
+	      coeffsFile>>mean>>mean_err;
+	      vDetMean[idet][icoil].push_back(mean.Atof() * unitConv);
+	      vDetMeanErr[idet][icoil].push_back(mean_err.Atof() * unitConv);
+	    }
 	    getline(coeffsFile, line);
 	  }
 	}
@@ -486,7 +501,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
 
   //Find list of runs to exclude and use it to make a flag in the tree
   ////////////////////////////////////////////////////////////////////
-  char * f_name = Form("%s/../../temporarily_excluded_macrocycles%s."
+  char * f_name = Form("%s/../temporarily_excluded_macrocycles%s."
 		       "dat", gSystem->Getenv("BMOD_OUT"), stem.Data());
   ifstream excludedCyclesFile(f_name);
   if(!excludedCyclesFile.is_open()){
@@ -524,7 +539,9 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
   Double_t slope[nDET][nMOD], slopeErr[nDET][nMOD];
   Double_t sineResid[nDET][nMOD], sineResidErr[nDET][nMOD];
   Double_t cosineResid[nDET][nMOD], cosineResidErr[nDET][nMOD];
-  Double_t monCoeff[nMOD][nCOIL], monCoeffErr[nMOD][nCOIL];
+  Double_t monMean[nMON][nMOD], monMeanErr[nMON][nMOD];
+  Double_t monCoeff[nMON][nCOIL], monCoeffErr[nMON][nCOIL];
+  Double_t detMean[nDET][nMOD], detMeanErr[nDET][nMOD];
   Double_t detCoeff[nDET][nCOIL], detCoeffErr[nDET][nCOIL];
   ///////////////////////////////////////////////
 
@@ -541,14 +558,18 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
   TBranch *brHWP = newTree->Branch("ihwp", &ihwp, "ihwp/D");
   TBranch *brMacrocycle = newTree->Branch("macrocycle", &macrocycle, 
 					  "macrocycle/D");
-  TBranch *brSlopes[nDET][nMOD];
-  TBranch *brSlopesErr[nDET][nMOD];
+  TBranch *brSlopes[nDET][nMON];
+  TBranch *brSlopesErr[nDET][nMON];
   TBranch *brSineRes[nDET][nMOD];
   TBranch *brSineResErr[nDET][nMOD];
   TBranch *brCosineResErr[nDET][nMOD];
   TBranch *brCosineRes[nDET][nMOD];
-  TBranch *brMonCoeff[nMOD][nCOIL];
-  TBranch *brMonCoeffErr[nMOD][nCOIL];
+  TBranch *brMonMean[nMON][nMOD];
+  TBranch *brMonMeanErr[nMON][nMOD];
+  TBranch *brMonCoeff[nMON][nCOIL];
+  TBranch *brMonCoeffErr[nMON][nCOIL];
+  TBranch *brDetMean[nDET][nMOD];
+  TBranch *brDetMeanErr[nDET][nMOD];
   TBranch *brDetCoeff[nDET][nCOIL];
   TBranch *brDetCoeffErr[nDET][nCOIL];
   TBranch *brCyclet[nMOD];
@@ -598,11 +619,23 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
   for(int imon=0;imon<nMON;imon++){
     char *mname = (char*)MonitorList[imon].Data();
     for(int icoil=0;icoil<nCOIL;icoil++){
+      if(icoil<nMOD && include_fit_mean){
+	brMonMean[imon][icoil] = newTree->Branch(Form("Coil%i_%s_mean", 
+						      icoil, mname),
+						 &monMean[imon][icoil], 
+						 Form("Coil%i_%s_mean/D", 
+						      icoil, mname));
+	brMonMeanErr[imon][icoil] = newTree->Branch(Form("Coil%i_%s_mean_err", 
+							 icoil, mname), 
+						    &monMeanErr[imon][icoil], 
+						    Form("Coil%i_%s_mean_err/D", 
+							 icoil, mname));
+      }
       brMonCoeff[imon][icoil] = newTree->Branch(Form("%s_Coil%i", mname, icoil),
 					 &monCoeff[imon][icoil], 
 						Form("%s_Coil%i/D", mname, icoil));
-      brMonCoeffErr[icoil][imon] = newTree->Branch(Form("%s_Coil%i_err", mname, 
-						 icoil), &monCoeffErr[imon][icoil], 
+      brMonCoeffErr[imon][icoil] = newTree->Branch(Form("%s_Coil%i_err", mname, 
+						 icoil), &monCoeffErr[imon][icoil],
 					    Form("%s_Coil%i_err/D", mname, icoil));
     }
   }
@@ -610,11 +643,23 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
   for(int idet=0;idet<nDet;idet++){
     char *dname = (char*)DetectorList[idet].Data();
     for(int icoil=0;icoil<nCOIL;icoil++){
-      brDetCoeff[idet][icoil] = newTree->Branch(Form("%s_Coil%i", dname, icoil),
+     if(icoil<nMOD && include_fit_mean){
+       brDetMean[idet][icoil] = newTree->Branch(Form("Coil%i_%s_mean", 
+						     icoil, dname),
+						&detMean[idet][icoil], 
+						Form("Coil%i_%s_mean/D", 
+						     icoil, dname));
+       brDetMeanErr[idet][icoil] = newTree->Branch(Form("Coil%i_%s_mean_err", 
+							icoil, dname), 
+						   &detMeanErr[idet][icoil], 
+						   Form("Coil%i_%s_mean_err/D", 
+							icoil, dname));
+     }
+     brDetCoeff[idet][icoil] = newTree->Branch(Form("%s_Coil%i", dname, icoil),
 						&detCoeff[idet][icoil],
 						Form("%s_Coil%i/D", dname, icoil));
       brDetCoeffErr[idet][icoil] = newTree->Branch(Form("%s_Coil%i_err", dname, 
-						 icoil), &detCoeffErr[idet][icoil], 
+						 icoil), &detCoeffErr[idet][icoil],
 						   Form("%s_Coil%i_err/D",dname, 
 							icoil));
     }
@@ -645,6 +690,10 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
       //      cout<<"imon:"<<imon<<endl;
       for(int icoil=0;icoil<nCOIL;icoil++){
 	//	cout<<"icoil:"<<icoil<<endl;
+	if(icoil<nMOD && include_fit_mean){
+	  monMean[imon][icoil] = vMonMean[imon][icoil].at(icycle);
+	  monMeanErr[imon][icoil] = vMonMeanErr[imon][icoil].at(icycle);
+	}
 	monCoeff[imon][icoil] = vMonCoeffs[imon][icoil].at(icycle);
 	monCoeffErr[imon][icoil] = vMonCoeffsErr[imon][icoil].at(icycle);
       }
@@ -653,6 +702,10 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
     for(int idet=0;idet<nDet;idet++){
       //      cout<<"idet:"<<idet<<endl;
       for(int icoil=0;icoil<nCOIL;icoil++){
+	if(icoil<nMOD && include_fit_mean){
+	  detMean[idet][icoil] = vDetMean[idet][icoil].at(icycle);
+	  detMeanErr[idet][icoil] = vDetMeanErr[idet][icoil].at(icycle);
+	}
 	detCoeff[idet][icoil] = vDetCoeffs[idet][icoil].at(icycle);
 	detCoeffErr[idet][icoil] = vDetCoeffsErr[idet][icoil].at(icycle);
       }
@@ -706,6 +759,4 @@ void makeMacrocycleSlopesTree( TString stem = "", Int_t run_start = 9939,
   newfile->Close();
   return;
 }
-
-
 

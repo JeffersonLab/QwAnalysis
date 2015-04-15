@@ -68,17 +68,17 @@ Bool_t PRELIMINARY = 0;
 // 			    "qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos"};
 // TString deviceTitle = "Pos. PMT"; TString deviceName = "PosPMT";
 
-// TString quartz_bar_SUM[8]= {"qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg",
-// 			    "qwk_md5neg","qwk_md6neg","qwk_md7neg","qwk_md8neg"};
-// TString deviceTitle = "Neg. PMT";  TString deviceName = "NegPMT";
+TString quartz_bar_SUM[8]= {"qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg",
+			    "qwk_md5neg","qwk_md6neg","qwk_md7neg","qwk_md8neg"};
+TString deviceTitle = "Neg. PMT";  TString deviceName = "NegPMT";
 
 // TString quartz_bar_SUM[8]= {"qwk_md1barsum","qwk_md2barsum","qwk_md3barsum","qwk_md4barsum",
 // 			    "qwk_md5barsum","qwk_md6barsum","qwk_md7barsum","qwk_md8barsum"}; 
 // TString deviceTitle = "Barsum"; TString deviceName = "Barsum";
 
-TString quartz_bar_SUM[8]= {"md1pmtavg","md2pmtavg","md3pmtavg","md4pmtavg",
-			    "md5pmtavg","md6pmtavg","md7pmtavg","md8pmtavg"}; 
-TString deviceTitle = "PMTavg"; TString deviceName = "PMTavg";
+// TString quartz_bar_SUM[8]= {"md1pmtavg","md2pmtavg","md3pmtavg","md4pmtavg",
+// 			    "md5pmtavg","md6pmtavg","md7pmtavg","md8pmtavg"}; 
+// TString deviceTitle = "PMTavg"; TString deviceName = "PMTavg";
 
 
 TSQLServer *db;

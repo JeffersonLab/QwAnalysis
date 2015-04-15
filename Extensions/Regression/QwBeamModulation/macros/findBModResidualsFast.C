@@ -31,7 +31,7 @@ using namespace std;
 
 //Declare constants
 /////////////////////////////////////////////////////////
-const Int_t nDET = 60, nMON = 5, nMOD = 5;
+const Int_t nDET = 60, nMON = 10, nMOD = 5;
 const Double_t  errorFlag = -999999, DegToRad = 0.0174532925199432955;
 /////////////////////////////////////////////////////////
 
@@ -80,7 +80,7 @@ Int_t GetMonitorAndDetectorLists(TChain *ch, TString *monitorList,
   string str;
   ifstream file(config);
 
-  for(int i=0;i<5;i++){
+  for(int i=0;i<nMON;i++){
     char id[4] = "   ", monitr[20] = "                   ";
     file>>id>>monitr;
     getline(file, str);
@@ -251,12 +251,12 @@ Int_t findBModResidualsFast(Int_t run = 13993,char *config = "",char *output = "
 			   run, chisquare, (nonlin_cut ? "cut180deg_" : "")));
   if (slopesFile.is_open()){
     printf("Slopes file found for run %i.\n", run);
-    printf("%s/%sslopes/%sslopes_%i%s.%sset0.dat",
+    printf("%s/%sslopes/%sslopes_%i%s.%sset0.dat\n",
 	   outputDir, (run_average ? "" : "macrocycle_"),
 	   (run_average ? "" : "macrocycle_"),
 	   run, chisquare, (nonlin_cut ? "cut180deg_" : ""));
   }else{
-    printf("%s/%sslopes/%sslopes_%i%s.%sset0.dat",
+    printf("%s/%sslopes/%sslopes_%i%s.%sset0.dat\n",
 	   outputDir, (run_average ? "" : "macrocycle_"),
 	   (run_average ? "" : "macrocycle_"),
 	   run, chisquare,(nonlin_cut ? "cut180deg_" : ""));
@@ -299,7 +299,7 @@ Int_t findBModResidualsFast(Int_t run = 13993,char *config = "",char *output = "
 	if(line==detector.Data()){
 	  std::cout<<line<<"\n";
 	  Double_t prev_x = 0, prev_xe = 0;
-	  for(int j=0;j<5;j++){
+	  for(int j=0;j<nMON;j++){
 	    slopesFile>>x>>xe;
 	    if(atof(x) == prev_x && atof(xe) == prev_xe)
 	      cout<<"WARNING!!! FILE READ SUSPECT!!!\n\n\n";

@@ -952,6 +952,7 @@ int main(Int_t argc,Char_t* argv[]){
   Double_t NDFdiff  =  fit4->GetNDF();
   Double_t Probdiff =  fit4->GetProb();
 
+  cout<<red<<"Asym = "<<p0diff<<" +- "<<ep0diff<<" ppm"<<normal<<endl;
 
   TLegend *legend = new TLegend(legendCoordinates[0],legendCoordinates[1],legendCoordinates[2],legendCoordinates[3],"","brNDC");
   legend->SetNColumns(2);

@@ -73,12 +73,15 @@ int main(Int_t argc,Char_t* argv[]){
   struct tm * timeinfo;
   time ( &rawtime );
   timeinfo = localtime ( &rawtime );
-//   printf ( "%sThe current date/time is: %s%s%s",blue,red,asctime(timeinfo),normal);
 
-  // }
-  // void plotTransverseN2Delta(){
 
-  Bool_t SCALE = 0;
+//   Bool_t MAIN = 0;
+  Bool_t MAIN2 = 1;
+  Bool_t OCTANT = 0;
+
+  Double_t figSize = 1.5;
+
+  Bool_t SCALE = 1;
   Bool_t FIGURE = 0;
   Bool_t PRELIMINARY = 0;
 
@@ -110,37 +113,14 @@ int main(Int_t argc,Char_t* argv[]){
   TString showFit1,showFit2,showFit3;
 
 
-//   Double_t value1[8] ={0.0};
-//   Double_t err1[8] ={0.0};
-//   Double_t value2[8] ={0.0};
-//   Double_t err2[8] ={0.0};
-//   Double_t value3[8] ={0.0};
-//   Double_t err3[8] ={0.0};
-//   Double_t value11[8] ={0.0};
-//   Double_t err11[8] ={0.0};
-//   Double_t value22[8] ={0.0};
-//   Double_t err22[8] ={0.0};
-//   Double_t value33[8] ={0.0};
-//   Double_t err33[8] ={0.0};
-
-//   Double_t value111[4] ={0.0};
-//   Double_t err111[4] ={0.0};
-//   Double_t value222[4] ={0.0};
-//   Double_t err222[4] ={0.0};
-
-//   Double_t valuein[8] ={0.0};
-//   Double_t errin[8] ={0.0};
-//   Double_t valueout[8] ={0.0};
-//   Double_t errout[8] ={0.0};
-
-
   /* Canvas and Pad and Scale parameters */
-  Int_t canvasSize[2] ={1200,650};
+  Int_t canvasSize[2] ={1200*figSize,650*figSize};
   Double_t pad1x[2] = {0.005,0.995};
   Double_t pad1y[2] = {0.935,0.995};
   Double_t pad2x[2] = {0.005,0.995};
   Double_t pad2y[2] = {0.005,0.925};
-  Double_t markerSize[6] = {0.9,0.6,0.7,0.5,1.2,0.8};
+  Double_t markerSize[6] = {1.1*figSize,0.6*figSize,0.7*figSize,0.5*figSize,1.2*figSize,0.8*figSize};
+  Double_t textSize[4] = {0.040*figSize,0.030*figSize,0.050*figSize,0.020*figSize};
   Double_t legendCoordinates[4] = {0.1,0.900,0.75,0.995};
   Double_t yScale[2] = {-10.0,10.0};
   Double_t waterMark[2] = {2.5,-1.0};
@@ -433,6 +413,7 @@ int main(Int_t argc,Char_t* argv[]){
   showFit3 = "FIT = A_{M} sin(#phi + #phi_{0}) + C";
 
 
+
   TString title1;
   TString titleSummary = Form("%s (%s, %s A): Regression-%s MD %s Asymmetries."
 			      ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),deviceTitle.Data());
@@ -612,12 +593,6 @@ int main(Int_t argc,Char_t* argv[]){
     fit_out = new TF1("fit_out",Form("%s",fit_func_out.Data()),1,8);
   }
   
-  /*Initialize this fit with the results from the previous fit*/
-  //  cosfit_out->SetParameter(0,-1*(fit1->GetParameter(0)));
-  //  cosfit_out->SetParLimits(0,-99999,0);
-  //cosfit_out->SetParLimits(1,-1,179);
-  //cosfit_out->SetParameter(1, fit1->GetParameter(1));
-  //cosfit_out->SetParameter(2, -(fit1->GetParameter(2)));
 
   grp_out->Fit("fit_out","B0Q");
   TF1* fit2 = grp_out->GetFunction("fit_out");
@@ -641,32 +616,33 @@ int main(Int_t argc,Char_t* argv[]){
   fit3->SetLineStyle(2);
   fit3->SetLineWidth(3);
 
-  // Draw In-Out
-  TGraphErrors* grp_diff  = new TGraphErrors(k,x,valuediff,errx,errordiff);
-  grp_diff ->SetName("grp_diff");
-  grp_diff ->Draw("goff");
-  grp_diff ->SetMarkerSize(markerSize[0]);
-  grp_diff ->SetLineWidth(0);
-  grp_diff ->SetMarkerStyle(21);
-  grp_diff ->SetMarkerColor(kMagenta);
-  grp_diff ->SetLineColor(kMagenta);
-  grp_diff->Fit("fit_in","B0Q");
-  TF1* fit4 = grp_diff->GetFunction("fit_in");
-  fit4->DrawCopy("same");
-  fit4->SetLineColor(kMagenta+1);
-  fit4->SetLineStyle(1);
-  fit4->SetLineWidth(4);
+//   // Draw In-Out
+//   TGraphErrors* grp_diff  = new TGraphErrors(k,x,valuediff,errx,errordiff);
+//   grp_diff ->SetName("grp_diff");
+//   grp_diff ->Draw("goff");
+//   grp_diff ->SetMarkerSize(markerSize[0]);
+//   grp_diff ->SetLineWidth(0);
+//   grp_diff ->SetMarkerStyle(21);
+//   grp_diff ->SetMarkerColor(kMagenta);
+//   grp_diff ->SetLineColor(kMagenta);
+//   grp_diff->Fit("fit_in","0Q");
+//   TF1* fit4 = grp_diff->GetFunction("fit_in");
+//   //  fit4->DrawCopy("same");
+//   fit4->SetLineColor(kMagenta+1);
+//   fit4->SetLineStyle(1);
+//   fit4->SetLineWidth(4);
 
   TMultiGraph * grp = new TMultiGraph();
   grp->Add(grp_in,"P");
   grp->Add(grp_out,"P");
   grp->Add(grp_sum,"P");
-  grp->Add(grp_diff,"P");
+//   grp->Add(grp_diff,"P");
   grp->Draw("A");
   grp->SetTitle("");
   grp->GetXaxis()->SetTitle("Octant");
   grp->GetXaxis()->CenterTitle();
-  grp->GetYaxis()->SetTitle(Form("MD %s Asymmetry [ppm]",deviceTitle.Data()));
+//   grp->GetYaxis()->SetTitle(Form("MD %s Asymmetry [ppm]",deviceTitle.Data()));
+  grp->GetYaxis()->SetTitle(Form("Asymmetry [ppm]"));
   grp->GetYaxis()->CenterTitle();
   grp->GetYaxis()->SetTitleOffset(0.7);
   grp->GetXaxis()->SetTitleOffset(0.8);
@@ -681,13 +657,13 @@ int main(Int_t argc,Char_t* argv[]){
   fit1->DrawCopy("same");
   fit2->DrawCopy("same");
   fit3->DrawCopy("same");
-  fit4->DrawCopy("same");
+//   fit4->DrawCopy("same");
 
 
-  fit1->SetParNames("A_{M}","#phi_{0}","C");
-  fit2->SetParNames("A_{M}","#phi_{0}","C");
-  fit3->SetParNames("C");
-  fit4->SetParNames("A_{M}","#phi_{0}","C");
+  fit1->SetParNames("A_{M}^{IN}","#phi_{0}^{IN}","C^{IN}");
+  fit2->SetParNames("A_{M}^{OUT}","#phi_{0}^{OUT}","C^{OUT}");
+  fit3->SetParNames("C^{(IN+OUT)/2}");
+//   fit4->SetParNames("A_{M}","#phi_{0}","C");
 
   TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
   stats1->SetTextColor(kBlue);
@@ -696,13 +672,13 @@ int main(Int_t argc,Char_t* argv[]){
 
   Double_t p0in     =  fit1->GetParameter(0);
   Double_t ep0in    =  fit1->GetParError(0);
-  //Double_t p1in     =  fit1->GetParameter(1);
-  //Double_t ep1in    =  fit1->GetParError(1);
-  //Double_t p2in     =  fit1->GetParameter(2);
-  //Double_t ep2in    =  fit1->GetParError(2);
-  //Double_t Chiin    =  fit1->GetChisquare();
-  //Double_t NDFin    =  fit1->GetNDF();
-  //Double_t Probin   =  fit1->GetProb();
+  Double_t p1in     =  fit1->GetParameter(1);
+  Double_t ep1in    =  fit1->GetParError(1);
+  Double_t p2in     =  fit1->GetParameter(2);
+  Double_t ep2in    =  fit1->GetParError(2);
+  Double_t Chiin    =  fit1->GetChisquare();
+  Double_t NDFin    =  fit1->GetNDF();
+  Double_t Probin   =  fit1->GetProb();
 
 
   TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
@@ -712,13 +688,13 @@ int main(Int_t argc,Char_t* argv[]){
 
   Double_t p0out    =  fit2->GetParameter(0);
   Double_t ep0out   =  fit2->GetParError(0);
-  //Double_t p1out    =  fit2->GetParameter(1);
-  //Double_t ep1out   =  fit2->GetParError(1);
-  //Double_t p2out    =  fit2->GetParameter(2);
-  //Double_t ep2out   =  fit2->GetParError(2);
-  //Double_t Chiout   =  fit2->GetChisquare();
-  //Double_t NDFout   =  fit2->GetNDF();
-  //Double_t Probout  =  fit2->GetProb();
+  Double_t p1out    =  fit2->GetParameter(1);
+  Double_t ep1out   =  fit2->GetParError(1);
+  Double_t p2out    =  fit2->GetParameter(2);
+  Double_t ep2out   =  fit2->GetParError(2);
+  Double_t Chiout   =  fit2->GetChisquare();
+  Double_t NDFout   =  fit2->GetNDF();
+  Double_t Probout  =  fit2->GetProb();
 
 
   TPaveStats *stats3 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
@@ -728,37 +704,54 @@ int main(Int_t argc,Char_t* argv[]){
 
   Double_t p0sum    =  fit3->GetParameter(0);
   Double_t ep0sum   =  fit3->GetParError(0);
-  //Double_t Chisum   =  fit3->GetChisquare();
-  //Double_t NDFsum   =  fit3->GetNDF();
-  //Double_t Probsum  =  fit3->GetProb();
+  Double_t Chisum   =  fit3->GetChisquare();
+  Double_t NDFsum   =  fit3->GetNDF();
+  Double_t Probsum  =  fit3->GetProb();
 
 
-  TPaveStats *stats4 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
-  stats4->SetTextColor(kMagenta+1);
-  stats4->SetFillColor(kWhite); 
-  stats4->SetX1NDC(x_lo_stat_in4); stats4->SetX2NDC(x_hi_stat_in4); stats4->SetY1NDC(0.05);stats4->SetY2NDC(0.28);
+//   TPaveStats *stats4 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
+//   stats4->SetTextColor(kMagenta+1);
+//   stats4->SetFillColor(kWhite); 
+//   stats4->SetX1NDC(x_lo_stat_in4); stats4->SetX2NDC(x_hi_stat_in4); stats4->SetY1NDC(0.05);stats4->SetY2NDC(0.28);
 
-  Double_t p0diff   =  fit4->GetParameter(0);
-  Double_t ep0diff  =  fit4->GetParError(0);
-  Double_t p1diff   =  fit4->GetParameter(1);
-  Double_t ep1diff  =  fit4->GetParError(1);
-  Double_t p2diff   =  fit4->GetParameter(2);
-  Double_t ep2diff  =  fit4->GetParError(2);
-  Double_t Chidiff  =  fit4->GetChisquare();
-  Double_t NDFdiff  =  fit4->GetNDF();
-  Double_t Probdiff =  fit4->GetProb();
+//   Double_t p0diff   =  fit4->GetParameter(0);
+//   Double_t ep0diff  =  fit4->GetParError(0);
+//   Double_t p1diff   =  fit4->GetParameter(1);
+//   Double_t ep1diff  =  fit4->GetParError(1);
+//   Double_t p2diff   =  fit4->GetParameter(2);
+//   Double_t ep2diff  =  fit4->GetParError(2);
+//   Double_t Chidiff  =  fit4->GetChisquare();
+//   Double_t NDFdiff  =  fit4->GetNDF();
+//   Double_t Probdiff =  fit4->GetProb();
+
+  stats1->SetTextSize(textSize[1]);  
+  stats2->SetTextSize(textSize[1]);
+  stats3->SetTextSize(textSize[1]);  
+//   stats4->SetTextSize(textSize[1]);
 
 
-  TLegend *legend = new TLegend(legendCoordinates[0],legendCoordinates[1],legendCoordinates[2],legendCoordinates[3],"","brNDC");
-  legend->SetNColumns(2);
-  legend->AddEntry(grp_in,  Form("A_{IHWP-IN} = %4.2f #pm %4.2f ppm",p0in,ep0in), "lp");
-  legend->AddEntry(grp_sum, Form("A_{(IN+OUT)/2} = %4.2f #pm %4.2f ppm",p0sum,ep0sum), "lp");
-  legend->AddEntry(grp_out, Form("A_{IHWP-OUT} = %4.2f #pm %4.2f ppm",p0out,ep0out), "lp");
-  legend->AddEntry(grp_diff,Form("A_{measured} = %4.2f #pm %4.2f ppm",p0diff,ep0diff), "lp");
-  legend->SetFillColor(0);
-  legend->SetBorderSize(2);
-  legend->SetTextSize(0.035);
-  legend->Draw("");
+
+//   TLegend *legend = new TLegend(legendCoordinates[0],legendCoordinates[1],legendCoordinates[2],legendCoordinates[3],"","brNDC");
+//   legend->SetNColumns(2);
+//   legend->AddEntry(grp_in,  Form("A_{IHWP-IN} = %4.2f #pm %4.2f ppm",p0in,ep0in), "lp");
+//   legend->AddEntry(grp_sum, Form("C^{(IN+OUT)/2} = %4.2f #pm %4.2f ppm",p0sum,ep0sum), "lp");
+//   legend->AddEntry(grp_out, Form("A_{IHWP-OUT} = %4.2f #pm %4.2f ppm",p0out,ep0out), "lp");
+// //   legend->AddEntry(grp_diff,Form("A_{measured} = %4.2f #pm %4.2f ppm",p0diff,ep0diff), "lp");
+//   legend->SetFillColor(0);
+//   legend->SetBorderSize(2);
+//   legend->SetTextSize(0.035);
+// //   legend->Draw("");
+
+    TLegend *legend = new TLegend(0.120,0.840,0.340,0.940,"","brNDC");
+    legend->SetNColumns(2);
+    legend->AddEntry(grp_in,  Form("<IN>"), "lp");
+    legend->AddEntry(grp_sum, Form("(<IN>+<OUT>)/2"), "lp");
+    legend->AddEntry(grp_out, Form("<OUT>"), "lp");
+  //   legend->AddEntry(grp_diff,Form("IN-OUT"), "lp");
+    legend->SetFillColor(0);
+    legend->SetBorderSize(0);
+    legend->SetTextSize(0.042);
+    legend->Draw("");
 
 
   if(PRELIMINARY){
@@ -774,11 +767,12 @@ int main(Int_t argc,Char_t* argv[]){
 
   gPad->Update();
 
-  Myfile3<<Form("%4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.0f %4.4f",p0diff,ep0diff,p1diff,ep1diff,p2diff,ep2diff,Chidiff,NDFdiff,Probdiff)<<endl;
-  Myfile3.close();
+//   Myfile3<<Form("%4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.4f %4.0f %4.4f",p0diff,ep0diff,p1diff,ep1diff,p2diff,ep2diff,Chidiff,NDFdiff,Probdiff)<<endl;
+//   Myfile3.close();
 
+//   cout<<blue<<"A_{measured} = "<<p0diff<<" +- "<<ep0diff<<" ppm"<<normal<<endl;
 
-  TString saveSummaryPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_plots_%s"
+  TString saveSummaryPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_slug_summary_plots_%s_3"
 				 ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
 				 ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
 
@@ -790,90 +784,94 @@ int main(Int_t argc,Char_t* argv[]){
   }
 
 
-  /********************************************/
-  /********************************************/
+//   /********************************************/
+//   /********************************************/
 
-  TString title11;
-  TString titleInOut = Form("%s (%s, %s A): Regression-%s MD %s IN-OUT asymmetries."
-			    ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),deviceTitle.Data());
+//   if(MAIN2){
 
-  if(datopt==1) title11 = Form("%s %s",titleInOut.Data(),showFit1.Data());
-  else if(datopt==2) title11 = Form("%s %s",titleInOut.Data(),showFit2.Data());
-  else title11 = Form("%s %s",titleInOut.Data(),showFit3.Data());
+//   TString title11;
+//   TString titleInOut = Form("%s (%s, %s A): Regression-%s MD %s IN-OUT asymmetries."
+// 			    ,targ.Data(),polar.Data(),qtor_stem.Data(),reg_set.Data(),deviceTitle.Data());
 
-
-  TCanvas * Canvas11 = new TCanvas("canvas11",title11,0,0,canvasSize[0],canvasSize[1]);
-  Canvas11->Draw();
-  Canvas11->cd();
-
-  TPad*pad11 = new TPad("pad11","pad11",pad1x[0],pad1y[0],pad1x[1],pad1y[1]);
-  TPad*pad12 = new TPad("pad12","pad12",pad2x[0],pad2y[0],pad2x[1],pad2y[1]);
-  pad11->SetFillColor(kWhite);
-  pad11->Draw();
-  pad12->Draw();
-  pad11->cd();
-  TString text11 = Form(title11);
-  TLatex*t11 = new TLatex(0.06,0.3,text11);
-  t11->SetTextSize(0.5);
-  t11->Draw();
-  pad12->cd();
-  //  pad12->SetFillColor(0);
+//   if(datopt==1) title11 = Form("%s %s",titleInOut.Data(),showFit1.Data());
+//   else if(datopt==2) title11 = Form("%s %s",titleInOut.Data(),showFit2.Data());
+//   else title11 = Form("%s %s",titleInOut.Data(),showFit3.Data());
 
 
-  TMultiGraph * grp1 = new TMultiGraph();
-  grp1->Add(grp_diff);
-  grp1->Draw("AP");
-  fit4->DrawCopy("same");
-  fit4->SetLineColor(kMagenta+1);
+//   TCanvas * Canvas11 = new TCanvas("canvas11",title11,0,0,canvasSize[0],canvasSize[1]);
+//   Canvas11->Draw();
+//   Canvas11->cd();
 
-  grp1->SetTitle("");
-  grp1->GetXaxis()->SetTitle("Octant");
-  grp1->GetXaxis()->CenterTitle();
-  grp1->GetYaxis()->SetTitle(Form("MD %s Asymmetry [ppm]",deviceTitle.Data()));
-  grp1->GetYaxis()->CenterTitle();
-  grp1->GetYaxis()->SetTitleSize(0.04);
-  grp1->GetYaxis()->SetTitleOffset(0.9);
-  grp1->GetXaxis()->SetTitleOffset(0.8);
-  grp1->GetXaxis()->SetNdivisions(8,0,0);
-  if(SCALE){
-    grp1->GetYaxis()->SetRangeUser(yScale[0],yScale[1]);
-  }
+//   TPad*pad11 = new TPad("pad11","pad11",pad1x[0],pad1y[0],pad1x[1],pad1y[1]);
+//   TPad*pad12 = new TPad("pad12","pad12",pad2x[0],pad2y[0],pad2x[1],pad2y[1]);
+//   pad11->SetFillColor(kWhite);
+//   pad11->Draw();
+//   pad12->Draw();
+//   pad11->cd();
+//   TString text11 = Form(title11);
+//   TLatex*t11 = new TLatex(0.06,0.3,text11);
+//   t11->SetTextSize(0.5);
+//   t11->Draw();
+//   pad12->cd();
+//   //  pad12->SetFillColor(0);
 
 
-  if(PRELIMINARY){
-    // Preliminary water mark sign 
-    TLatex * prelim = new TLatex(waterMark[0],waterMark[1],"Preliminary");
-    prelim->SetTextColor(18);
-    prelim->SetTextSize(0.1991525);
-    prelim->SetTextAngle(15.0);
-    prelim->SetLineWidth(2);
-    prelim->Draw();
-    grp1->Draw("P");
-  }
+//   TMultiGraph * grp1 = new TMultiGraph();
+//   grp1->Add(grp_diff);
+//   grp1->Draw("AP");
+//   fit4->DrawCopy("same");
+//   fit4->SetLineColor(kMagenta+1);
 
-  TPaveStats *stats11 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
-
-  stats11->SetTextColor(kMagenta+1);
-  stats11->SetFillColor(kWhite); 
-  stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
-
-  TString saveInOutPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_plots_%s"
-			       ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
-			       ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
-
-  gPad->Update();
-
-  Canvas11-> Update();
-  Canvas11->Print(saveInOutPlot+".png");
-  if(FIGURE){
-    Canvas11->Print(saveInOutPlot+".svg");
-    Canvas11->Print(saveInOutPlot+".C");
-  }
+//   grp1->SetTitle("");
+//   grp1->GetXaxis()->SetTitle("Octant");
+//   grp1->GetXaxis()->CenterTitle();
+//   grp1->GetYaxis()->SetTitle(Form("MD %s Asymmetry [ppm]",deviceTitle.Data()));
+//   grp1->GetYaxis()->CenterTitle();
+//   grp1->GetYaxis()->SetTitleSize(0.04);
+//   grp1->GetYaxis()->SetTitleOffset(0.9);
+//   grp1->GetXaxis()->SetTitleOffset(0.8);
+//   grp1->GetXaxis()->SetNdivisions(8,0,0);
+//   if(SCALE){
+//     grp1->GetYaxis()->SetRangeUser(yScale[0],yScale[1]);
+//   }
 
 
+//   if(PRELIMINARY){
+//     // Preliminary water mark sign 
+//     TLatex * prelim = new TLatex(waterMark[0],waterMark[1],"Preliminary");
+//     prelim->SetTextColor(18);
+//     prelim->SetTextSize(0.1991525);
+//     prelim->SetTextAngle(15.0);
+//     prelim->SetLineWidth(2);
+//     prelim->Draw();
+//     grp1->Draw("P");
+//   }
 
-  /********************************************/
-  /********************************************/
+//   TPaveStats *stats11 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
+
+//   stats11->SetTextColor(kMagenta+1);
+//   stats11->SetFillColor(kWhite); 
+//   stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
+
+//   TString saveInOutPlot = Form("dirPlot/%s_%s_%s_%s_MD_%s_regression_%s_%s_in_out_plots_%s"
+// 			       ,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data()
+// 			       ,deviceName.Data(),reg_calc.Data(),reg_set.Data(),database_stem.Data());
+
+//   gPad->Update();
+
+//   Canvas11-> Update();
+//   Canvas11->Print(saveInOutPlot+".png");
+//   if(FIGURE){
+//     Canvas11->Print(saveInOutPlot+".svg");
+//     Canvas11->Print(saveInOutPlot+".C");
+//   }
+
+//   }
+
+//   /********************************************/
+//   /********************************************/
+
+  if(OCTANT){
 
   TString title22;
   TString titleOppositeOctant = Form("%s (%s, %s A): Regression-%s Slug Based Opposite Octant Averages of MD %s."
@@ -989,7 +987,7 @@ int main(Int_t argc,Char_t* argv[]){
     Canvas22->Print(saveOppositeOctantPlot+".C");
   }
 
-
+  }
 
 
 

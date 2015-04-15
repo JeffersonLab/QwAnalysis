@@ -113,7 +113,7 @@ void makeAlgebraicNewMonitorSlopesTree( TString stem = "", Int_t run_start = 993
   bool transverse = 0;
   //Declare needed variables
   /////////////////////////////////////////////////////////
-  bool sine_only = 0;
+  bool sine_only = 1;
   char* name = (char*)(chisq ? "_ChiSqMin.set0" : ".set0");  
   Bool_t debug = 0;
   string line;

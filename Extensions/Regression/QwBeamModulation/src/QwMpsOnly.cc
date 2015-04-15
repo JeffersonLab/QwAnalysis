@@ -36,8 +36,8 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fReduceMatrix_e  = 0; 
   fSensHumanReadable = 0;
   fDegPerMPS = 0;
-  fNModType = 5; 
   fPedestal = 0; 
+  fNCoil = 10; 
   fNModEvents = 0; 
   fCurrentCut = 40; 
   fPreviousRampValue = -1.;
@@ -98,7 +98,8 @@ void QwMpsOnly::BuildDetectorData()
 
 void QwMpsOnly::BuildDetectorAvSlope()
 {
-  Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+  Int_t nMod = kNMod;
+  if(f2DFit)nMod = kNCoil;
   for(Int_t i = 0; i < nMod; i++){
     AvDetectorSlope.push_back(std::vector <Double_t>());
     AvDetectorSlopeError.push_back(std::vector <Double_t>());
@@ -110,8 +111,7 @@ void QwMpsOnly::BuildDetectorAvSlope()
 
 void QwMpsOnly::BuildCoilData()
  {
-   Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
-   for(Int_t i = 0; i < nMod; i++)
+   for(Int_t i = 0; i < kNMod; i++)
      CoilData.push_back(std::vector <Double_t>());
      std::cout << "Coil block size: " << CoilData.size() << std::endl;
    
@@ -122,9 +122,9 @@ void QwMpsOnly::BuildDetectorSlopeVector()
 {
   // First 5 hold Sine components for each Mod Type
   // modType+5 holds Cosine Component 
-  DetectorSlope.resize(10);
-  DetectorSlopeError.resize(10);
-  for(Int_t i = 0; i < 10; i++){
+  DetectorSlope.resize(kNCoil);
+  DetectorSlopeError.resize(kNCoil);
+  for(Int_t i = 0; i < kNCoil; i++){
     DetectorSlope[i].resize(fNDetector);
     DetectorSlopeError[i].resize(fNDetector);
   }
@@ -133,7 +133,8 @@ void QwMpsOnly::BuildDetectorSlopeVector()
 
 void QwMpsOnly::BuildMonitorAvSlope()
 {
-  Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+  Int_t nMod = kNMod;
+  if(f2DFit)nMod = kNCoil;
   for(Int_t i = 0; i < nMod; i++){
     AvMonitorSlope.push_back(std::vector <Double_t>());
     AvMonitorSlopeError.push_back(std::vector <Double_t>());
@@ -158,9 +159,9 @@ void QwMpsOnly::BuildMonitorSlopeVector()
 {
   // First 5 hold Sine components for each Mod Type
   // modType+5 holds Cosine Component
-  MonitorSlope.resize(10);
-  MonitorSlopeError.resize(10);
-  for(Int_t i = 0; i < 10; i++){
+  MonitorSlope.resize(kNCoil);
+  MonitorSlopeError.resize(kNCoil);
+  for(Int_t i = 0; i < kNCoil; i++){
     MonitorSlope[i].resize(fNMonitor);
     MonitorSlopeError[i].resize(fNMonitor);
   }
@@ -237,10 +238,6 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
 	      << CoilData[modType].size() << std::endl;
     return;
   }
-
-  //*******************************
-  ModulationEvents[modType] += fNEvents;
-  //*******************************
   
   //This tool allows one to use only one third of the data in a given cycle
   //It is useful for comparing if the sensitivities are constant over a 
@@ -288,9 +285,14 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
       std::cout<<"DetectorData after: "<<DetectorData[0][0]<<" "
 	       <<DetectorData[0][size-1]<<std::endl;
 
+    fNEvents = size;
   }
   ////////////////////////////////////////
 
+
+  //*******************************
+  ModulationEvents[modType] += fNEvents;
+  //*******************************
 
   // 2D Sin+Cos+Const fit.
   TF1* fctn = new TF1("fctn", Form("[0] + [1] * TMath::Sin( %e * x) + "
@@ -513,6 +515,7 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
       mean = 1.0;
       meanError = 0;
     }
+
     sinAmp = (fctn->GetParameter(1));
     sinAmpError = (fctn->GetParError(1));
     cosAmp = (fctn->GetParameter(2));
@@ -587,7 +590,7 @@ void QwMpsOnly::CalculateSlope(Int_t modType)
 
   //  DetectorSlope[modType].resize(fNEvents);
   if(!fPhaseConfig){
-    Double_t temp[5]={0.,0.,0.,0.,0.};//{0.26, 0.26, 0.0, 1.08, 1.08};         
+    Double_t temp[kNMod]={0.,0.,0.,0.,0.};        
     SetPhaseValues(temp); 
   }
 
@@ -726,7 +729,8 @@ Int_t QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
 
   Double_t mean = 0;
   Double_t mean_error = 0;
-  Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+  Int_t nMod = kNMod; 
+  if(f2DFit) nMod = kNCoil;
   for(Int_t i = 0; i < nMod; i++){
     AvDetectorSlope[i].clear();
     AvDetectorSlopeError[i].clear();
@@ -1020,16 +1024,16 @@ void QwMpsOnly::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
 
 //   Double_t conversion[] = {1., 1.e6, 1., 1., 1.e6};
 
-  TMatrixD var(fNMonitor, fNModType);
-  TMatrixD temp(fNModType, fNMonitor);
-  TMatrixD Errorm(fNDetector, fNModType);  
-  TMatrixD Errord(fNDetector, fNModType);  
-  TMatrixD Error(fNDetector, fNModType);  
+  TMatrixD var(fNMonitor, fNMonitor);
+  TMatrixD temp(fNMonitor, fNMonitor);
+  TMatrixD Errorm(fNDetector, fNMonitor);  
+  TMatrixD Errord(fNDetector, fNMonitor);  
+  TMatrixD Error(fNDetector, fNMonitor);  
 
     for(Int_t i = 0; i < fNMonitor; i++){
-      for(Int_t k = 0; k < fNModType; k++){
-	for(Int_t n = 0; n < fNModType; n++){
-	  for(Int_t j = 0; j < fNModType; j++){
+      for(Int_t k = 0; k < fNMonitor; k++){
+	for(Int_t n = 0; n < fNMonitor; n++){
+	  for(Int_t j = 0; j < fNMonitor; j++){
 	    var(i, k) += TMath::Power(A(i, n), 2) * TMath::Power(eA(n, j), 2)
 	      * TMath::Power(A(j, k), 2);
 	  }
@@ -1040,23 +1044,23 @@ void QwMpsOnly::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
     for(Int_t m = 0; m < fNDetector; m++){    
 
       for(Int_t i = 0; i < fNMonitor; i++){
-	for(Int_t j = 0; j < fNModType; j++){
+	for(Int_t j = 0; j < fNMonitor; j++){
  	  Errorm(m, i) += var(j, i)*TMath::Power( Y(m, j),2);
 	}
       }
  
-       for(Int_t i = 0; i < fNModType; i++)
+       for(Int_t i = 0; i < fNMonitor; i++)
          Errorm(m, i) = TMath::Sqrt(Errorm(m, i));
        for(Int_t i = 0; i < fNMonitor; i++){
-	 for(Int_t j = 0; j < fNModType; j++){
+	 for(Int_t j = 0; j < fNMonitor; j++){
 	   Errord(m, i) += TMath::Power( A(j, i),2)*TMath::Power(eY(m, j) ,2);
 	 }
        }
     
-       for(Int_t i = 0; i < fNModType; i++)
+       for(Int_t i = 0; i < fNMonitor; i++)
 	 Errord(m,i) = TMath::Sqrt(Errord(m,i));
     
-     for(Int_t i = 0; i < fNModType; i++){
+     for(Int_t i = 0; i < fNMonitor; i++){
        Error(m, i) = TMath::Power(Errord(m, i), 2) + 
 	 TMath::Power(Errorm(m, i), 2);
        Error(m, i) = TMath::Sqrt(Error(m, i))*fUnitConvert[i];
@@ -1081,7 +1085,7 @@ void QwMpsOnly::ComputeSlopeErrors(TMatrixD A, TMatrixD AErr,
   TMatrixD RErrSq(fNMonitor, fNMonitor);
   TMatrixD ASq(fNDetector, fNMonitor);
   TMatrixD AErrSq(fNDetector, fNMonitor);
-  TMatrixD Error(fNDetector, fNModType);  
+  TMatrixD Error(fNDetector, fNMonitor);  
 
   //square each matrix element
   for(int irow=0;irow<fNMonitor;irow++){
@@ -1157,8 +1161,9 @@ Int_t QwMpsOnly::ErrorCodeCheck(TString type)
   if( type.CompareTo("mps_tree", TString::kIgnoreCase) == 0 ){
     typeFound = kTRUE;
 
-    if(qwk_charge_hw_sum < fCurrentCut){
+    if(fChain->GetLeaf("qwk_charge")->GetValue() < fCurrentCut){
       bmodErrorFlag = 1;
+      printf("Current cut %f %f\n", qwk_charge_hw_sum, fChain->GetLeaf("qwk_charge")->GetValue());
     }
 //     double lin = CheckRampLinearity("");
 //     if(lin != 0)
@@ -1200,6 +1205,8 @@ Int_t QwMpsOnly::ErrorCodeCheck(TString type)
     
     if(yield_qwk_charge_hw_sum < fCurrentCut){
       bmodErrorFlag = 1;
+      std::cout<<"Current cut "<<yield_qwk_charge_hw_sum<<" <  "<<
+	fCurrentCut<<"\n";
     }
     
     
@@ -1277,7 +1284,7 @@ Bool_t QwMpsOnly::FileSearch(TString filename, TChain *chain, Bool_t sluglet)
 Double_t QwMpsOnly::FindChiSquareMinAMatrix(Int_t row, Int_t col){
 
   Double_t index = 0;
-  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+  for(Int_t icoil=0;icoil<kNCoil;icoil++){
     bool good_coil = true;
     for(int i=0;i<(int)fOmitCoil.size();++i){
       if(icoil == fOmitCoil[i]){
@@ -1294,7 +1301,7 @@ Double_t QwMpsOnly::FindChiSquareMinAMatrix(Int_t row, Int_t col){
 Double_t QwMpsOnly::FindChiSquareMinAMatrixError(Int_t row, Int_t col){
 
   Double_t index = 0;
-  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+  for(Int_t icoil=0;icoil<kNCoil;icoil++){
     bool good_coil = true;
     for(int i=0;i<(int)fOmitCoil.size();++i){
       if(icoil == fOmitCoil[i]){
@@ -1314,7 +1321,7 @@ Double_t QwMpsOnly::FindChiSquareMinAMatrixError(Int_t row, Int_t col){
 Double_t QwMpsOnly::FindChiSquareMinRMatrix(Int_t row, Int_t col){
 
   Double_t index = 0;
-  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+  for(Int_t icoil=0;icoil<kNCoil;icoil++){
     bool good_coil = true;
     for(int i=0;i<(int)fOmitCoil.size();++i){
       if(icoil == fOmitCoil[i]){
@@ -1331,7 +1338,7 @@ Double_t QwMpsOnly::FindChiSquareMinRMatrix(Int_t row, Int_t col){
 Double_t QwMpsOnly::FindChiSquareMinRMatrixError(Int_t row, Int_t col){
 
   Double_t index = 0;
-  for(Int_t icoil=0;icoil<fNModType*2;icoil++){
+  for(Int_t icoil=0;icoil<kNCoil;icoil++){
     bool good_coil = true;
     for(int i=0;i<(int)fOmitCoil.size();++i){
       if(icoil == fOmitCoil[i]){
@@ -1361,7 +1368,8 @@ Double_t QwMpsOnly::FindDegPerMPS()
 				 (ramp_block2+ramp_block1));
     // std::cout<<nonLin<<" "<<fMaxRampNonLinearity<<"  "<<ramp_hw_sum<<std::endl;
     if(nonLin>fMaxRampNonLinearity||ramp_hw_sum<ramp_prev)newCycle = 1;
-    if(ErrorFlag==67207296 && qwk_charge_hw_sum>40 && ramp_hw_sum>100){
+    qwk_charge_hw_sum = fChain->GetLeaf("qwk_charge")->GetValue();
+    if(ErrorFlag==67207296 && qwk_charge_hw_sum>fCurrentCut && ramp_hw_sum>100){
       if(ramp_hw_sum<310 && !newCycle){
 	mean += ramp_hw_sum - ramp_prev;
 	//std::cout<<ramp_hw_sum - ramp_prev<<std::endl;
@@ -1608,6 +1616,12 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
 	  normal<<std::endl;
     }    
     
+    if(flag.CompareTo("--energy-coefficient-correction-factor", TString::kExact) == 0){
+      fEnergyCoefficientCorrectionFactor = atof(options[i + 1]);;
+      std::cout << other << "Setting energy coefficient correction factor "
+		<<fEnergyCoefficientCorrectionFactor<<"."<<normal<<std::endl;
+    }
+    
     if(flag.CompareTo("--setup-config", TString::kExact) == 0){
       configFileName = options[i + 1];
       std::cout << other << "Using specified setup configuration file: "
@@ -1700,10 +1714,11 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
 
       //      flag.Clear();
       int coil = atoi(options[i + 1]);
-      if(coil >= 0 && coil < kNMod * 2){
+      if(coil >= 0 && coil < fNCoil){
 	fOmitCoil.push_back(coil);
 	std::cout << other << "Omitting coil " <<fOmitCoil.back()
 		  << " from analysis." << normal << std::endl;
+	--fNCoil;
       }else{
 	std::cout << other << "Invalid coil omission selection."
 		  <<" Performing analysis with full coil set."<<std::endl;
@@ -2171,7 +2186,7 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
   //and proceed as usual.
 
   if(!run_avg){
-    for(Int_t icoil=0;icoil<fNModType*(fChiSquareMinimization ? 2 : 1);icoil++){
+    for(Int_t icoil=0;icoil<kNCoil;icoil++){
       AvDetectorSlope[icoil].clear();
       AvDetectorSlopeError[icoil].clear();
       //      std::cout<<icoil<<": "<<std::endl;
@@ -2185,13 +2200,13 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
       for(Int_t imon=0;imon<fNMonitor;imon++){
 	AvMonitorSlope[icoil].push_back(MonitorSlope[icoil][imon].back());
 	AvMonitorSlopeError[icoil].push_back(MonitorSlopeError[icoil][imon].back());
-	//	printf("%s: %14.9e\n",MonitorList[imon].Data(),MonitorSlope[icoil][imon].back());
+	//     printf("%s: %14.9e\n",MonitorList[imon].Data(),MonitorSlope[icoil][imon].back());
       }
     }
   }
 
-  TMatrixD AMatrix(fNDetector, fNModType);
-  TMatrixD AMatrixE(fNDetector, fNModType);
+  TMatrixD AMatrix(fNDetector, fNMonitor);
+  TMatrixD AMatrixE(fNDetector, fNMonitor);
 
   Double_t determinant;
 
@@ -2206,7 +2221,7 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
   for(Int_t j = 0; j < fNDetector; j++){
     if(diagnostic.is_open()&&diagnostic.good() && run_avg)
       diagnostic << DetectorList[j] << std::endl;
-    for(Int_t k = 0; k < fNModType; k++){
+    for(Int_t k = 0; k < fNMonitor; k++){
       AMatrix(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrix(j,k): 
 		      AvDetectorSlope[k][j]);
       AMatrixE(j,k) = (fChiSquareMinimization ? FindChiSquareMinAMatrixError(j,k):
@@ -2227,11 +2242,11 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
   std::cout << "\t\t\t\t::A Matrix Error::"<< std::endl;
   AMatrixE.Print("%11.10f");
 
-  TMatrixD RMatrix(fNMonitor, fNModType);
-  TMatrixD RMatrixE(fNMonitor, fNModType);
+  TMatrixD RMatrix(fNMonitor, fNMonitor);
+  TMatrixD RMatrixE(fNMonitor, fNMonitor);
 
   for(Int_t imon = 0; imon < fNMonitor; imon++){
-    for(Int_t icoil = 0; icoil < fNModType; icoil++){
+    for(Int_t icoil = 0; icoil < fNMonitor; icoil++){
       RMatrix(imon,icoil) = (fChiSquareMinimization ? 
 			     FindChiSquareMinRMatrix(imon,icoil) :
 			     AvMonitorSlope[icoil][imon]);
@@ -2255,8 +2270,12 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
 
   //get eigenvalues and eigenvectors of RMatrix
   TVectorD RMatrixEigenvalues(fNMonitor);
-  TMatrixD RMatrixEigenvectors(fNMonitor, fNModType);
+  TMatrixD RMatrixEigenvectors(fNMonitor, fNMonitor);
   RMatrixEigenvectors = RMatrix.EigenVectors(RMatrixEigenvalues);
+  std::cout<<"Eigenvalues:\n";
+  RMatrixEigenvalues.Print();
+  std::cout<<"Eigenvectors:\n";
+  RMatrixEigenvectors.Print();
   if( (diagnostic.is_open() && diagnostic.good()) && run_avg){
     diagnostic <<"\n\nRMatrix Eigenvalues:\n";
     for(int row=0;row<fNMonitor;row++){
@@ -2285,7 +2304,7 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
   Identity.Mult(RMatrixInv, RMatrix);
   Identity.Print();
 
-  TMatrixD SMatrix(fNDetector, fNModType);
+  TMatrixD SMatrix(fNDetector, fNMonitor);
   SMatrix.Mult(AMatrix, RMatrixInv);
 
   std::cout << "\n\n\t\t\t\t::SMatrix::\n" << std::endl;
@@ -2325,8 +2344,8 @@ Int_t QwMpsOnly::PilferData()
 {
   SetupMpsBranchAddresses(1,1,0);
   Int_t fEvCounter = 0, nonModEvts = 0;
-  Int_t errors[kNMaxCoil], good[kNMaxCoil];
-  for(Int_t i=0;i<kNMaxCoil;i++){
+  Int_t errors[kNMod], good[kNMod];
+  for(Int_t i=0;i<kNMod;i++){
     errors[i] = 0;
     good[i] = 0;
   }
@@ -2363,7 +2382,7 @@ Int_t QwMpsOnly::PilferData()
 
   std::cout << "Run "<<run_number<<std::endl;
   Int_t goodEv = 0;
-  for(Int_t i = 0; i < kNMaxCoil; i++){
+  for(Int_t i = 0; i < kNCoil; i++){
     std::cout<<" bm_pattern# "<<i<<":  Total Events Cut (" << errors[i] <<")"
 	      <<"   Good Events ("<<good[i]<<")\n";
     goodEv += good[i];
@@ -2389,7 +2408,9 @@ void QwMpsOnly::PrintAverageSlopes()
 	 "      Ymod    |      YPmod   |\n");
   printf("******************************************************************"
 	 "***************************\n");
-  Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+  Int_t nMod = kNMod;
+  if(f2DFit) nMod = kNCoil;
+
   for(Int_t i=0;i<fNMonitor;i++){
     TString mon = MonitorList[i];
     mon.Resize(16);
@@ -2659,6 +2680,18 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
   }
   fNDetector = DetectorList.size();
   fNMonitor = MonitorList.size();
+  if(fNMonitor<fNCoil){
+    fChiSquareMinimization = 1;
+    std::cout<<"Fewer monitors than coils. Using Chi Square minimization.\n";
+  }else if(fNMonitor > fNCoil){
+    std::cout<<"More monitors than coils. Program not set up to accomodate this.";
+    std::cout<<" Exiting.\n";
+    exit(1);
+  }else{
+    fChiSquareMinimization = 0;
+    std::cout<<"Equal number of coils and monitors. ";
+    std::cout<<"Not using Chi Square minimization.\n";
+  }
   
   if( (fNDetector > kNMaxDet) || (fNMonitor > kNMaxMon) )
     {
@@ -2693,7 +2726,7 @@ Int_t QwMpsOnly::ReadConfig(TString opt)
 
   //set the unit conversion array
   std::cout<<"Unit conversion array: ";
-  for(int i=0; i<5;i++){
+  for(int i=0; i<fNMonitor;i++){
     fUnitConvert[i] = (MonitorList[i].Contains("Slope") ? 1.0e4 : 1.0);
     std::cout<<fUnitConvert[i]<<"  ";
   }
@@ -2720,7 +2753,7 @@ Int_t QwMpsOnly::ReadPhaseConfig(Char_t *file)
     return 1;
   }
 
-  phase.resize(fNModType);
+  phase.resize(kNMod);
   while(fphase.good()){
     getline(fphase, line);
     token = new char[line.size() + 1];
@@ -2782,13 +2815,13 @@ void QwMpsOnly::ReduceMatrix(Int_t i)
     fReduceMatrix_xp = 1;
     fReduceMatrix_yp = 1;
     fYModulation = 1;
-    fNModType = 3;
+    fNCoil = 3;
     break;
 
   case 1:
     fReduceMatrix_y  = 1;
     fReduceMatrix_yp = 1;
-    fNModType = 3;
+    fNCoil = 3;
     break;
 
   default:
@@ -2804,8 +2837,9 @@ void QwMpsOnly::Scan(Bool_t set_status)
    for(Int_t i = 0; i < (Int_t)fNDetector; i++){
      if(set_status)
        fChain->SetBranchStatus(DetectorList[i], 1);
-     if(!set_status)
+     if(!set_status){
        fChain->SetBranchAddress(DetectorList[i], &DetBranch[i]);
+     }
    }
    for(Int_t i = 0; i < (Int_t)fNMonitor; i++){
      if(set_status)
@@ -2906,7 +2940,6 @@ void QwMpsOnly::SetupMpsBranchAddresses(Bool_t includeFriendTreeLeaves,
   fChain->ResetBranchAddresses();
   SetupMpsBranchStatuses(includeFriendTreeLeaves, includeMonitorsAndDetectors,
 			 includeBlocksAndFuncGen);
-  fChain->SetBranchAddress("qwk_charge", &qwk_charge_hw_sum);
   fChain->SetBranchAddress("bm_pattern_number", &bm_pattern_number);
   fChain->SetBranchAddress("ErrorFlag", &ErrorFlag);
   fChain->SetBranchAddress("ramp", &ramp_hw_sum);
@@ -2927,6 +2960,7 @@ void QwMpsOnly::SetupMpsBranchAddresses(Bool_t includeFriendTreeLeaves,
 
   if(includeMonitorsAndDetectors){
     Scan(1);
+    Scan(0);
   }
 }
 
@@ -2934,7 +2968,7 @@ void QwMpsOnly::SetPhaseValues(Double_t *val)
 {
 
   phase.resize(5);
-  for(Int_t i = 0; i < fNModType; i++){
+  for(Int_t i = 0; i < kNMod; i++){
     phase[i] = val[i];
   }
 
@@ -2962,7 +2996,7 @@ void QwMpsOnly::Write(Bool_t run_avg){
 
     //Write output to individual macrocycle coefficient files here.
     //////////////////////////////////////////////////////////////
-    Int_t nMod = (f2DFit ? fNModType * 2 : fNModType);
+    Int_t nMod = (f2DFit ? fNCoil : kNMod);
     if(!macrocycle_coeffs.is_open()){
       macrocycle_coeffs.open(Form("%s/macrocycle_slopes/"
 				  "coil_coeffs%s_%i%s.%s.dat", 
@@ -3065,7 +3099,7 @@ void QwMpsOnly::Write(Bool_t run_avg){
 
   if( (diagnostic.is_open() && diagnostic.good()) ){
     diagnostic << "\n#Modulation events in x,xp,e,y,yp\n" << std::endl;
-    for(Int_t i = 0; i < fNModType; i++){
+    for(Int_t i = 0; i < kNMod; i++){
       diagnostic << ModulationEvents[i]  << std::endl;
       fNModEvents += ModulationEvents[i];
     }
@@ -3101,7 +3135,7 @@ void QwMpsOnly::Write(Bool_t run_avg){
   fprintf(regression, "#run=%i\tevents=%i\n", run_number, fNModEvents);
   if( regression != NULL ){
     for(Int_t i = 0; i < fNDetector; i++){
-      for(Int_t j = 0; j < fNModType; j++){
+      for(Int_t j = 0; j < fNMonitor; j++){
 	fprintf(regression, "%s/%s : %i : %i : %e : %e\n", DetectorList[i].Data(),
 		MonitorList[j].Data(), 
 		ModulationEvents[j], j, YieldSlope[i][j], YieldSlopeError[i][j]);

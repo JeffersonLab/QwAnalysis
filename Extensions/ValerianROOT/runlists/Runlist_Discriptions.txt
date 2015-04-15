@@ -1,0 +1,128 @@
+This file has all the discriptions of each run list by number.
+The runlist are put in by number so they are easier to us, due
+to less likly to miss type the name.
+
+Run 2 starts with tracking run 13207 (includes this run)
+Last tracking run in Run 1 is 10706
+
+Runlist #       Discription
+
+1         R3:Oct1,5 R2:Oct1,5  QTOR=8880A Run2
+
+2         R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8921A Run 1
+3         R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 QTOR=8921A (mismatch) Run 1
+4         R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8921A Run 1
+5         R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8921A Run 1
+6         R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8921A Run 1
+
+7         R2Pkg1=2 R2Pkg2=6 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A (mismatch) Run 2
+8         R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8901.9A Run 2
+9         R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 QTOR=8901.9A (mismatch)
+10        R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8901.9A Run 2
+11        R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A Run 2
+12        R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A Run 2
+
+
+
+All Run 1 (all target & types)
+30        R2Pkg1=2 R2Pkg2=6 R3Pkg1=6 R3Pkg2=2 QTOR=8921A (mismatch) (there are none)
+31        R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8921A
+32        R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 QTOR=8921A (mismatch)
+33        R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8921A
+34        R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8921A
+35        R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8921A
+
+All Run 2 (all target & types)
+40        R2Pkg1=2 R2Pkg2=6 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A (mismatch)
+41        R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8901.9A
+42        R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 QTOR=8901.9A (mismatch)
+43        R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8901.9A
+44        R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A
+45        R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A
+
+
+***In the Octants folder***
+  **R2 subfolder
+  R2Pkg1_2_R2Pkg2_6     R2Pkg1=2 R2Pkg2=6
+  R2Pkg1_4_R2Pkg2_8     R2Pkg1=4 R2Pkg2=8
+  R2Pkg1_6_R2Pkg2_2     R2Pkg1=6 R2Pkg2=2
+  R2Pkg1_3_R2Pkg2_7     R2Pkg1=3 R2Pkg2=7
+  R2Pkg1_5_R2Pkg2_1     R2Pkg1=5 R2Pkg2=1
+
+  **R3 subfolder**
+  R3Pkg1_3_R3Pkg2_7     R3Pkg1=3 R3Pkg2=7
+  R3Pkg1_4_R3Pkg2_8     R3Pkg1=4 R3Pkg2=8
+  R3Pkg1_6_R3Pkg2_2     R3Pkg1=6 R3Pkg2=2
+  R3Pkg1_7_R3Pkg2_3     R3Pkg1=7 R3Pkg2=3
+  R3Pkg1_5_R3Pkg2_1     R3Pkg1=5 R3Pkg2=1
+
+R2_26_R3_62   R2Pkg1=2 R2Pkg2=6 R3Pkg1=6 R3Pkg2=2 (mismatch)
+R2_37_R3_37   R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7
+R2_37_R3_73   R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 (mismatch)
+R2_48_R3_48   R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8
+R2_51_R3_51   R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1
+R2_62_R3_62   R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2
+
+
+***In the QTOR folder***
+QTOR_CurrentValues.txt - list of all the QTOR currents
+for all the tracking runs in pass 5b
+These of the form QTOR_#.txt the # is the current
+
+-1e+06        QTOR = NOT ON??
+0             QTOR = 0
+225           QTOR = 225 A
+300           QTOR = 300 A
+2000          QTOR = 2000 A
+4650          QTOR = 4650 A
+5096.27       QTOR = 5096.27 A
+6000          QTOR = 6000 A
+6588.04       QTOR = 6588.04 A
+6700          QTOR = 6700 A
+6720          QTOR = 6720 A
+6862.31       QTOR = 6862.31 A
+7000          QTOR = 7000 A
+7573.58       QTOR = 7573.58 A
+8192          QTOR = 8192 A
+8283.79       QTOR = 8283.79 A
+8800          QTOR = 8800 A
+8820          QTOR = 8820 A
+8840          QTOR = 8840 A
+8860          QTOR = 8860 A
+8880          QTOR = 8880 A
+8900          QTOR = 8900 A
+8900.23       QTOR = 8900.23 A
+8901.9        QTOR = 8901.9 A
+8920          QTOR = 8920 A
+8921          QTOR = 8921 A
+8940          QTOR = 8940 A
+8960          QTOR = 8960 A
+8980          QTOR = 8980 A
+9000          QTOR = 9000 A
+9020          QTOR = 9020 A
+9040          QTOR = 9040 A
+9046          QTOR = 9046 A
+9060          QTOR = 9060 A
+9080          QTOR = 9080 A
+9100          QTOR = 9100 A
+
+
+
+***In the Special_Runs folder***
+*not complete*
+90        Al targets
+91        Cold Gas Target
+92        Cosmics
+93        Harp Scans
+94        HV Scans
+95        Optic Targets
+96        Raster Scans
+97        Rate Scans
+98        Position Scan
+99        Angle Scans
+100       Other
+
+David's list of important runs can be found:
+http://dilbert.physics.wm.edu/Commissioning/62
+
+Run pre-8620 aren't good Q2 runs.

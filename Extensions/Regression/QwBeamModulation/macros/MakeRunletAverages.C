@@ -88,12 +88,14 @@ Int_t MakeRunletAverages(Int_t slug, TString type = "reduced",
   int run_period = (slug<137 ? 1 : 2);
   TString dirname = Form("/net/data2/paschkelab%i/reduced_slugfiles/run%i",	
 			 run_period+1, run_period);
+  TString dirname_1 = Form("/net/data2/paschkelab1/reduced_slugfiles/run%i",	
+			   run_period);
 
   //Get tree to be averaged. 
   /////////////////////////////////////////////////////////
   char* suffix = (char*)stem.Data();
   TString reduced_filename = Form("%s/reduced_slug%i.root",dirname.Data(), slug);
-  TString filename = Form("%s/%s_slug%i%s.root", dirname.Data(), 
+  TString filename = Form("%s/%s_slug%i%s.root", dirname_1.Data(), 
 			  type.Data(), slug, suffix);
   TFile *file = new TFile(filename);
   TTree *tree = (TTree*)file->Get(treename.Data());

@@ -28,8 +28,6 @@ using std::vector;
 #include "QwOptions.h"
 #include "QwGeometry.h"
 
-#define NEW_G4_DATA  // uncomment this line to use newly simulated Geant4 data files
-
 // Definition of the reference detectors (## is concatenation)
 #define REGION1_DETECTOR(chamber,var) fRegion1_Chamber ## chamber ## _WirePlane_ ## var
 #define REGION2_DETECTOR(chamber,plane,var) fRegion2_Chamber ## chamber ## _WirePlane ## plane ## _ ## var
@@ -64,7 +62,9 @@ class QwTreeEventBuffer
     /// \brief Destructor
     virtual ~QwTreeEventBuffer();
 
-    /// \brief Process the options contained in the QwOptions object
+    /// \brief Define command line and config file options
+    static void DefineOptions(QwOptions& options);
+    /// \brief Process command line and config file options
     void ProcessOptions(QwOptions &options);
 
     /// Set the number of entries per event
@@ -102,7 +102,7 @@ class QwTreeEventBuffer
 
 
     /// \brief Create the hit list for this entry
-    QwHitContainer* CreateHitList(const bool resolution_effects = true, bool r2_hit=false, bool r3_hit=false) const;
+    QwHitContainer* CreateHitList(const bool resolution_effects) const;
 
 
     /// \brief Get the current event
@@ -124,6 +124,9 @@ class QwTreeEventBuffer
     void PrintStatInfo(int r2good,int r3good, int ngoodtracks);
 
   private:
+
+    /// Flags
+    bool fEnableR2Hits, fEnableR3Hits, fEnableResolution, fReconstructAllEvents;
 
     /// Set track counters
     static int fNumOfSimulated_ValidTracks;
@@ -165,7 +168,7 @@ class QwTreeEventBuffer
     int GetNumberOfEntries() const { return fNumberOfEntries; };
 
     /// \brief Read the specified entry from the tree
-    bool GetEntry(const unsigned int entry, bool& r2_hit, bool& r3_hit);
+    bool GetEntry(const unsigned int entry);
 
 
     /// The event to be reconstructed
@@ -594,17 +597,10 @@ class QwTreeEventBuffer
     Int_t fCerenkov_Detector_HasBeenHit;
     Int_t fCerenkov_Detector_NbOfHits;
 
-#ifdef NEW_G4_DATA
     vector <Int_t> fCerenkov_PMT_PMTTotalNbOfHits;
     vector <Float_t> fCerenkov_PMT_PMTTotalNbOfPEs;
     vector <Float_t> fCerenkov_PMT_PMTLeftNbOfPEs;
     vector <Float_t> fCerenkov_PMT_PMTRightNbOfPEs;
-#else
-    Int_t   fCerenkov_PMT_PMTTotalNbOfHits;
-    Float_t fCerenkov_PMT_PMTTotalNbOfPEs;
-    Float_t fCerenkov_PMT_PMTLeftNbOfPEs;
-    Float_t fCerenkov_PMT_PMTRightNbOfPEs;
-#endif
 
     Float_t fCerenkov_Detector_HitLocalPositionX;
     Float_t fCerenkov_Detector_HitLocalPositionY;

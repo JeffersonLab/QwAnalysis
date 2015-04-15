@@ -58,6 +58,7 @@
 #include <TSQLResult.h>
 #include <TSQLRow.h>
 #include <TSQLStatement.h>
+#include "TObjString.h"
 #include <sstream>
 #include <string>
 

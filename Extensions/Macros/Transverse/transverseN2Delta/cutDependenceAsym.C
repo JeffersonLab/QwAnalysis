@@ -532,7 +532,7 @@ int main(Int_t argc,Char_t* argv[]){
     }
   }
   else {
-    printf("%sNo textfile exist for the configuration. Exiting program!\n%s",red,normal);
+    printf("%sNo textfile: dirPlot/cutDependence/%s_%s_%s_%s_MD_%s_regression_%s_%s_cutDependence_%s_%s.txt Exiting program!\n%s",red,interaction.Data(),qtor_stem.Data(),polar.Data(),target.Data(),deviceName.Data(),reg_calc.Data(),reg_set.Data(),sigma_set.Data(),database_stem.Data(),normal);
     return -1;
   }
   transverseMDAsym.close();

@@ -17,7 +17,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := nurTransverseMD plotTransverseN2Delta compare calcTransverseN2Delta finalTransverseN2Delta mdQuery mdQueryModified dsLumiQuery usLumiQuery senQuery diffQuery bkgMDQuery asymDBRunlet bkgDBRunlet senDBRunlet diffDBRunlet cutDependence cutDependenceAsym octantPlot plotNoCFitTransverseN2Delta beamlineBkg nonLinearity  #clean
+EXE := nurTransverseMD plotTransverseN2Delta compare calcTransverseN2Delta finalTransverseN2Delta mdQuery mdQueryModified dsLumiQuery usLumiQuery senQuery diffQuery bkgMDQuery asymDBRunlet bkgDBRunlet senDBRunlet diffDBRunlet cutDependence cutDependenceAsym octantPlot plotNoCFitTransverseN2Delta beamlineBkg nonLinearity fitTheory usLumiAsymLongitudinal bkgCorrelations draw_correlations_runlets finalResultLH2QTorSide finalResultCarbon finalResultAl6700A finalResultAl7300A cutDependenceCalc publication diffPlot newTransverseLH2Inelastic newFinalResultLH2QTorSide pmtAsymmetries  nuclearTargetAsymmetries #clean
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -102,6 +102,51 @@ beamlineBkg :beamlineBkg.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 nonLinearity :nonLinearity.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+fitTheory  :fitTheory.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+usLumiAsymLongitudinal  :usLumiAsymLongitudinal.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+bkgCorrelations  :bkgCorrelations.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+draw_correlations_runlets  :draw_correlations_runlets.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+finalResultLH2QTorSide  :finalResultLH2QTorSide.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+finalResultCarbon  :finalResultCarbon.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+finalResultAl7300A  :finalResultAl7300A.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+finalResultAl6700A  :finalResultAl6700A.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+cutDependenceCalc  :cutDependenceCalc.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+publication  :publication.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+diffPlot  :diffPlot.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+newTransverseLH2Inelastic  :newTransverseLH2Inelastic.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+newFinalResultLH2QTorSide  :newFinalResultLH2QTorSide.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+pmtAsymmetries  :pmtAsymmetries.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+nuclearTargetAsymmetries  :nuclearTargetAsymmetries.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 
