@@ -12,7 +12,7 @@
 
 
 #debug level
-export DEBUG=0
+export DEBUG=1
 # 0 == No debugging
 # 1 == debug this script only and the get_run_list.sh script
 # 2 == debug the perl scripts and lower levels (only way to get missing file numbers)
@@ -20,9 +20,9 @@ export DEBUG=0
 
 #set enviromental variables
 #pass
-export PASS="5b"
+export PASS="6"
 #path to website
-export WEBSITE="/home/wdconinc/qweak/QwScratch/tracking/www"
+export WEBSITE="/group/qweak/www/html/tracking/pass${PASS}"
 #where you are - this is where all the
 #output of the perl scripts will go
 #export IAMHERE="/home/vmgray/QwAnalysis_trunk/Extensions/ValerianROOT"
@@ -36,13 +36,9 @@ if [ $DEBUG -gt 0 ] ; then
   echo "Kilroy is $VALERIAN waiting for output"
 fi
 
-
 #get Run list
 echo -e "\n Get Run List \n"
 ./scripts/get_run_list.sh
-
-echo "If you encounter perl errors in the following line, you may need to point \
- all perl scripts (./scripts/*.pl) to the correct perl location in the first line."
 
 #Beam Position
 echo -e "\n Beam Pos X \n"
@@ -134,6 +130,7 @@ echo -e "\n Q2 with Cuts \n"
 #now build Valerian ROOT
 #####################################
 
+
 echo -e "\n Make ValerianROOT \n"
 #build and make ValerianROOT
 mkdir -p build
@@ -148,7 +145,6 @@ cd ..
 build/ValerianROOTTreeMaker
 
 echo -e "\n That is all I am exhausted, go take a nap :)"
-
 
 
 if [ $DEBUG -gt 0 ] ; then

@@ -51,6 +51,9 @@ void Read_In_Run_Numbers(std::string file_name)
   TString filename = TString(gSystem->Getenv("QWANALYSIS"))
       + "/Extensions/ValerianROOT/runlists/" + file_name;
 
+  // debugging
+//  std::cout << "filename: " << filename << std::endl;
+
   // An input stream that contains run list
   ifstream runnum_data;
   runnum_data.open(filename, std::ios::in);
@@ -62,14 +65,14 @@ void Read_In_Run_Numbers(std::string file_name)
   if (runnum_data.is_open())
   {
     //debugging
-//    std::cout << "run data is open made it in the if loop" << std::endl;
+ //   std::cout << "run data is open made it in the if loop" << std::endl;
 
     while (runnum_data >> tmp  //while reading in the file - to temporary variable tmp
            && !runnum_data.eof())  //and not at the end of the file
     {
       //debugging
 //      std::cout << "in the while loop - this means there has been something read in..."
-      //     << std::endl;
+//           << std::endl;
       RUNNUMLIST.push_back(tmp);  //put the read in run number into the run list vector
     }
 

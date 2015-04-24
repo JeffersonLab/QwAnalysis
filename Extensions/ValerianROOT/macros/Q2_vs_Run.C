@@ -18,8 +18,8 @@
  happy ROOT means a happy life.
 
  Entry Conditions:
-   - pass: the pass number
-   - filename: the runlist file name of interest
+ - pass: the pass number
+ - filename: the runlist file name of interest
  Date: 05-13-2014
  Modified: 02-13-2014
  Assisted By: Wouter Deconinck
@@ -685,6 +685,13 @@ void Make_graphs()
         Q2_MIN[i_pkg] = std::min(Q2_MIN[i_pkg],
             *std::min_element(Q2_VAL[i_type][i_pkg].begin(),
                 Q2_VAL[i_type][i_pkg].end(), less_than_but_non_zero));
+
+/*
+        //debugging
+        std::cout << "Pkg: " << i_pkg << std::endl;
+        std::cout << "Q2_MIN: " << Q2_MIN[i_pkg] << std::endl;
+        std::cout << "Q2_MAX: " << Q2_MAX[i_pkg] << std::endl;
+*/
       }
     }
   }
@@ -752,9 +759,33 @@ void Plot()
 
     Double_t RunRange = Double_t(RUNNUMLIST.back() - RUNNUMLIST.front());
 
-    mg_Q2_VS_RUN[i_pkg]->GetXaxis()->SetLimits(
-        Double_t(RUNNUMLIST.front()) - RunRange * FUDGEFACTOR_RUN[0],
-        Double_t(RUNNUMLIST.back()) + RunRange * FUDGEFACTOR_RUN[1]);
+/*
+    Double_t x_min = Double_t(RUNNUMLIST.front())
+        - RunRange * FUDGEFACTOR_RUN[0];
+    Double_t x_max = Double_t(RUNNUMLIST.back())
+        + RunRange * FUDGEFACTOR_RUN[1];
+
+    //debugging
+    std::cout << "Runlist vector size: " << RUNNUMLIST.size() << std::endl;
+    std::cout << "Runlist Min: " << RUNNUMLIST.front() << std::endl;
+    std::cout << "Runlist Max: " << RUNNUMLIST.back() << std::endl;
+
+    std::cout << "Run val vector size: " << RUN_VAL.size() << std::endl;
+    std::cout << "Run Val Min: " << RUN_VAL.front() << std::endl;
+    std::cout << "Run Val Max: " << RUN_VAL.back() << std::endl;
+
+    std::cout << "RunRange: " << RunRange << std::endl;
+    std::cout << "x_min: " << x_min << std::endl;
+    std::cout << "x_max: " << x_max << std::endl;
+
+    mg_Q2_VS_RUN[i_pkg]->GetXaxis()->SetLimits(x_min, x_max);
+*/
+
+    //   original
+     mg_Q2_VS_RUN[i_pkg]->GetXaxis()->SetLimits(
+     Double_t(RUNNUMLIST.front()) - RunRange * FUDGEFACTOR_RUN[0],
+     Double_t(RUNNUMLIST.back()) + RunRange * FUDGEFACTOR_RUN[1]);
+
 
     //draw the legend
     LEGEND[i_pkg]->Draw();
@@ -767,7 +798,7 @@ void Plot()
 
     c_q2[i_pkg]->SaveAs(
         Form(
-            "~/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/Pass_%s_Q2_vs_run_%s_pkg.png",
+            "~/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/Pass_%s_Q2_vs_run_pkg_%s.png",
             PASS.c_str(), PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
   }
 
@@ -819,10 +850,11 @@ void PrintToFile()
     cout << "File not opened" << endl;
 
   fout << "Run \t pkg \t\t 0 Val & Error "
-      "\t\t\t 1 Val & Error "
-      "\t\t\t 2 Val & Error "
-      "\t\t\t 3 Val & Error "
-      "\t\t\t 4 Val & Error"<< std::endl;
+  "\t\t\t 1 Val & Error "
+  "\t\t\t 2 Val & Error "
+  "\t\t\t 3 Val & Error "
+  "\t\t\t 4 Val & Error"
+  << std::endl;
 
   for (int i_run = 0; i_run < RUNNUMLIST.size(); i_run++)
   {
@@ -846,7 +878,7 @@ void PrintToFile()
   fout << std::endl << std::endl;
   fout << "# \t \t Q2 type" << std::endl;
 
-  for(int i_type = 0; i_type < NUMQ2TYPES; i_type++)
+  for (int i_type = 0; i_type < NUMQ2TYPES; i_type++)
   {
     fout << i_type << " \t " << INDEXTOQ2[i_type].c_str() << std::endl;
   }

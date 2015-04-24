@@ -1,28 +1,44 @@
-This file has all the discriptions of each run list by number.
+This file has all the descriptions of each run list by number.
 The runlist are put in by number so they are easier to us, due
-to less likly to miss type the name.
+to less likely to miss type the name.
 
 Run 2 starts with tracking run 13207 (includes this run)
 Last tracking run in Run 1 is 10706
 
-Runlist #       Discription
+Runlist 2 - 23 includes raster and rate scans - David says those don't
+change Q2 and can be included.
 
-1         R3:Oct1,5 R2:Oct1,5  QTOR=8880A Run2
+Runlist #       Description
+
+1         R3:Oct1,5 R2:Oct1,5  QTOR=8880A Run2 (actually wrong description)
 
 2         R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8921A Run 1
 3         R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 QTOR=8921A (mismatch) Run 1
 4         R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8921A Run 1
-5         R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8921A Run 1
+5         R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8921A Run 1 (includes a low stats run)
 6         R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8921A Run 1
 
 7         R2Pkg1=2 R2Pkg2=6 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A (mismatch) Run 2
 8         R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8901.9A Run 2
-9         R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 QTOR=8901.9A (mismatch)
-10        R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8901.9A Run 2
-11        R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A Run 2
-12        R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A Run 2
+9         R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 QTOR=8901.9A (mismatch) Run 2
+10       R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8901.9A Run 2
+11       R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A Run 2
+12       R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A Run 2
 
+13       R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8901.9A Run 2, run# in 15000s
 
+14       R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8921A Run 1 (excludes a low stats run)
+15       QTOR=8921A Run 1 all run number in the 8000s
+16       QTOR=8921A Run 1 all run number in the 10000s
+
+17       R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A Run 2 (combination of runlist 7 and 12)
+18       R2Pkg1=3 R2Pkg2=7 QTOR=8901.9A Run 2 (combination of runlist 8 and 9)
+19       R2Pkg1=3 R2Pkg2=7 QTOR=8901.9A Run 2 (combination of runlist 8 and 9) run# in 15000s (there are only 4 not in this range)
+
+20       QTOR=8901.9A Run 2 run# in 13000s
+21       QTOR=8901.9A Run 2 run# in 15000s
+22       QTOR=8901.9A Run 2 run# in 18000s
+23       R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A Run 2, run# in 15000s
 
 All Run 1 (all target & types)
 30        R2Pkg1=2 R2Pkg2=6 R3Pkg1=6 R3Pkg2=2 QTOR=8921A (mismatch) (there are none)
