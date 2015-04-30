@@ -21,36 +21,36 @@ Runlist #       Description
 7         R2Pkg1=2 R2Pkg2=6 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A (mismatch) Run 2
 8         R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8901.9A Run 2
 9         R2Pkg1=3 R2Pkg2=7 R3Pkg1=7 R3Pkg2=3 QTOR=8901.9A (mismatch) Run 2
-10       R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8901.9A Run 2
-11       R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A Run 2
-12       R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A Run 2
+10        R2Pkg1=4 R2Pkg2=8 R3Pkg1=4 R3Pkg2=8 QTOR=8901.9A Run 2
+11        R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A Run 2
+12        R2Pkg1=6 R2Pkg2=2 R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A Run 2
 
-13       R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8901.9A Run 2, run# in 15000s
+13        R2Pkg1=3 R2Pkg2=7 R3Pkg1=3 R3Pkg2=7 QTOR=8901.9A Run 2, run# in 15000s
 
-14       R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8921A Run 1 (excludes a low stats run)
-15       QTOR=8921A Run 1 all run number in the 8000s
-16       QTOR=8921A Run 1 all run number in the 10000s
+14        R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8921A Run 1 (excludes a low stats run)
+15        QTOR=8921A Run 1 all run number in the 8000s
+16        QTOR=8921A Run 1 all run number in the 10000s
 
-17       R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A Run 2 (combination of runlist 7 and 12)
-18       R2Pkg1=3 R2Pkg2=7 QTOR=8901.9A Run 2 (combination of runlist 8 and 9)
-19       R2Pkg1=3 R2Pkg2=7 QTOR=8901.9A Run 2 (combination of runlist 8 and 9) run# in 15000s (there are only 4 not in this range)
+17        R3Pkg1=6 R3Pkg2=2 QTOR=8901.9A Run 2 (combination of runlist 7 and 12)
+18        R2Pkg1=3 R2Pkg2=7 QTOR=8901.9A Run 2 (combination of runlist 8 and 9)
+19        R2Pkg1=3 R2Pkg2=7 QTOR=8901.9A Run 2 (combination of runlist 8 and 9) run# in 15000s (there are only 4 not in this range)
 
-20       QTOR=8901.9A Run 2 run# in 13000s
-21       QTOR=8901.9A Run 2 run# in 15000s
-22       QTOR=8901.9A Run 2 run# in 18000s
-23       R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A Run 2, run# in 15000s
+20        QTOR=8901.9A Run 2 run# in 13000s
+21        QTOR=8901.9A Run 2 run# in 15000s
+22        QTOR=8901.9A Run 2 run# in 18000s
+23        R2Pkg1=5 R2Pkg2=1 R3Pkg1=5 R3Pkg2=1 QTOR=8901.9A Run 2, run# in 15000s
 
-24       QTOR=8901.9A Run 2 all "Good" runs without issues on first glance
-25       QTOR=8901.9A Run 2 all "Good" runs without issues on first glance run# in 13000s
-26       QTOR=8901.9A Run 2 all "Good" runs without issues on first glance run# in 15000s
+24        QTOR=8901.9A Run 2 all "Good" runs without issues on first glance
+25        QTOR=8901.9A Run 2 all "Good" runs without issues on first glance run# in 13000s
+26        QTOR=8901.9A Run 2 all "Good" runs without issues on first glance run# in 15000s
 
-27       QTOR=8901.9A Run 2 all Pkg 2 "Good" runs without issues on first glance
-28       QTOR=8901.9A Run 2 all Pkg 2 "Good" runs without issues on first glance run# in 13000s
-29       QTOR=8901.9A Run 2 all Pkg 2 "Good" runs without issues on first glance run# in 15000s
+27        QTOR=8901.9A Run 2 all Pkg 1 "Good" runs without issues on first glance
+28        QTOR=8901.9A Run 2 all Pkg 1 "Good" runs without issues on first glance run# in 13000s
+29        QTOR=8901.9A Run 2 all Pkg 1 "Good" runs without issues on first glance run# in 15000s
 
-50       QTOR=8901.9A Run 2 all Pkg 1 "Good" runs without issues on first glance
-51       QTOR=8901.9A Run 2 all Pkg 1 "Good" runs without issues on first glance run# in 13000s
-52       QTOR=8901.9A Run 2 all Pkg 1 "Good" runs without issues on first glance run# in 15000s
+50        QTOR=8901.9A Run 2 all Pkg 2 "Good" runs without issues on first glance
+51        QTOR=8901.9A Run 2 all Pkg 2 "Good" runs without issues on first glance run# in 13000s
+52        QTOR=8901.9A Run 2 all Pkg 2 "Good" runs without issues on first glance run# in 15000s
 
 All Run 1 (all target & types)
 30        R2Pkg1=2 R2Pkg2=6 R3Pkg1=6 R3Pkg2=2 QTOR=8921A (mismatch) (there are none)
