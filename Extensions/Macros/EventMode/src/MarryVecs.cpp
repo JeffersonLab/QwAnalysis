@@ -454,11 +454,12 @@ void MarryVecs::marry_arrays(void) {
       double tsentry = groom[p];
       double mdentry = bride[fiancee[p]];
       if (tsentry != 0 && tsentry>-186 && tsentry<-178 &&
+//      if (tsentry != 0 && tsentry>-180 && tsentry<-160 &&
           mdentry!=0) {
          add_matched_entry(tsentry,mdentry);
-         if (mdentry>=-220 && mdentry<=-160)
+         if (mdentry>=-220 && mdentry<=-150)
            add_matched_peak_entry(mdentry);
-         if (mdentry != 0 && mdentry>=-161 && mdentry<=-101)
+         if (mdentry != 0 && mdentry>=-149 && mdentry<=-79)
            add_matched_accidentals_entry(mdentry);
       }
     }

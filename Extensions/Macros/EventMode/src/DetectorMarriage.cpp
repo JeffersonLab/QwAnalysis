@@ -115,7 +115,9 @@ void DetectorMarriage::processEvents(void) {
 
     double tsentry = marriageVectors.get_groom_entry(0);
     double mdentry = marriageVectors.get_bride_entry(0);
-    if (tsentry != 0 && tsentry>-186 && tsentry<-178 &&
+//    if (tsentry != 0 && tsentry>-186 && tsentry<-178 &&
+//    if (tsentry != 0 && tsentry>-180 && tsentry<-160 &&
+    if (tsentry != 0 && tsentry>-200 && tsentry<-150 &&
         mdentry != 0 )//&& mdentry>-210 && mdentry<-150 )
     {
       first_marriage.push_back(mdentry);

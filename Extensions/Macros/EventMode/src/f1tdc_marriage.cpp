@@ -39,6 +39,7 @@
 
 using namespace std;
 
+double findDoublePulseResolution(TH1F*, double);
 void helpscreen(void);
 void generate_marriages( MarryVecs *);
 
@@ -66,6 +67,7 @@ int main(int argc, char* argv[]) {
   //global_debug is to debug overall program
   bool global_debug=false;
 
+  int runNum = 0;
   std::string filename;
 
   if (argc<=1) {
@@ -76,8 +78,13 @@ int main(int argc, char* argv[]) {
   for (int j=1; j<argc; j++) {
     if (j < argc) {//check that we haven't finished parsing already
       if (0 == strcmp("-f",argv[j]))     filename = argv[j+1];         //ROOT file to process
+      if (0 == strcmp("--file",argv[j])) filename = argv[j+1];         //ROOT file to process
+      if (0 == strcmp("-r",argv[j]))     runNum = atol(argv[j+1]);         //run number to process
+      if (0 == strcmp("--run",argv[j]))  runNum = atol(argv[j+1]);         //run number to process
       if (0 == strcmp("--low",argv[j]))  eventLow = atol(argv[j+1]);   //first event to process
       if (0 == strcmp("--high",argv[j])) eventHigh = atol(argv[j+1]);  //last event to process
+      if (0 == strcmp("--lowevent",argv[j]))  eventLow = atol(argv[j+1]);   //first event to process
+      if (0 == strcmp("--highevent",argv[j])) eventHigh = atol(argv[j+1]);  //last event to process
       if (0 == strcmp("--ts", argv[j]))  tsplane = atoi(argv[j+1]);    //get TS plane/package number
       if (0 == strcmp("--md", argv[j]))  mdplane = atoi(argv[j+1]);    //get MD octant
       if (0 == strcmp("--help", argv[j]))  helpscreen();               //show helpscreen
@@ -85,6 +92,11 @@ int main(int argc, char* argv[]) {
       }
   } //finish processing options
 
+  if(runNum>0) {
+    char buffer[20];
+    sprintf(buffer,"Qweak_%i.root",runNum);
+    filename = buffer;
+  }
   //Open rootfile
   TFile *rootfile = TFile::Open(filename.data());
 
@@ -132,12 +144,13 @@ int main(int argc, char* argv[]) {
   vector<double> *peakVec = detMarriage.getDetectorMarriagePeak();
   vector<double> *accVec  = detMarriage.getDetectorMarriageAccidentals();
   //vector<double> *groomVec = detMarriage.get_groom_hit_time_diff();
-  //vector<double> *brideVec = detMarriage.get_bride_hit_time_diff();
+  vector<double> *brideVec = detMarriage.get_bride_hit_time_diff();
+//  vector<double> *groomVec = detMarriage.get_raw_grooms();
 
   //binning information
-  int Nbins = 1800;
-  int xmin  = -400;
-  int xmax  = 1400;
+  const int Nbins = 2000;
+  const int xmin  = -600;
+  const int xmax  = 1400;
 
   //canvas1 will plot the coincidence spectra
   TCanvas *canvas1 = new TCanvas("canvas","title");
@@ -166,10 +179,27 @@ int main(int argc, char* argv[]) {
   hAccident->Draw();
   canvas3->SetLogy();
 
+  TCanvas *canvas4 = new TCanvas("canvas4","title");
+  canvas4->cd();
+
+//  TH1F* hTrigScint = new TH1F("hTrigScint","Trigger Scintillator Spectra",Nbins,xmin,xmax);
+//  hTrigScint->FillN(groomVec->size(),groomVec->data(),NULL);
+//  hTrigScint->Draw();
+//  canvas4->SetLogy();
+
+  TH1F* hDoublePulse= new TH1F("hDoublePulse","Double Pulse Resolution (Run 10709)",2000,0,2000);
+  hDoublePulse->FillN(brideVec->size(),brideVec->data(),NULL);
+  hDoublePulse->Draw();
+
+//  std::cout <<"The double pulse resolution for MD " <<mdplane <<" is: " <<hitdiff
+//    <<" ns." <<std::endl;
+  std::cout <<hPeak->GetEntries() <<std::endl;
+  std::cout <<hAccident->GetEntries() <<std::endl;
+
+  std::cout <<"Application concluded.";
   app->Run(); //run the TApplication
   return 0;   //exit gracefully
 }
-
 
 void helpscreen (void) {
   string helpstring = "Help for f1marriage.cpp program.\n";
@@ -179,6 +209,9 @@ void helpscreen (void) {
     helpstring += "\t./f1tdc_marriage [options]\n";
     helpstring += "Options: \n";
     helpstring += "\t-f  \t\tfilename\n";
+    helpstring += "\t--file  \t\tfilename\n";
+    helpstring += "\t-r  \t\tProvide run number instead of filename\n";
+    helpstring += "\t--run \t\tProvide run number instead of filename\n";
     helpstring += "\t--lowevent  \tfirst event to process\n";
     helpstring += "\t--highevent \tfirst event to process\n";
     helpstring += "\t--ts\t\tdefines trigger scintillator plane (plane 1=octant 5\n";
