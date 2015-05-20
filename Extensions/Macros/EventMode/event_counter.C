@@ -30,6 +30,8 @@ void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventH
 
   int events_total    = 0;  //number of recorded events
   int events_recorded = 0;  //number of recorded events
+  int mps1 = 0;
+  int mps2 = 0;
 //  double eventType    = 1;    //CodaEventType (1=mps, 2=TS)
   double delta        = 0;      //delta is the number of triggers skipped if
                                 //not starting at event 0
@@ -42,6 +44,7 @@ void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventH
   TBranch *sca_trig = (TBranch*) tree->GetBranch(trigger.Data());
   TLeaf *trig = sca_trig->GetLeaf("value");
   TLeaf *type = tree->GetLeaf("CodaEventType");
+  TLeaf *mps_count  = tree->GetLeaf("mps_counter");
 
   int n_entries  = (int) tree->GetEntries();  //get the number of entries
 
@@ -57,7 +60,7 @@ void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventH
    */
   if (debug) printf("Events recorded \tEventType \ttotal\n");
   eventHigh = (n_entries<eventHigh) ? n_entries : eventHigh;
-  for(int j=0; j<n_entries; j++) {
+  for(int j=eventLow; j<n_entries; j++) {
     tree->GetEntry(j);
     sca_trig->GetEntry(j);
     if (j<eventLow) {continue;}
@@ -84,6 +87,9 @@ void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventH
     { delta = trig->GetValue(); }
     events_recorded++;
     events_total = trig->GetValue();
+    if (mps1==0)
+      mps1 = mps_count->GetValue();
+    mps2 = mps_count->GetValue();
     if (debug)
       printf("%i \t\t%i \t\t%d\n",events_recorded,int(eventType),events_total);
   }
@@ -93,6 +99,7 @@ void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventH
     <<"Total: " <<events_total <<" \t" <<std::endl
     <<"LT estimate: " <<quotient <<" \t"
     <<"for EventType = " <<eventType <<std::endl;
+  std::cout <<"Number of MPS: " <<mps2-mps1 <<std::endl;
 }
 
 

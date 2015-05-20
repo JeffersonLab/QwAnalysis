@@ -41,7 +41,7 @@ void bcm_plotter(int runNumber, int eventLow=0, int eventHigh=4e6) {
 
   //open rootfile
   char filename[100];
-  sprintf(filename,"QweakRun2_%i.root",runNumber);
+  sprintf(filename,"Qweak_%i.root",runNumber);
   TFile *file = new TFile(filename);
   if ( file->IsOpen() ) {
     std::cout <<"Successfully opened ROOTFILE " <<file->GetName() <<std::endl;
@@ -67,7 +67,7 @@ void bcm_plotter(int runNumber, int eventLow=0, int eventHigh=4e6) {
 
   if (debug)  printf("EventNumber \tEventType \tbcm2 \tibcm2 \n");
   eventHigh = (n_entries<eventHigh) ? n_entries : eventHigh;
-  for(int j=0; j<n_entries; j++) {
+  for(int j=eventLow; j<n_entries; j++) {
     etree->GetEntry(j);
 
     if (j<eventLow) {continue;}

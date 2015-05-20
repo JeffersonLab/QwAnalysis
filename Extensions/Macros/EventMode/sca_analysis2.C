@@ -11,6 +11,7 @@
 #include <TTree.h>
 #include <TBranch.h>
 #include <TLeaf.h>
+#include <TH1F.h>
 #include <TApplication.h>
 #include <TCanvas.h>
 #include <TStyle.h>
@@ -52,9 +53,9 @@ void sca_analysis(int runnumber, int eventLow=0, int eventHigh=4000000) {
 
   //create histograms for these quantities
   for(int j=0; j<num_md; j++) {
-    mdall[j] = new TH1F(Form("mdall[%i]",j),Form("MD All Octant Bar %i",j+1),800,0,800);
-    mdp[j]   = new TH1F(Form("mdp[%i]",j),Form("MD Plus Octant %i",j+1),800,0,800);
-    mdm[j]   = new TH1F(Form("mdm[%i]",j),Form("MD Neg  Octant %i",j+1),800,0,800);
+    mdall[j] = new TH1F(Form("mdall[%i]",j),Form("MD All Octant Bar %i",j+1),2400,0,2400);
+    mdp[j]   = new TH1F(Form("mdp[%i]",j),Form("MD Plus Octant %i",j+1),2400,0,2400);
+    mdm[j]   = new TH1F(Form("mdm[%i]",j),Form("MD Neg  Octant %i",j+1),2400,0,2400);
 
     mdall[j]->SetFillColor(kRed+3);
     mdp[j]->SetFillColor(kRed+3);
@@ -67,9 +68,9 @@ void sca_analysis(int runnumber, int eventLow=0, int eventHigh=4000000) {
   TH1F *tsm[num_md];
 
   for(int j=0; j<num_ts; j++) {
-    tsall[j] = new TH1F(Form("tsall[%i]",j),Form("TS Mean time %i",j),800,0,800);
-    tsp[j] = new TH1F(Form("tsp[%i]",j),Form("TS Plus %i",j),800,0,800);
-    tsm[j] = new TH1F(Form("tsm[%i]",j),Form("TS Neg  %i",j),800,0,800);
+    tsall[j] = new TH1F(Form("tsall[%i]",j),Form("TS Mean time %i",j),2400,0,2400);
+    tsp[j] = new TH1F(Form("tsp[%i]",j),Form("TS Plus %i",j),2400,0,2400);
+    tsm[j] = new TH1F(Form("tsm[%i]",j),Form("TS Neg  %i",j),2400,0,2400);
 
     tsall[j]->SetFillColor(kBlue+3);
     tsp[j]->SetFillColor(kBlue+3);
@@ -119,7 +120,7 @@ void sca_analysis(int runnumber, int eventLow=0, int eventHigh=4000000) {
   }
 
   long n_entries = tree->GetEntries();
-  for (long j=0; j<n_entries; j++) {
+  for (long j=eventLow; j<n_entries; j++) {
     //process events only within desired event number range
     if (!(j>=eventLow && j<=eventHigh)) {continue;}
     tree      -> GetEntry(j);
@@ -252,7 +253,7 @@ void sca_analysis(int runnumber, int eventLow=0, int eventHigh=4000000) {
     tsm_mean[j]  , tsm_error[j],
     tsp_mean[j]  , tsp_error[j] );
   }
-
+/*
 //now give the lifetime, accidentals, and uncorrelated pulse rates
   //discriminator width is 40 ns, convert to seconds
   const int disc = 174*pow(10,-9);
@@ -321,6 +322,7 @@ void sca_analysis(int runnumber, int eventLow=0, int eventHigh=4000000) {
     tsm_mean[j]  , tsm_error[j],
     tsp_mean[j]  , tsp_error[j] );
   }
+  */
 }
 
 
