@@ -43,6 +43,17 @@ QwTreeLine::QwTreeLine(int _a_beg, int _a_end, int _b_beg, int _b_end)
 }
 
 
+/// Constructor with offset and slope
+QwTreeLine::QwTreeLine(double offset, double slope)
+{
+  // Initialize
+  Initialize();
+
+  // Offset and slope
+  fOffset = offset;
+  fSlope = slope;
+}
+
 /// Copy constructor
 QwTreeLine::QwTreeLine(const QwTreeLine& that)
 : VQwTrackingElement(that)
