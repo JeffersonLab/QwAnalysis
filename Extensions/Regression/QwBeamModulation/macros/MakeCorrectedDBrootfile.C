@@ -100,7 +100,8 @@ Int_t GetMonitorAndDetectorLists(TString *monitorList, TString *detectorList,
     file>>id>>detectr;
     getline(file, str);
     detectorList[nDet] = TString(detectr);
-    if(!ch->GetBranch(detectorList[nDet].Data())){
+    if(!ch->GetBranch(detectorList[nDet].Data()) && 
+       !detectorList[nDet].Contains("pmtavg")){
       cout<<detectorList[nDet].Data()<<" missing.\n";
     }else{
       if( trunc && detectorList[nDet].Contains("qwk_"))

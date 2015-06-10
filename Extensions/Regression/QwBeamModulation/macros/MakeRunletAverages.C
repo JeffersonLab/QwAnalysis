@@ -82,14 +82,15 @@ Branch_t ProcessRunlet(double mean, double meansq, double n)
 
 
 Int_t MakeRunletAverages(Int_t slug, TString type = "reduced", 
-			 TString  treename = "slug", TString stem = "") 
+			 TString  treename = "slug", TString stem = "",
+			 Int_t harddisk = 1) 
 {
-  bool debug = 0, add_composite_leaves = 0;
+  bool debug = 0, add_composite_leaves = 1;
   int run_period = (slug<137 ? 1 : 2);
   TString dirname = Form("/net/data2/paschkelab%i/reduced_slugfiles/run%i",	
 			 run_period+1, run_period);
-  TString dirname_1 = Form("/net/data2/paschkelab1/reduced_slugfiles/run%i",	
-			   run_period);
+  TString dirname_1 = Form("/net/data2/paschkelab%i/reduced_slugfiles/run%i",	
+			   harddisk, run_period);
 
   //Get tree to be averaged. 
   /////////////////////////////////////////////////////////
@@ -188,7 +189,7 @@ Int_t MakeRunletAverages(Int_t slug, TString type = "reduced",
   }
   double *mean = new double[size], *meansq = new double[size], N = 0;
   double meanPos = 0, meanNeg = 0, meansqPos = 0, meansqNeg = 0;
-  double meanDiff = 0, meansqDiff = 0;
+  double meanDiff = 0, meansqDiff = 0, meanAll = 0, meansqAll = 0;
   int prev_runlet = 0, prev_run = 0, nEnt = tree->GetEntries();
   for(int i=0; i<size; ++i){
     mean[i] = 0;
@@ -199,9 +200,13 @@ Int_t MakeRunletAverages(Int_t slug, TString type = "reduced",
   file_stem = (type.Contains("set11_reg_reduced") ? "set11_regressed" : 
 	  file_stem.Data());  
 
-  char *neg_avg_name = "corrected_asym_qwk_pmtavgneg";
-  char *pos_avg_name = "corrected_asym_qwk_pmtavgpos";
-  char *diff_avg_name = "corrected_asym_qwk_pmtavg_pos_minus_neg";
+  char *all_avg_name = "corrected_asym_mdallpmtavg";
+  char *neg_avg_name = "corrected_asym_pmtavgneg";
+  char *pos_avg_name = "corrected_asym_pmtavgpos";
+  char *diff_avg_name = "corrected_asym_pmtavg_pos_minus_neg";
+
+
+
   for(int ient = 0; ient<nEnt; ++ient){
     tree->GetEntry(ient);
 
@@ -231,6 +236,7 @@ Int_t MakeRunletAverages(Int_t slug, TString type = "reduced",
 
       //process composite leaves
       if(add_composite_leaves){
+	//	cout<<"Adding pmtavg leaves\n";
 	Branch_t tEx = ProcessRunlet(meanNeg, meansqNeg, N);
 	fprintf(avg_file, "%s  %18.12e  %18.12e  %18.12e  %d\n", 
 		neg_avg_name, tEx.value, tEx.err, tEx.rms, tEx.n);
@@ -248,6 +254,12 @@ Int_t MakeRunletAverages(Int_t slug, TString type = "reduced",
 		diff_avg_name, tEx.value, tEx.err, tEx.rms, tEx.n);
 	meanDiff = 0;
 	meansqDiff = 0;
+
+	tEx = ProcessRunlet(meanAll, meansqAll, N);
+	fprintf(avg_file, "%s  %18.12e  %18.12e  %18.12e  %d\n", 
+		all_avg_name, tEx.value, tEx.err, tEx.rms, tEx.n);
+	meanAll = 0;
+	meansqAll = 0;
       }
 
 
@@ -268,6 +280,8 @@ Int_t MakeRunletAverages(Int_t slug, TString type = "reduced",
 	meansqNeg += pow(value[idxNeg[imd]] / nMD ,2);
 	meanDiff += (value[idxPos[imd]] - value[idxNeg[imd]]) / nMD;
 	meansqDiff += pow((value[idxPos[imd]] - value[idxNeg[imd]]) / nMD ,2);
+	meanAll += (value[idxPos[imd]] + value[idxNeg[imd]]) / (2.0 * nMD);
+	meansqAll += pow((value[idxPos[imd]] + value[idxNeg[imd]])/(2.0*nMD) ,2);
       }
     }
     prev_runlet = (int)runlet;
@@ -281,6 +295,7 @@ Int_t MakeRunletAverages(Int_t slug, TString type = "reduced",
     cout<<"Failed to open file for writing. Exiting.\n";
     return -1;
   }
+  printf("Processing slug %i run %i.%03i\n",slug, prev_run, prev_runlet);
   for(int i=0; i<size; ++i){
     Branch_t t = ProcessRunlet(mean[i], meansq[i], N);
     //skip doubly named branch
@@ -293,6 +308,33 @@ Int_t MakeRunletAverages(Int_t slug, TString type = "reduced",
     fprintf(avg_file, "%s  %18.12e  %18.12e  %18.12e  %d\n", 
 	    leafnames[i].name.Data(), t.value, t.err, t.rms, t.n);
     
+  }
+  //process composite leaves
+  if(add_composite_leaves){
+    //    cout<<"Adding pmtavg leaves\n";
+    Branch_t tEx = ProcessRunlet(meanNeg, meansqNeg, N);
+    fprintf(avg_file, "%s  %18.12e  %18.12e  %18.12e  %d\n", 
+	    neg_avg_name, tEx.value, tEx.err, tEx.rms, tEx.n);
+    meanNeg = 0;
+    meansqNeg = 0;
+    
+    tEx = ProcessRunlet(meanPos, meansqPos, N);
+    fprintf(avg_file, "%s  %18.12e  %18.12e  %18.12e  %d\n", 
+	    pos_avg_name, tEx.value, tEx.err, tEx.rms, tEx.n);
+    meanPos = 0;
+    meansqPos = 0;
+    
+    tEx = ProcessRunlet(meanDiff, meansqDiff, N);
+    fprintf(avg_file, "%s  %18.12e  %18.12e  %18.12e  %d\n", 
+	    diff_avg_name, tEx.value, tEx.err, tEx.rms, tEx.n);
+    meanDiff = 0;
+    meansqDiff = 0;
+    
+    tEx = ProcessRunlet(meanAll, meansqAll, N);
+    fprintf(avg_file, "%s  %18.12e  %18.12e  %18.12e  %d\n", 
+	    all_avg_name, tEx.value, tEx.err, tEx.rms, tEx.n);
+    meanAll = 0;
+    meansqAll = 0;
   }
   fclose(avg_file);
 

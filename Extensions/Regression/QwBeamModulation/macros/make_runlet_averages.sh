@@ -11,5 +11,9 @@ stem=$5
 
 for (( islug=${start};islug<=${end};islug+=1 ))
 do
-    nice root -b -q MakeRunletAverages.C+\(${islug},\"${tree_type}\",\"${tree_name}\",\"${stem}\"\)
+  harddisk=2
+  if [ $islug -gt 136 ]; then
+      harddisk=3
+  fi
+    nice root -b -q MakeRunletAverages.C+\(${islug},\"${tree_type}\",\"${tree_name}\",\"${stem}\",${harddisk}\)
 done

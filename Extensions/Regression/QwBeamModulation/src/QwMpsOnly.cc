@@ -3,6 +3,9 @@
 #include "headers.h"
 #include <functional> 
 #include <TLeaf.h>
+#include <TMatrixDSym.h>
+#include <TMatrixDEigen.h>
+#include <map>
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -55,7 +58,7 @@ QwMpsOnly::QwMpsOnly(TChain *tree)
   fRunNumberSet = false; 
   fPhaseConfig = false;
   fFileSegmentInclude = false;
-  f2DFit = true;
+  f2DFit = false;//use MINUIT to find coefficients--very slow
   fChiSquareMinimization = false;
   fFileSegment = ""; 
   fFileStem =  "mps_only"; 
@@ -87,7 +90,20 @@ int QwMpsOnly::AddFriendTree()
     return 1;
   }else
     return 0;
+
 }
+
+void QwMpsOnly::BuildCoilData()
+{
+  for(Int_t i = 0; i < kNMod; i++){
+    CoilData_copy.push_back(std::vector <Double_t>());
+    CoilData.push_back(std::vector <Double_t>());
+  }
+  std::cout << "Coil block size: " << CoilData.size() << std::endl;
+  
+  return;
+}
+
 void QwMpsOnly::BuildDetectorData()
 {
   for(Int_t i = 0; i < fNDetector; i++)
@@ -98,9 +114,7 @@ void QwMpsOnly::BuildDetectorData()
 
 void QwMpsOnly::BuildDetectorAvSlope()
 {
-  Int_t nMod = kNMod;
-  if(f2DFit)nMod = kNCoil;
-  for(Int_t i = 0; i < nMod; i++){
+  for(Int_t i = 0; i < kNCoil; i++){
     AvDetectorSlope.push_back(std::vector <Double_t>());
     AvDetectorSlopeError.push_back(std::vector <Double_t>());
   }
@@ -109,33 +123,42 @@ void QwMpsOnly::BuildDetectorAvSlope()
   return;
 }
 
-void QwMpsOnly::BuildCoilData()
- {
-   for(Int_t i = 0; i < kNMod; i++)
-     CoilData.push_back(std::vector <Double_t>());
-     std::cout << "Coil block size: " << CoilData.size() << std::endl;
-   
-   return;
- }
-
 void QwMpsOnly::BuildDetectorSlopeVector()
 {
   // First 5 hold Sine components for each Mod Type
   // modType+5 holds Cosine Component 
+  DetectorData_copy.resize(kNMod);
   DetectorSlope.resize(kNCoil);
   DetectorSlopeError.resize(kNCoil);
   for(Int_t i = 0; i < kNCoil; i++){
+    if(i<kNMod)
+      DetectorData_copy[i].resize(fNDetector);
     DetectorSlope[i].resize(fNDetector);
     DetectorSlopeError[i].resize(fNDetector);
   }
   return;
 }
 
+void QwMpsOnly::BuildDetectorResidualVector()
+{
+  // First 5 hold Sine components for each Mod Type
+  // modType+5 holds Cosine Component 
+  DetectorSinResidual.resize(kNMod);
+  DetectorSinResidualError.resize(kNMod);
+  DetectorCosResidual.resize(kNMod);
+  DetectorCosResidualError.resize(kNMod);
+  for(Int_t i = 0; i < kNMod; i++){
+    DetectorSinResidual[i].resize(fNDetector);
+    DetectorSinResidualError[i].resize(fNDetector);
+    DetectorCosResidual[i].resize(fNDetector);
+    DetectorCosResidualError[i].resize(fNDetector);
+  }
+  return;
+}
+
 void QwMpsOnly::BuildMonitorAvSlope()
 {
-  Int_t nMod = kNMod;
-  if(f2DFit)nMod = kNCoil;
-  for(Int_t i = 0; i < nMod; i++){
+  for(Int_t i = 0; i < kNCoil; i++){
     AvMonitorSlope.push_back(std::vector <Double_t>());
     AvMonitorSlopeError.push_back(std::vector <Double_t>());
   }
@@ -159,9 +182,12 @@ void QwMpsOnly::BuildMonitorSlopeVector()
 {
   // First 5 hold Sine components for each Mod Type
   // modType+5 holds Cosine Component
+  MonitorData_copy.resize(kNMod);
   MonitorSlope.resize(kNCoil);
   MonitorSlopeError.resize(kNCoil);
   for(Int_t i = 0; i < kNCoil; i++){
+    if(i<kNMod)
+      MonitorData_copy[i].resize(fNMonitor);
     MonitorSlope[i].resize(fNMonitor);
     MonitorSlopeError[i].resize(fNMonitor);
   }
@@ -557,8 +583,9 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
     cD->Print(Form("DetectorPlot%i.png",modType));
     delete cD;
   }
-  
-  //  CoilData[modType].clear();
+
+  //Copy data to storage vectors for future residual calculations
+  CopyDataVectors(modType);
   
   // These need to be set so we know if we have a full set of modulation data
   if(modType == fXModulation)  fXinit = true;
@@ -577,26 +604,20 @@ void QwMpsOnly::Calculate2DSlope(Int_t modType, Int_t makePlots)
   return;
 }
 
-void QwMpsOnly::CalculateSlope(Int_t modType)
+void QwMpsOnly::CalculateCoefficients(Int_t modType)
 {
-
-  Double_t c_mean = 0;
-  Double_t d_mean = 0;
-  Double_t sigma_cc = 0;
-  Double_t sigma_dc = 0;
-  Double_t sigma_dd = 0;
-  Double_t sigma_slope = 0;
-  Double_t slope = 0;
-
-  //  DetectorSlope[modType].resize(fNEvents);
+  //More efficient version of Calculate2DSlope() using linear algebra instead 
+  //of Minuit fits to find sine and cosine coefficients
   if(!fPhaseConfig){
-    Double_t temp[kNMod]={0.,0.,0.,0.,0.};        
+    Double_t temp[5]={0.,0.,0.,0.,0.};//{0.26, 0.26, 0.0, 1.08, 1.08};         
     SetPhaseValues(temp); 
   }
-
-  if(fNEvents < 3){
-    std::cout << red <<"Error in run:: Number of good events too small, exiting." 
-	      << normal << std::endl;
+  Int_t minEntries = (fUseDataTertile!=0 ? 3850 : 100);
+ 
+  fCycleNum[modType]++;
+  if(fNEvents < minEntries){
+    std::cout<< red << "Number of good events (" << fNEvents 
+	     <<") too small in microcycle. Exiting."<< normal << std::endl;
     return;
   }
   
@@ -605,133 +626,368 @@ void QwMpsOnly::CalculateSlope(Int_t modType)
 	      << CoilData[modType].size() << std::endl;
     return;
   }
+  
+  //This tool allows one to use only one third of the data in a given cycle
+  //It is useful for comparing if the sensitivities are constant over a 
+  //modulation cycle. This is assumed to be true for modulation corrections to 
+  //be correct.
+  bool local_debug = 0;
+  if(fUseDataTertile>0 && fUseDataTertile<4){
+    int start = int(fNEvents / 3.0) * (fUseDataTertile - 1);
+    int end = start + int(fNEvents / 3.0);
+    int size = end - start;
+    std::cout<<"Using tertile "<<fUseDataTertile<<" events "<<start<<" to "<<
+      end<<".\n";
+    if(local_debug)
+      std::cout<<"CoilData before: "<<CoilData[modType][start]<<" "
+	       <<CoilData[modType][end-1]<<std::endl;
+    for(int i=0;i<size && fUseDataTertile>1;++i){
+      CoilData[modType][i] = CoilData[modType].at(i+start);
+    }
+    CoilData[modType].resize(size);
+    if(local_debug){
+      std::cout<<"CoilData after: "<<CoilData[modType][0]<<" "
+	       <<CoilData[modType][size-1]<<std::endl;
+
+      std::cout<<"MonitorData before: "<<MonitorData[0][start]<<" "
+	       <<MonitorData[0][end-1]<<std::endl;
+    }
+    for(int imon=0;imon<fNMonitor;++imon){
+      for(int i=0;i<size && fUseDataTertile>1;++i)
+	MonitorData[imon][i] = MonitorData[imon].at(i+start);
+      MonitorData[imon].resize(size);
+    }
+    if(local_debug){
+      std::cout<<"MonitorData after: "<<MonitorData[0][0]<<" "
+	       <<MonitorData[0][size-1]<<std::endl;
+      
+      std::cout<<"DetectorData before: "<<DetectorData[0][start]<<" "
+	       <<DetectorData[0][end-1]<<std::endl;
+    }
+    for(int idet=0;idet<fNDetector;++idet){
+      for(int i=0;i<size && fUseDataTertile>1;++i)
+	DetectorData[idet][i] =  DetectorData[idet].at(i+start);
+      DetectorData[idet].resize(size);
+    }
+    if(local_debug)
+      std::cout<<"DetectorData after: "<<DetectorData[0][0]<<" "
+	       <<DetectorData[0][size-1]<<std::endl;
+
+    fNEvents = size;
+  }
+  ////////////////////////////////////////
+
 
   //*******************************
   ModulationEvents[modType] += fNEvents;
   //*******************************
+
+
+
+     
+  ///////////////////////////////////////////////
+  //Accumulate data and calculate coefficients //
+  ///////////////////////////////////////////////
+ 
+  double X00, X10, X01, X11, X20, X02;
+  X00 = X10 = X01 = X11 = X20 = X02 = 0;
+  std::map<TString, double> Y00, Y10, Y01;
+  std::map<TString, double> Z00;
+  for (int imon = 0; imon < (int)MonitorList.size(); ++imon) {
+    Y00[MonitorList[imon]] = 0;
+    Y01[MonitorList[imon]] = 0;
+    Y10[MonitorList[imon]] = 0;
+    Z00[MonitorList[imon]] = 0;
+  }
+  for (int idet = 0; idet < (int)DetectorList.size(); ++idet) {
+    Y00[DetectorList[idet]] = 0;
+    Y01[DetectorList[idet]] = 0;
+    Y10[DetectorList[idet]] = 0;
+    Z00[DetectorList[idet]] = 0;
+  }
+
+  for (int i=0; i < (int)CoilData[modType].size(); ++i) {
+    double costheta = cos(CoilData[modType][i] * kDegToRad);
+    double sintheta = sin(CoilData[modType][i] * kDegToRad);
+
+    X00 += 1;
+    X10 += costheta;
+    X01 += sintheta;
+    X11 += costheta * sintheta;
+    X20 += costheta * costheta;
+    X02 += sintheta * sintheta;
+    for (int imon = 0; imon < (int)MonitorList.size(); ++imon) {
+      double y = MonitorData[imon][i];
+      Y00[MonitorList[imon]] += y;
+      Y10[MonitorList[imon]] += y * costheta;
+      Y01[MonitorList[imon]] += y * sintheta;
+      Z00[MonitorList[imon]] += y * y;
+    }
+    for (int idet = 0; idet < (int)DetectorList.size(); ++idet) {
+      double y = DetectorData[idet][i];
+      Y00[DetectorList[idet]] += y;
+      Y10[DetectorList[idet]] += y * costheta;
+      Y01[DetectorList[idet]] += y * sintheta;
+      Z00[DetectorList[idet]] += y * y;
+    }
+  } 
+  TMatrixDSym M(3);
+  M(0,0) = X20;
+  M(0,1) = M(1,0) = X11;
+  M(0,2) = M(2,0) = X10;
+  M(1,1) = X02;
+  M(1,2) = M(2,1) = X01;
+  M(2,2) = X00;
+  TMatrixDSym MI(M);
+  double determ;
+  MI.Invert(&determ);
+
+  
+  ///////////////
+  // Monitors //
+  ///////////////
+  for (int imon = 0; imon < (int)MonitorList.size(); ++imon) {
+    double B[3];
+    B[0] = Y10[MonitorList[imon]];
+    B[1] = Y01[MonitorList[imon]];
+    B[2] = Y00[MonitorList[imon]];
+    double c_cos = MI(0,0) * B[0] + MI(0,1) * B[1] + MI(0,2) * B[2];
+    double c_sin = MI(1,0) * B[0] + MI(1,1) * B[1] + MI(1,2) * B[2];
+    double c_cons = MI(2,0) * B[0] + MI(2,1) * B[1] + MI(2,2) * B[2];
+    double chisqr = Z00[MonitorList[imon]]
+      - 2 * (c_cos * B[0] + c_sin * B[1] + c_cons * B[2])
+      + c_cos * c_cos * M(0,0) + c_sin * c_sin * M(1,1)
+      + c_cons * c_cons * M(2,2)
+      + 2 * (c_cos * c_sin * M(0,1) 
+	     + c_cos * c_cons * M(0,2)
+	     + c_sin * c_cons * M(1,2));
+    double varresid = chisqr / (X00 - 3);
+    double c_cos_err = sqrt(MI(0,0) * varresid);
+    double c_sin_err = sqrt(MI(1,1) * varresid);
+    double c_cons_err = sqrt(MI(2,2) * varresid);
+    //std::cout<<MonitorList[imon].Data()<<" "<<c_sin<<" "<<c_sin_err<<" "
+    //	     <<c_cos<<" "<<c_cos_err<<" "<<c_cons<<" "<<c_cons_err<<std::endl;
+    MonitorMean[modType][imon] = c_cons;
+    MonitorMeanError[modType][imon] = c_cons_err;
+    MonitorSlope[modType][imon].push_back(c_sin);
+    MonitorSlopeError[modType][imon].push_back(c_sin_err);
+    MonitorSlope[modType+5][imon].push_back(c_cos);
+    MonitorSlopeError[modType+5][imon].push_back(c_cos_err);
+
+  }
    
-//  if(modType == 0)
-//     std::cout<<"mod_type# "<<modType<<"\n";
-
-  for(Int_t det = 0; det < fNDetector; det++){
-    
-    if(DetectorData[det].size() <= 0){
-      std::cout << "!!!!!!!!!!!!!!!!! Illegal Detector vector length:\t" 
-		<< DetectorData[det].size() << std::endl;
-      return;
-    }
-
-  
-    for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
-      c_mean += TMath::Sin( kDegToRad*CoilData[modType][evNum] + 
-			    phase[modType]);
-    c_mean /= fNEvents;
-    
-    for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
-      d_mean += DetectorData[det][evNum];
-    d_mean /= fNEvents;
-
-    for(Int_t evNum = 0; evNum < fNEvents; evNum++){
-      Double_t val = (TMath::Sin( kDegToRad*CoilData[modType][evNum] 
-			     + phase[modType] )- c_mean);
-      sigma_cc += val * val;
-      sigma_dc += (DetectorData[det][evNum] - d_mean) * val;
-      sigma_dd += TMath::Power((DetectorData[det][evNum] - d_mean), 2);
-      
-    }
-    
-    slope = sigma_dc/sigma_cc;
-    sigma_slope = TMath::Sqrt((sigma_dd - ( (sigma_dc*sigma_dc)/sigma_cc) )
-			      /(sigma_cc*( fNEvents - 2 )));
-    
-    //
-    // Load Yields in to make Yield Correction a little easier in the end.
-    //
-    if(!fFractionalDetectorSlopes){
-      d_mean = 1.0;
-    }
-    if(fSensHumanReadable == 1){
-      DetectorSlope[modType][det].push_back(1e6*slope
-					      /( TMath::Abs(d_mean) ));
-      DetectorSlopeError[modType][det].push_back(1e6*sigma_slope
-						   /( TMath::Abs(d_mean) ));
-      
+  ///////////////
+  // Detectors //
+  ///////////////
+  for (int idet = 0; idet < (int)DetectorList.size(); ++idet) {
+    double B[3];
+    B[0] = Y10[DetectorList[idet]];
+    B[1] = Y01[DetectorList[idet]];
+    B[2] = Y00[DetectorList[idet]];
+    double c_cos = MI(0,0) * B[0] + MI(0,1) * B[1] + MI(0,2) * B[2];
+    double c_sin = MI(1,0) * B[0] + MI(1,1) * B[1] + MI(1,2) * B[2];
+    double c_cons = MI(2,0) * B[0] + MI(2,1) * B[1] + MI(2,2) * B[2];
+    double chisqr = Z00[DetectorList[idet]]
+      - 2 * (c_cos * B[0] + c_sin * B[1] + c_cons * B[2])
+      + c_cos * c_cos * M(0,0) + c_sin * c_sin * M(1,1)
+      + c_cons * c_cons * M(2,2)
+      + 2 * (c_cos * c_sin * M(0,1) 
+	     + c_cos * c_cons * M(0,2)
+	     + c_sin * c_cons * M(1,2));
+    double varresid = chisqr / (X00 - 3);
+    double c_cos_err = sqrt(MI(0,0) * varresid);
+    double c_sin_err = sqrt(MI(1,1) * varresid);
+    double c_cons_err = sqrt(MI(2,2) * varresid);
+    DetectorMean[modType][idet] = c_cons;
+    DetectorMeanError[modType][idet] = c_cons_err;
+    double abs_cons = TMath::Abs(c_cons);
+    if(fFractionalDetectorSlopes){
+      DetectorSlope[modType][idet].push_back(c_sin/abs_cons);
+      double s_err = TMath::Abs(c_sin / c_cons) *
+	sqrt(pow(c_sin_err/c_sin,2) + pow(c_cons_err/c_cons,2));
+      DetectorSlopeError[modType][idet].push_back(s_err);
+      DetectorSlope[modType+5][idet].push_back(c_cos/abs_cons);
+      double c_err = TMath::Abs(c_cos / c_cons) *
+	sqrt(pow(c_cos_err/c_cos,2) + pow(c_cons_err/c_cons,2));
+      DetectorSlopeError[modType+5][idet].push_back(c_err);
     }else{
-      DetectorSlope[modType][det].push_back(slope/( TMath::Abs(d_mean) ));
-      DetectorSlopeError[modType][det].push_back(sigma_slope
-						 /( TMath::Abs(d_mean) ));
+      DetectorSlope[modType][idet].push_back(c_sin);
+      DetectorSlopeError[modType][idet].push_back(c_sin_err);
+      DetectorSlope[modType+5][idet].push_back(c_cos);
+      DetectorSlopeError[modType+5][idet].push_back(c_cos_err);
     }
-    
-    c_mean = 0;
-    d_mean = 0;
-    slope = 0;
-    sigma_slope = 0;
-    sigma_cc = 0;
-    sigma_dc = 0;
-    sigma_dd = 0;
+    //    std::cout<<DetectorList[idet].Data()<<" "<<c_sin/abs_cons<<" "
+    //<<s_err<<" "<<c_cos/abs_cons<<" "<<c_err<<" "<<c_cons<<" "
+    //<<c_cons_err<<std::endl;
   }
-  
-  for(Int_t mon = 0; mon < fNMonitor; mon++){
-    if(MonitorData[mon].size() <= 0){
-      std::cout << "!!!!!!!!!!!!!!!!! Illegal Monitor vector length:\t" 
-		<< MonitorData[mon].size() << std::endl;
-      return;
-    }
-    for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
-      c_mean += TMath::Sin( kDegToRad*CoilData[modType][evNum] 
-			    + phase[modType] );
-    c_mean /= fNEvents;
-    
-    for(Int_t evNum = 0; evNum < fNEvents; evNum++) 
-      d_mean += MonitorData[mon][evNum];
-    d_mean /=fNEvents;
-    
-    //Linearize Data --don  
-    for(Int_t evNum = 0; evNum < fNEvents; evNum++){
-      Double_t val = (TMath::Sin(kDegToRad*CoilData[modType][evNum] 
-				 + phase[modType] ) - c_mean);
-      sigma_cc += val*val;
-      sigma_dc += val*(MonitorData[mon][evNum] - d_mean);
-      sigma_dd += TMath::Power((MonitorData[mon][evNum] - d_mean),2);
-      
-     }
-    
-    slope = sigma_dc/sigma_cc; 
-    sigma_slope = TMath::Sqrt((sigma_dd - (sigma_dc*sigma_dc)/sigma_cc)
-			      /(sigma_cc*(fNEvents -2 )));
-    
-    MonitorSlope[modType][mon].push_back(slope);
-    MonitorSlopeError[modType][mon].push_back(sigma_slope);
-    
-    c_mean = 0;
-    d_mean = 0;
-    slope = 0;
-    sigma_slope = 0;
-    sigma_cc = 0;
-    sigma_dc = 0;
-    sigma_dd = 0;  
-    
-  }
-  
+
+  //Copy data to storage vectors for future residual calculations
+  CopyDataVectors(modType);
+   
   // These need to be set so we know if we have a full set of modulation data
-  
   if(modType == fXModulation)  fXinit = true;
   if(modType == fYModulation)  fYinit = true;
   if(modType == fEModulation)  fEinit = true;
   if(modType == fXPModulation) fXPinit = true;
   if(modType == fYPModulation) fYPinit = true;
-  
+
   return;
 }
 
+void QwMpsOnly::CalculateResiduals()
+{
+
+  //////////////////////////////////////////////////////
+  //Use slopes to correct data and find the residuals //
+  //////////////////////////////////////////////////////
+
+  //Correction using fractional slopes:
+  //corrected_det = det/mean_det*(1-mean_det/det*sum(slope*(mon-mon_mean))
+  //Data normalized to approximately unit mean
+  for(int imod=0;imod<kNMod;++imod){
+    if(fFractionalDetectorSlopes){
+      for(int i=0;i<(int)DetectorData_copy[imod][0].size();++i){
+	for(int idet=0;idet<fNDetector;++idet){
+	  DetectorData_copy[imod][idet][i] /= DetectorMean[imod][idet];
+	  double correction = 0;
+	  for(int imon=0;imon<fNMonitor;++imon){
+	    double slope = YieldSlope[idet][imon] / fUnitConvert[imon];
+	    correction += (slope / DetectorData_copy[imod][idet][i]) *
+	      (MonitorData_copy[imod][imon][i] - MonitorMean[imod][imon]);
+// 	    std::cout<<"Correction "<<MonitorList[imon].Data()<<" "
+// 		     <<YieldSlope[idet][imon]<<"/"
+// 		     <<fUnitConvert[imon]<<"/"<<DetectorData_copy[imod][idet][i]
+// 		     <<"*("<<MonitorData_copy[imod][imon][i]<<"-"
+// 		     <<MonitorMean[imod][imon]<<")\n";
+	  }
+	  DetectorData_copy[imod][idet][i] *= (1 - correction);
+	  // 	if(idet==0&&i%100==0)
+	  // 	  std::cout<<"h "<<DetectorData_copy[imod][idet][i]<<std::endl;
+	}
+      }
+    }  
+    //Correction using absolute slopes:
+    //corrected_det = det-sum(slope*(mon-mon_mean))
+    else{
+      for(int i=0;i<(int)DetectorData_copy[imod][0].size();++i){
+	for(int idet=0;idet<fNDetector;++idet){
+	  for(int imon=0;imon<fNMonitor;++imon){
+	    double slope = YieldSlope[idet][imon] / fUnitConvert[imon];
+	    DetectorData_copy[imod][idet][i] -= slope * 
+	      (MonitorData_copy[imod][imon][i] - MonitorMean[imod][imon]);
+	  }
+	}
+      }
+    }
+
+    double X00, X10, X01, X11, X20, X02;
+    X00 = X10 = X01 = X11 = X20 = X02 = 0;
+    std::map<TString, double> Y00, Y10, Y01;
+    std::map<TString, double> Z00;
+    for (int imon = 0; imon < (int)MonitorList.size(); ++imon) {
+      Y00[MonitorList[imon]] = 0;
+      Y01[MonitorList[imon]] = 0;
+      Y10[MonitorList[imon]] = 0;
+      Z00[MonitorList[imon]] = 0;
+    }
+    for (int idet = 0; idet < (int)DetectorList.size(); ++idet) {
+      Y00[DetectorList[idet]] = 0;
+      Y01[DetectorList[idet]] = 0;
+      Y10[DetectorList[idet]] = 0;
+      Z00[DetectorList[idet]] = 0;
+    }
+
+    for (int i=0; i < (int)CoilData_copy[imod].size(); ++i) {
+      double costheta = cos(CoilData_copy[imod][i] * kDegToRad);
+      double sintheta = sin(CoilData_copy[imod][i] * kDegToRad);
+
+      X00 += 1;
+      X10 += costheta;
+      X01 += sintheta;
+      X11 += costheta * sintheta;
+      X20 += costheta * costheta;
+      X02 += sintheta * sintheta;
+      for (int imon = 0; imon < (int)MonitorList.size(); ++imon) {
+	double y = MonitorData_copy[imod][imon][i];
+	Y00[MonitorList[imon]] += y;
+	Y10[MonitorList[imon]] += y * costheta;
+	Y01[MonitorList[imon]] += y * sintheta;
+	Z00[MonitorList[imon]] += y * y;
+      }
+      for (int idet = 0; idet < (int)DetectorList.size(); ++idet) {
+	double y = DetectorData_copy[imod][idet][i];
+	Y00[DetectorList[idet]] += y;
+	Y10[DetectorList[idet]] += y * costheta;
+	Y01[DetectorList[idet]] += y * sintheta;
+	Z00[DetectorList[idet]] += y * y;
+      }
+    } 
+    TMatrixDSym M(3);
+    M(0,0) = X20;
+    M(0,1) = M(1,0) = X11;
+    M(0,2) = M(2,0) = X10;
+    M(1,1) = X02;
+    M(1,2) = M(2,1) = X01;
+    M(2,2) = X00;
+    TMatrixDSym MI(M);
+    double determ;
+    MI.Invert(&determ);
+
+   
+    ///////////////
+    // Detectors //
+    ///////////////
+    for (int idet = 0; idet < (int)DetectorList.size(); ++idet) {
+      double B[3];
+      B[0] = Y10[DetectorList[idet]];
+      B[1] = Y01[DetectorList[idet]];
+      B[2] = Y00[DetectorList[idet]];
+      double c_cos = MI(0,0) * B[0] + MI(0,1) * B[1] + MI(0,2) * B[2];
+      double c_sin = MI(1,0) * B[0] + MI(1,1) * B[1] + MI(1,2) * B[2];
+      double c_cons = MI(2,0) * B[0] + MI(2,1) * B[1] + MI(2,2) * B[2];
+      double chisqr = Z00[DetectorList[idet]]
+	- 2 * (c_cos * B[0] + c_sin * B[1] + c_cons * B[2])
+	+ c_cos * c_cos * M(0,0) + c_sin * c_sin * M(1,1)
+	+ c_cons * c_cons * M(2,2)
+	+ 2 * (c_cos * c_sin * M(0,1) 
+	       + c_cos * c_cons * M(0,2)
+	       + c_sin * c_cons * M(1,2));
+      double varresid = chisqr / (X00 - 3);
+      double c_cos_err = sqrt(MI(0,0) * varresid);
+      double c_sin_err = sqrt(MI(1,1) * varresid);
+      double c_cons_err = sqrt(MI(2,2) * varresid);
+      double abs_cons = TMath::Abs(c_cons);
+
+      if(fFractionalDetectorSlopes){
+	DetectorSinResidual[imod][idet].push_back(c_sin/abs_cons);
+	double s_err = TMath::Abs(c_sin / c_cons) *
+	  sqrt(pow(c_sin_err/c_sin,2) + pow(c_cons_err/c_cons,2));
+	DetectorSinResidualError[imod][idet].push_back(s_err);
+
+	DetectorCosResidual[imod][idet].push_back(c_cos/abs_cons);
+	double c_err = TMath::Abs(c_cos / c_cons) *
+	  sqrt(pow(c_cos_err/c_cos,2) + pow(c_cons_err/c_cons,2));
+	DetectorCosResidualError[imod][idet].push_back(c_err);
+      }else{
+	DetectorSinResidual[imod][idet].push_back(c_sin);
+	DetectorSinResidualError[imod][idet].push_back(c_sin_err);
+	DetectorCosResidual[imod][idet].push_back(c_cos);
+	DetectorCosResidualError[imod][idet].push_back(c_cos_err);
+      }
+      //    std::cout<<DetectorList[idet].Data()<<" "<<c_sin/abs_cons<<" "
+      //<<s_err<<" "<<c_cos/abs_cons<<" "<<c_err<<" "<<c_cons<<" "
+      //<<c_cons_err<<std::endl;
+    }
+  }
+  return;
+}
 Int_t QwMpsOnly::CalculateWeightedSlope(Int_t verbose)
 {
 
   Double_t mean = 0;
   Double_t mean_error = 0;
   Int_t nMod = kNMod; 
-  if(f2DFit) nMod = kNCoil;
-  for(Int_t i = 0; i < nMod; i++){
+  for(Int_t i = 0; i < kNCoil; i++){
     AvDetectorSlope[i].clear();
     AvDetectorSlopeError[i].clear();
     for(Int_t j = 0; j < fNDetector; j++){
@@ -865,11 +1121,11 @@ void QwMpsOnly::CleanFolders()
 void QwMpsOnly::ComputeAsymmetryCorrections()
 {
 
-//**************************************************************
-//
-// Time to calculate some Corrections 
-//
-//**************************************************************
+  //**************************************************************
+  //
+  // Time to calculate some Corrections 
+  //
+  //**************************************************************
 
   TFile file(Form("%s/rootfiles/mps_bmod_tree%s_%i.%s.root", output.Data(), 
 		  fFileSegment.Data(), run_number, fSetStem.Data()),"RECREATE");
@@ -992,7 +1248,7 @@ void QwMpsOnly::ComputeAsymmetryCorrections()
   	  temp_correction += YieldSlope[j][k]*HMonBranch[k][0]; 
 	  monitor_correction[j][k] = YieldSlope[j][k]*HMonBranch[k][0];
 	  if(fCharge) 
-	  if( (i % 100000) == 0 ){}
+	    if( (i % 100000) == 0 ){}
 	}
    	correction[j] = temp_correction;                                  
 
@@ -1022,7 +1278,7 @@ void QwMpsOnly::ComputeAsymmetryCorrections()
 void QwMpsOnly::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
 {
 
-//   Double_t conversion[] = {1., 1.e6, 1., 1., 1.e6};
+  //   Double_t conversion[] = {1., 1.e6, 1., 1., 1.e6};
 
   TMatrixD var(fNMonitor, fNMonitor);
   TMatrixD temp(fNMonitor, fNMonitor);
@@ -1030,46 +1286,46 @@ void QwMpsOnly::ComputeErrors(TMatrixD Y, TMatrixD eY, TMatrixD A, TMatrixD eA)
   TMatrixD Errord(fNDetector, fNMonitor);  
   TMatrixD Error(fNDetector, fNMonitor);  
 
-    for(Int_t i = 0; i < fNMonitor; i++){
-      for(Int_t k = 0; k < fNMonitor; k++){
-	for(Int_t n = 0; n < fNMonitor; n++){
-	  for(Int_t j = 0; j < fNMonitor; j++){
-	    var(i, k) += TMath::Power(A(i, n), 2) * TMath::Power(eA(n, j), 2)
-	      * TMath::Power(A(j, k), 2);
-	  }
-	}
-      }
-    }
-       
-    for(Int_t m = 0; m < fNDetector; m++){    
-
-      for(Int_t i = 0; i < fNMonitor; i++){
+  for(Int_t i = 0; i < fNMonitor; i++){
+    for(Int_t k = 0; k < fNMonitor; k++){
+      for(Int_t n = 0; n < fNMonitor; n++){
 	for(Int_t j = 0; j < fNMonitor; j++){
- 	  Errorm(m, i) += var(j, i)*TMath::Power( Y(m, j),2);
+	  var(i, k) += TMath::Power(A(i, n), 2) * TMath::Power(eA(n, j), 2)
+	    * TMath::Power(A(j, k), 2);
 	}
       }
- 
-       for(Int_t i = 0; i < fNMonitor; i++)
-         Errorm(m, i) = TMath::Sqrt(Errorm(m, i));
-       for(Int_t i = 0; i < fNMonitor; i++){
-	 for(Int_t j = 0; j < fNMonitor; j++){
-	   Errord(m, i) += TMath::Power( A(j, i),2)*TMath::Power(eY(m, j) ,2);
-	 }
-       }
-    
-       for(Int_t i = 0; i < fNMonitor; i++)
-	 Errord(m,i) = TMath::Sqrt(Errord(m,i));
-    
-     for(Int_t i = 0; i < fNMonitor; i++){
-       Error(m, i) = TMath::Power(Errord(m, i), 2) + 
-	 TMath::Power(Errorm(m, i), 2);
-       Error(m, i) = TMath::Sqrt(Error(m, i))*fUnitConvert[i];
-       YieldSlopeError[m][i] = Error(m, i);
-     }
-
     }
-    std::cout << other << "Errors:" << normal << std::endl;
-    Error.Print();
+  }
+       
+  for(Int_t m = 0; m < fNDetector; m++){    
+
+    for(Int_t i = 0; i < fNMonitor; i++){
+      for(Int_t j = 0; j < fNMonitor; j++){
+	Errorm(m, i) += var(j, i)*TMath::Power( Y(m, j),2);
+      }
+    }
+ 
+    for(Int_t i = 0; i < fNMonitor; i++)
+      Errorm(m, i) = TMath::Sqrt(Errorm(m, i));
+    for(Int_t i = 0; i < fNMonitor; i++){
+      for(Int_t j = 0; j < fNMonitor; j++){
+	Errord(m, i) += TMath::Power( A(j, i),2)*TMath::Power(eY(m, j) ,2);
+      }
+    }
+    
+    for(Int_t i = 0; i < fNMonitor; i++)
+      Errord(m,i) = TMath::Sqrt(Errord(m,i));
+    
+    for(Int_t i = 0; i < fNMonitor; i++){
+      Error(m, i) = TMath::Power(Errord(m, i), 2) + 
+	TMath::Power(Errorm(m, i), 2);
+      Error(m, i) = TMath::Sqrt(Error(m, i))*fUnitConvert[i];
+      YieldSlopeError[m][i] = Error(m, i);
+    }
+
+  }
+  std::cout << other << "Errors:" << normal << std::endl;
+  Error.Print();
 }
 
 void QwMpsOnly::ComputeSlopeErrors(TMatrixD A, TMatrixD AErr, 
@@ -1143,6 +1399,31 @@ Int_t QwMpsOnly::ConvertPatternNumber(Int_t global)
 
   return(key[global]);
 }
+
+void QwMpsOnly::CopyDataVectors(int modType){
+
+  //Copy data to vectors for future calculation of residuals
+  CoilData_copy[modType].clear();
+  for(int imon=0;imon<fNMonitor;++imon)
+    MonitorData_copy[modType][imon].clear();
+  for(int idet=0;idet<fNDetector;++idet)
+    DetectorData_copy[modType][idet].clear();
+
+  for(int i=0;i<(int)CoilData[modType].size();++i){
+    CoilData_copy[modType].push_back(CoilData[modType][i]);
+
+    for(int imon=0;imon<fNMonitor;++imon){
+      MonitorData_copy[modType][imon].push_back(MonitorData[imon][i]);
+    }
+
+    for(int idet=0;idet<fNDetector;++idet){
+      DetectorData_copy[modType][idet].push_back(DetectorData[idet][i]);
+    }
+
+  }
+
+}
+
 
 Int_t QwMpsOnly::Cut(Long64_t entry)
 {
@@ -1714,7 +1995,7 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
 
       //      flag.Clear();
       int coil = atoi(options[i + 1]);
-      if(coil >= 0 && coil < fNCoil){
+      if(coil >= 0 && coil < kNCoil){
 	fOmitCoil.push_back(coil);
 	std::cout << other << "Omitting coil " <<fOmitCoil.back()
 		  << " from analysis." << normal << std::endl;
@@ -1846,7 +2127,8 @@ void QwMpsOnly::GetOptions(Int_t n, Char_t **options){
     if(flag.CompareTo("--2Dfit", TString::kExact) == 0){
       //      flag.Clear();
       f2DFit = atoi(options[i + 1]);
-      std::cout <<(f2DFit ? "2D Fit Selected" : "Linearized 1D Fit Selected")
+      std::cout <<(f2DFit ? "MINUIT Fit Selected" : 
+		   "Finding coefficients using linearization routine")
 		<< std::endl;
     } 
 
@@ -2193,17 +2475,20 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
       for(Int_t idet=0;idet<fNDetector;idet++){
 	AvDetectorSlope[icoil].push_back(DetectorSlope[icoil][idet].back());
 	AvDetectorSlopeError[icoil].push_back(DetectorSlopeError[icoil][idet].back());
-	//	printf("%s: %14.9e\n",DetectorList[idet].Data(),DetectorSlope[icoil][idet].back());
+	//printf("%s: %14.9e\n",DetectorList[idet].Data(),
+	//DetectorSlope[icoil][idet].back());
       }
       AvMonitorSlope[icoil].clear();
       AvMonitorSlopeError[icoil].clear();
       for(Int_t imon=0;imon<fNMonitor;imon++){
 	AvMonitorSlope[icoil].push_back(MonitorSlope[icoil][imon].back());
 	AvMonitorSlopeError[icoil].push_back(MonitorSlopeError[icoil][imon].back());
-	//     printf("%s: %14.9e\n",MonitorList[imon].Data(),MonitorSlope[icoil][imon].back());
+	//printf("%s: %14.9e\n",MonitorList[imon].Data(),
+	//MonitorSlope[icoil][imon].back());
       }
     }
   }
+
 
   TMatrixD AMatrix(fNDetector, fNMonitor);
   TMatrixD AMatrixE(fNDetector, fNMonitor);
@@ -2316,6 +2601,7 @@ void QwMpsOnly::MatrixFill(Bool_t run_avg)
     }
   }
   SMatrix.Print();
+  CalculateResiduals();
   if(fChiSquareMinimization)
     ComputeSlopeErrors(AMatrix, AMatrixE, RMatrixInv, RMatrixE);
   else
@@ -2382,7 +2668,7 @@ Int_t QwMpsOnly::PilferData()
 
   std::cout << "Run "<<run_number<<std::endl;
   Int_t goodEv = 0;
-  for(Int_t i = 0; i < kNCoil; i++){
+  for(Int_t i = 0; i < kNMod; i++){
     std::cout<<" bm_pattern# "<<i<<":  Total Events Cut (" << errors[i] <<")"
 	      <<"   Good Events ("<<good[i]<<")\n";
     goodEv += good[i];
@@ -2404,12 +2690,11 @@ void QwMpsOnly::PrintAverageSlopes()
 				    output.Data(), run_number,
 				    (fChiSquareMinimization ? "_ChiSqMin" : ""),
 				    fSetStem.Data()),"w");
-  printf("Monitor Slopes   |       Xmod   |       XPmod  |       Emod   |"
+  printf("Monitor Coeffs   |       Xmod   |       XPmod  |       Emod   |"
 	 "      Ymod    |      YPmod   |\n");
   printf("******************************************************************"
 	 "***************************\n");
-  Int_t nMod = kNMod;
-  if(f2DFit) nMod = kNCoil;
+  Int_t nMod = kNCoil;
 
   for(Int_t i=0;i<fNMonitor;i++){
     TString mon = MonitorList[i];
@@ -2426,7 +2711,7 @@ void QwMpsOnly::PrintAverageSlopes()
   fclose(mon_coil_coeff);
 
   printf("\n\n");
-  printf("Detector Slopes  |       Xmod   |       XPmod  |       Emod   |"
+  printf("Detector Coeffs  |       Xmod   |       XPmod  |       Emod   |"
 	 "      Ymod    |      YPmod   |\n");
   printf("******************************************************************"
 	 "***************************\n");
@@ -2468,7 +2753,6 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
   //rootfiles i.e. time ordering: X, Y, E, XP, YP.
   modType =  pattern;
 
-
   if(modType<0||modType>4)return -1;
   std::cout<<"Modulation type "<<pattern<<" found at entry "<<i<<"\n";
 
@@ -2483,6 +2767,7 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
 
   while(pattern == modType && i < nEnt){
     Bool_t inCutRegion = 0;
+
     if(fCutNonlinearRegions){
       if(rampExcludedRegion[0][modType]>=0){
 	inCutRegion = ramp_filled > rampExcludedRegion[0][modType] && 
@@ -2503,17 +2788,20 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
       }
 
     }
+
     if(inCutRegion&&!fCutNonlinearRegions){
       std::cout<<"Error! Cutting regions of ramp that are supposed"
 	       <<" to be included!\n";
       return -1;
     }
+
     if(ErrorCodeCheck("mps_tree")!=0 || inCutRegion || !ramp_good){
       ++nCut;
       if(ErrorCodeCheck("mps_tree")!=0)++nErr;
     }else{
       good[modType]++;
       CoilData[modType].push_back(ramp_filled);
+
 
       for(Int_t idet = 0; idet < fNDetector; ++idet){
 	Double_t val = fChain->GetLeaf(DetectorList[idet].Data())->GetValue();
@@ -2544,7 +2832,7 @@ Int_t QwMpsOnly::ProcessMicroCycle(Int_t i, Int_t *evCntr, Int_t *err,
   if(f2DFit) {
     Calculate2DSlope(modType, 0);
   } else {
-    CalculateSlope(modType);
+    CalculateCoefficients(modType);
   }
   
   fNEvents = 0;
@@ -2996,7 +3284,7 @@ void QwMpsOnly::Write(Bool_t run_avg){
 
     //Write output to individual macrocycle coefficient files here.
     //////////////////////////////////////////////////////////////
-    Int_t nMod = (f2DFit ? fNCoil : kNMod);
+    Int_t nMod = kNCoil;
     if(!macrocycle_coeffs.is_open()){
       macrocycle_coeffs.open(Form("%s/macrocycle_slopes/"
 				  "coil_coeffs%s_%i%s.%s.dat", 
@@ -3038,6 +3326,66 @@ void QwMpsOnly::Write(Bool_t run_avg){
     }else std::cout<<"Macrocycle coefficients file not opened.\n";
     /////////////////////////////////////////////////////////////
 
+
+    //Write sine and cosine residuals to file by macrocycle here.
+    /////////////////////////////////////////////////////////////
+    if(!macrocycle_sin_res.is_open()){
+      macrocycle_sin_res.open(Form("%s/macrocycle_slopes/"
+				  "run%iSineAmpl%s.%s.dat", 
+				  output.Data(), run_number, 
+				  (fChiSquareMinimization ? "_ChiSqMin" : ""),
+				  fSetStem.Data()), fstream::out);
+    }
+    if(macrocycle_sin_res.is_open() && macrocycle_sin_res.good()){
+      macrocycle_sin_res<<"Macrocycle "<<fMacroCycleNum<<" \t";
+      for(Int_t imod = 0;imod<kNMod;imod++){
+	macrocycle_sin_res<<"Mod"<<imod<<" "<<fCycleNum[imod]<<" \t";
+      }
+      macrocycle_sin_res<<"Id "<<run_number<<fMacroCycleNum<<"  first_entry "<<
+	fFirstEntry<<"  last_entry "<<fLastEntry<<std::endl;
+
+      for(int idet=0; idet<fNDetector;++idet){
+	macrocycle_sin_res<<Form("%-16s", DetectorList[idet].Data());
+	for(int imod = 0; imod<kNMod;++imod){
+	  macrocycle_sin_res<<Form("% 10.3e  %10.3e   ",
+				   DetectorSinResidual[imod][idet].back(),
+				   DetectorSinResidualError[imod][idet].back());
+	}
+	macrocycle_sin_res<<std::endl;
+      }
+    }else{
+      std::cout<<"Failed to open residuals file. Exiting.\n";
+      exit(0);
+    }
+
+    if(!macrocycle_cos_res.is_open()){
+      macrocycle_cos_res.open(Form("%s/macrocycle_slopes/"
+				  "run%iCosineAmpl%s.%s.dat", 
+				  output.Data(), run_number, 
+				  (fChiSquareMinimization ? "_ChiSqMin" : ""),
+				  fSetStem.Data()), fstream::out);
+    }
+    if(macrocycle_cos_res.is_open() && macrocycle_cos_res.good()){
+      macrocycle_cos_res<<"Macrocycle "<<fMacroCycleNum<<" \t";
+      for(Int_t imod = 0;imod<kNMod;imod++){
+	macrocycle_cos_res<<"Mod"<<imod<<" "<<fCycleNum[imod]<<" \t";
+      }
+      macrocycle_cos_res<<"Id "<<run_number<<fMacroCycleNum<<"  first_entry "<<
+	fFirstEntry<<"  last_entry "<<fLastEntry<<std::endl;
+
+      for(int idet=0; idet<fNDetector;++idet){
+	macrocycle_cos_res<<Form("%-16s",DetectorList[idet].Data());
+	for(int imod = 0; imod<kNMod;++imod){
+	  macrocycle_cos_res<<Form("% 10.3e  %10.3e   ",
+				   DetectorCosResidual[imod][idet].back(),
+				   DetectorCosResidualError[imod][idet].back());
+	}
+	macrocycle_cos_res<<std::endl;
+      }
+    }else{
+      std::cout<<"Failed to open residuals file. Exiting.\n";
+      exit(0);
+    }
 
     //Write output to individual macrocycle slopes files here.
     /////////////////////////////////////////////////////////
@@ -3154,6 +3502,8 @@ void QwMpsOnly::Write(Bool_t run_avg){
   slopes.close();
   macrocycle_slopes.close();
   macrocycle_coeffs.close();
+  macrocycle_cos_res.close();
+  macrocycle_sin_res.close();
   diagnostic.close();
   
   return;

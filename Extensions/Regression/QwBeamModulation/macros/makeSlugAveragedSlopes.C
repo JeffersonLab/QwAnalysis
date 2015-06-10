@@ -202,8 +202,22 @@ void makeSlugAveragedSlopes(char* stem ="", Bool_t chi_sq_min = 1, Bool_t writeS
   slopes->SetBranchAddress("good", &good);
   //  cout<<"Status:"<<slopes->GetBranchStatus("good")<<endl;
 
-  for(int idet=0;idet<nDet;idet++){
-    for(int imon=0;imon<nMON;imon++){
+  bool all_here = 1;
+  for(int i=0;i<nMON;++i){
+    if(slopes->GetLeaf(Form("mdallpmtavg_%s", MonitorList[i].Data()))==0){
+      all_here = 0;
+      break;
+    }
+  }
+  if(all_here){
+    DetectorList[nDet] = "mdallpmtavg";
+    DetectorListFull[nDet] = "mdallpmtavg";
+    ++nDet;
+  }
+
+
+  for(int imon=0;imon<nMON;imon++){
+    for(int idet=0;idet<nDet;idet++){
       slopes->SetBranchAddress(Form("%s_%s",DetectorList[idet].Data(),
 				    MonitorList[imon].Data()),
 			       &detSlopes[idet][imon]);

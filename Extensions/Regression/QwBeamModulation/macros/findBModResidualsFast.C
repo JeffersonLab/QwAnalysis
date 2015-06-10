@@ -31,7 +31,7 @@ using namespace std;
 
 //Declare constants
 /////////////////////////////////////////////////////////
-const Int_t nDET = 60, nMON = 10, nMOD = 5;
+const Int_t nDET = 60, nMON = 5, nMOD = 5;
 const Double_t  errorFlag = -999999, DegToRad = 0.0174532925199432955;
 /////////////////////////////////////////////////////////
 

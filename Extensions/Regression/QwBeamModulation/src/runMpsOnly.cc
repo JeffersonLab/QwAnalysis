@@ -7,18 +7,13 @@ Int_t main(Int_t argc, Char_t *argv[])
   Int_t minEvents = 10000;
   TString filename;
   TChain *mps_tree = new TChain("mps_slug");
-  std::cout<<"herea"<<std::endl;
   QwMpsOnly *mps_only = new QwMpsOnly(mps_tree);
-  std::cout<<"hereb"<<std::endl;
   mps_only->SetOutput((char*)gSystem->Getenv("BMOD_OUT"));
-  std::cout<<"here1"<<std::endl;
   if(!gSystem->OpenDirectory(mps_only->GetOutput())){
     mps_only->PrintError("Cannot open output directory.\n");
     mps_only->PrintError("Directory needs to be set as env variable and contain:\n\t slopes/ \n\t regression/ \n\t diagnostics/ \n\t rootfiles/"); 
     exit(1);
   }
-
-  std::cout<<"here2"<<std::endl;
   mps_only->GetOptions(argc, argv);
   std::cout<<"Beginning to process run "<< mps_only->run_number<<std::endl;
 
@@ -122,6 +117,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   mps_only->BuildCoilData();
   mps_only->BuildDetectorSlopeVector();
+  mps_only->BuildDetectorResidualVector();
   mps_only->BuildMonitorSlopeVector();
   mps_only->BuildDetectorAvSlope();
   mps_only->BuildMonitorAvSlope();

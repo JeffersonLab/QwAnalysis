@@ -11,7 +11,7 @@
 
 //Declare constants
 /////////////////////////////////////////////////////////
-const Int_t nDET = 60, nMON = 10, nMOD = 5, nCOIL = 10;
+const Int_t nDET = 100, nMON = 20, nMOD = 5, nCOIL = 10;
 const Double_t  errorFlag = -999999, DegToRad = 0.0174532925199432955;
 /////////////////////////////////////////////////////////
 
@@ -63,42 +63,41 @@ Int_t ExtractHeader(ifstream &file, Header_t &header, Int_t size = 9){
 
 Int_t GetMonitorAndDetectorLists(TChain *ch, TString *monitorList, 
 				 TString *detectorList, Bool_t trunc,
-				 char * config){
+				 char * config, int *N){
   string str;
   ifstream file(config);
-
-  for(int i=0;i<nMON;i++){
-    char id[4] = "   ", monitr[20] = "                   ";
-    file>>id>>monitr;
-    getline(file, str);
-    monitorList[i] = TString(monitr);
-    if(!ch->GetBranch(monitorList[i].Data())){
-      cout<<monitorList[i].Data()<<" missing. Exiting.\n";
-      return -1;
-    }else{
-      if( trunc && monitorList[i].Contains("qwk_"))
-	monitorList[i].Replace(0,4,"");
-      cout<<monitorList[i].Data()<<"\n";
-    }
-  }
-  getline(file, str);
+  Int_t nMon = 0;
   Int_t nDet = 0;
   for(int i=0;i<nDET&&!file.eof();i++){
-    char id[4] = "   ", detectr[20] = "                   ";
-    file>>id>>detectr;
-    getline(file, str);
-    detectorList[nDet] = TString(detectr);
-    if(!ch->GetBranch(detectorList[nDet].Data())){
-      cout<<detectorList[nDet].Data()<<" missing.\n";
-    }else{
-      if( trunc && detectorList[nDet].Contains("qwk_"))
-	detectorList[nDet].Replace(0,4,"");
-      cout<<detectorList[nDet].Data()<<endl;
-      nDet++;
+    char id[4];
+    file>>id;
+    if(strcmp(id,"mon")==0){
+      file>>monitorList[nMon];
+      if(!ch->GetBranch(monitorList[nMon].Data())){
+	cout<<monitorList[nMon].Data()<<" missing.\n";
+      }else{
+	if( trunc && monitorList[nDet].Contains("qwk_"))
+	  monitorList[nMon].Replace(0,4,"");
+	cout<<monitorList[nMon].Data()<<endl;
+	nMon++;
+      }
+    }else if(strcmp(id,"det")==0){
+      file>>detectorList[nDet];
+      if(!ch->GetBranch(detectorList[nDet].Data())){
+	cout<<detectorList[nDet].Data()<<" missing.\n";
+      }else{
+	if( trunc && detectorList[nDet].Contains("qwk_"))
+	  detectorList[nDet].Replace(0,4,"");
+	cout<<detectorList[nDet].Data()<<endl;
+	nDet++;
+      }
     }
+    getline(file,str);
     file.peek();
   }
   file.close();
+  N[0] = nMon;
+  N[1] = nDet;
   return nDet;
 }
 
@@ -114,7 +113,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
   char* name = (char*)(chisq ? "_ChiSqMin.set0" : ".set0");  
   Bool_t debug = 0;
   string line;
-  Int_t size = 9, nDet;
+  Int_t size = 9, nDet, nMon;
   Double_t slopesUnitConvert[nMON];
   TFile *newfile; 
   TTree *newTree = new TTree("slopes", "slopes"); 
@@ -125,24 +124,52 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
   //Get lists of monitors and detectors
   /////////////////////////////////////////////////////////
   TChain *ch = new TChain("mps_slug");
-  ch->Add(Form("%s/mps_only_11405*.root",
+  ch->Add(Form("%s/mps_only_10100*.root",
 	       gSystem->Getenv("MPS_ONLY_ROOTFILES")));
-  ch->AddFriend("mps_slug",Form("%s/mps_only_friend_13993.root",
+  ch->AddFriend("mps_slug",Form("%s/mps_only_friend_10100.root",
 				gSystem->Getenv("MPS_ONLY_ROOTFILES")));
   char* configFile = Form("%s/config/setup_mpsonly%s.config",
 			  gSystem->Getenv("BMOD_SRC"), stem.Data());
-
-  nDet = GetMonitorAndDetectorLists(ch, MonitorList, DetectorList,0, configFile);
+  int number[2];
+  nDet = GetMonitorAndDetectorLists(ch, MonitorList, DetectorList,0, configFile,
+				    number);
+  nMon = number[0];
+  nDet = number[1];
+  cout<<nMon<<" monitors and "<<nDet<<" detectors.\n";
   if(nDet == -1){
     cout<<"Detector list not found. Exiting.\n"<<endl;
     return;
   }
   if(debug)std::cout<<"(4)Working.\n"; 
-  delete ch;
-  /////////////////////////////////////////////////////////
-   
 
-  for(int imon = 0;imon<nMON;imon++){
+  //include mdpmtavg?
+  bool include_pmtavg = 1;
+  for(int imd = 1; imd<9;++imd){
+    bool pos = 0, neg = 0;
+    for(int idet = 1; idet<nDet;++idet){
+      if(DetectorList[idet].Contains(Form("md%ipos",imd))){
+	pos = 1;
+      }
+      if(DetectorList[idet].Contains(Form("md%ineg",imd))){
+	neg = 1;
+      }
+    }
+    if(!(pos && neg)){
+      include_pmtavg = 0;
+      break;
+    }
+  }
+  delete ch;
+  ///////////////////////////////////////////////////////// 
+
+
+  if(!include_pmtavg){
+    cout<<"Not included\n";
+    //    exit(0);
+  }
+
+
+  for(int imon = 0;imon<nMon;imon++){
     if(stem.Contains("new_monitors")){
       slopesUnitConvert[imon] = (MonitorList[imon].Contains("bpm") ? 1.0e3 : 1.0);
     }else {
@@ -187,8 +214,8 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
     vHWP[1][slug_num] = hwp;
     hwpList>>slug_num>>hwp;
   }
-//   for(int i=0;i<=nslg;++i)
-//     printf("%i: %i   %i\n", i, vHWP[0][i],vHWP[1][i]);
+  for(int i=0;i<=nslg;++i)
+    printf("%i: %i   %i\n", i, vHWP[0][i],vHWP[1][i]);
   /////////////////////////////////////////////////////////
 
 
@@ -206,19 +233,19 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
   vector<vector<vector<Double_t> > > vCosineRes, vCosineResErr;
 
   vCyclet.resize(nMOD);
-  vDetectorSlope.resize(nDet);
-  vDetectorSlopeError.resize(nDet);
-
-  for(int idet=0;idet<nDet;idet++){
-    vDetectorSlope[idet].resize(nMON);
-    vDetectorSlopeError[idet].resize(nMON);
+  vDetectorSlope.resize(nDet+1);
+  vDetectorSlopeError.resize(nDet+1);
+  cout<<"SIZE: "<<vDetectorSlope.size()<<endl;
+  for(int idet=0;idet<=nDet;idet++){
+    vDetectorSlope[idet].resize(nMon);
+    vDetectorSlopeError[idet].resize(nMon);
   }
 
-  vMonMean.resize(nMON);
-  vMonMeanErr.resize(nMON);
-  vMonCoeffs.resize(nMON);
-  vMonCoeffsErr.resize(nMON);
-  for(int imon=0;imon<nMON;imon++){
+  vMonMean.resize(nMon);
+  vMonMeanErr.resize(nMon);
+  vMonCoeffs.resize(nMon);
+  vMonCoeffsErr.resize(nMon);
+  for(int imon=0;imon<nMon;imon++){
     vMonMean[imon].resize(nMOD);
     vMonMeanErr[imon].resize(nMOD);
     vMonCoeffs[imon].resize(nCOIL);
@@ -340,10 +367,10 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
 	  slopesFile>>det;
 	  if(!(DetectorList[idet].CompareTo(det)==0)){
 	    cout<<"Detector names not in expected format. Exiting.\n";
-	    cout<<det<<" "<<nDet<<endl;
+	    cout<<det<<" "<<DetectorList[idet].Data()<<" "<<nDet<<endl;
 	    return;
 	  }
-	  for(int imon=0;imon<nMON;imon++){
+	  for(int imon=0;imon<nMon;imon++){
 	    char *sl = new char[30](), *sl_err = new char[30]();
 	    slopesFile>>sl>>sl_err;
 	    Bool_t notANum = strcmp(sl,"nan")==0 || strcmp( sl_err,"nan")==0;
@@ -367,11 +394,12 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
 
 	//Extract monitor coefficients
 	//////////////////////////////
-	for(int imon=0;imon<nMON;imon++){
+	for(int imon=0;imon<nMon;imon++){
 	  char pref[4] = "   ", mon[25] = "                        ";
 	  coeffsFile>>pref;
 	  if(!(strcmp(pref, "mon")==0)){
-	    cout<<"Coefficients file not in expected format. "<<pref<<" Exiting.\n";
+	    cout<<"Coefficients file not in expected format. "
+		<<pref<<" Exiting.\n";
 	    return;
 	  }
 	  coeffsFile>>mon;
@@ -486,7 +514,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
   cout<<nRuns<<" runs found.\n";
   cout<<nCycle<<" macrocycles found.\n";
 
-  for(int imon=0;imon<nMON;imon++)
+  for(int imon=0;imon<nMon;imon++)
     if(MonitorList[imon].Contains("qwk_"))
       MonitorList[imon].Replace(0,4,"");
   for(int idet=0;idet<nDet;idet++)
@@ -524,6 +552,49 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
   ////////////////////////////////////////////////////////////////////
 
 
+  //If mdallpmtavg included calculate its values
+  ////////////////////////////////////////////////////////////////////
+  if(include_pmtavg){
+    int idx[16] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+    for(int imd=1;imd<9;++imd){
+      for(int idet=0;idet<nDet;++idet){
+	if(DetectorList[idet].Contains(Form("md%ineg",imd))){
+	  idx[imd-1] = idet;
+	}
+	if(DetectorList[idet].Contains(Form("md%ipos",imd))){
+	  idx[imd+7] = idet;
+	}
+      }
+    }
+
+    for(int i=0;i<16;++i){
+      if(idx[16]==-1){
+	cout<<"Incomplete index assignment. Exiting.\n";
+	exit(0);
+      }
+    }
+
+    for(int imon=0;imon<nMon;++imon){
+      for(unsigned int i=0;i<vDetectorSlope[0][0].size();++i){
+	double avg = 0, err = 0;
+	for(int imd=0;imd<16;++imd){
+	  avg += vDetectorSlope[idx[imd]][imon][i];
+	  err += pow(vDetectorSlopeError[idx[imd]][imon][i], 2);
+	}
+	vDetectorSlope[nDet][imon].push_back(avg/16.0);
+	vDetectorSlopeError[nDet][imon].push_back(sqrt(err) / 16.0);
+      }
+    }
+    DetectorList[nDet] = "mdallpmtavg";
+    ++nDet;
+  }
+  ////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
   //Create a new file for tree
   ////////////////////////////
   newfile =new TFile(Form("%s/../MacrocycleSlopesTree%s%s.root",
@@ -536,7 +607,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
   ///////////////////////////////////////////////
   Int_t good;  
   Double_t lEntry, hEntry, Id, ihwp, is_run1;
-  Double_t slope[nDET][nMOD], slopeErr[nDET][nMOD];
+  Double_t slope[nDET][nMON], slopeErr[nDET][nMON];
   Double_t sineResid[nDET][nMOD], sineResidErr[nDET][nMOD];
   Double_t cosineResid[nDET][nMOD], cosineResidErr[nDET][nMOD];
   Double_t monMean[nMON][nMOD], monMeanErr[nMON][nMOD];
@@ -579,12 +650,11 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
   }
   /////////////////////////////
 
-
   //Initialize all tree branches
   //////////////////////////////
   for(int idet=0;idet<nDet;idet++){
     char *dname = (char*)DetectorList[idet].Data();
-    for(int imon=0;imon<nMON;imon++){
+    for(int imon=0;imon<nMon;imon++){
       char *mname = (char*)MonitorList[imon].Data();
       brSlopes[idet][imon] = newTree->Branch(Form("%s_%s",dname, mname), 
 					     &slope[idet][imon],
@@ -592,6 +662,10 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
       brSlopesErr[idet][imon] = newTree->Branch(Form("%s_%s_err", dname, mname), 
 						&slopeErr[idet][imon],
 						Form("%s_%s_err/D",dname, mname));
+    }
+
+    if(DetectorList[idet].Contains("mdallpmtavg")){
+      continue;
     }
     for(int imod=0;imod<nMOD;imod++){
       brSineRes[idet][imod] = newTree->Branch(Form("SineRes_%s_Coil%i", dname, 
@@ -616,7 +690,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
     }
   }
 
-  for(int imon=0;imon<nMON;imon++){
+  for(int imon=0;imon<nMon;imon++){
     char *mname = (char*)MonitorList[imon].Data();
     for(int icoil=0;icoil<nCOIL;icoil++){
       if(icoil<nMOD && include_fit_mean){
@@ -642,6 +716,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
 
   for(int idet=0;idet<nDet;idet++){
     char *dname = (char*)DetectorList[idet].Data();
+    if(DetectorList[idet].Contains("mdallpmtavg"))continue;
     for(int icoil=0;icoil<nCOIL;icoil++){
      if(icoil<nMOD && include_fit_mean){
        brDetMean[idet][icoil] = newTree->Branch(Form("Coil%i_%s_mean", 
@@ -679,14 +754,14 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
 
     for(int idet=0;idet<nDet;idet++){
       //      cout<<"idet:"<<idet<<endl;
-      for(int imon=0;imon<nMON;imon++){
+      for(int imon=0;imon<nMon;imon++){
 	//	cout<<"imon:"<<imon<<endl;
 	slope[idet][imon] = vDetectorSlope[idet][imon].at(icycle);
 	slopeErr[idet][imon] = vDetectorSlopeError[idet][imon].at(icycle);
       }
     }
 
-    for(int imon=0;imon<nMON;imon++){
+    for(int imon=0;imon<nMon;imon++){
       //      cout<<"imon:"<<imon<<endl;
       for(int icoil=0;icoil<nCOIL;icoil++){
 	//	cout<<"icoil:"<<icoil<<endl;
@@ -700,6 +775,7 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
     }
 
     for(int idet=0;idet<nDet;idet++){
+      if(DetectorList[idet].Contains("mdallpmtavg"))continue;
       //      cout<<"idet:"<<idet<<endl;
       for(int icoil=0;icoil<nCOIL;icoil++){
 	if(icoil<nMOD && include_fit_mean){
@@ -713,6 +789,8 @@ void makeMacrocycleSlopesTree( TString stem = "", Bool_t include_fit_mean = 0,
 
     for(int idet=0;idet<nDet;idet++){
       //      cout<<"idet:"<<idet<<endl;
+      if(DetectorList[idet].Contains("mdallpmtavg"))
+	continue;
       for(int imod=0;imod<nMOD;imod++){
 	sineResid[idet][imod] = vSineRes[idet][imod].at(icycle);
 	sineResidErr[idet][imod] = vSineResErr[idet][imod].at(icycle);

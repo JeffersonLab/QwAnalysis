@@ -204,6 +204,8 @@ public :
   std::fstream slopes;
   std::fstream macrocycle_slopes;
   std::fstream macrocycle_coeffs;
+  std::fstream macrocycle_cos_res;
+  std::fstream macrocycle_sin_res;
   std::fstream eigenvectors;
   std::fstream diagnostic;
   std::fstream coil_sens;
@@ -226,6 +228,7 @@ public :
   std::vector <Double_t> ChargeSensitivity;
   std::vector <Double_t> ChargeSensitivityError;
   std::vector < std::vector <Double_t> > CoilData;
+  std::vector < std::vector <Double_t> > CoilData_copy;
   std::vector < std::vector <Double_t> > DetectorData;
   std::vector < std::vector <Double_t> > MonitorData;
   std::vector < std::vector <Double_t> > AvDetectorSlope;
@@ -235,8 +238,14 @@ public :
   
   std::vector < std::vector <std::vector <Double_t> > > MonitorSlope;
   std::vector < std::vector <std::vector <Double_t> > > DetectorSlope;
+  std::vector < std::vector <std::vector <Double_t> > > MonitorData_copy;
+  std::vector < std::vector <std::vector <Double_t> > > DetectorData_copy;
   std::vector < std::vector <std::vector <Double_t> > > MonitorSlopeError;
   std::vector < std::vector <std::vector <Double_t> > > DetectorSlopeError;
+  std::vector < std::vector <std::vector <Double_t> > > DetectorSinResidual;
+  std::vector < std::vector <std::vector <Double_t> > > DetectorCosResidual;
+  std::vector < std::vector <std::vector <Double_t> > > DetectorSinResidualError;
+  std::vector < std::vector <std::vector <Double_t> > > DetectorCosResidualError;
 
   Bool_t fXinit;
   Bool_t fYinit;
@@ -266,10 +275,12 @@ public :
   void     BuildDetectorSlopeVector();
   void     BuildMonitorData();  
   void     BuildMonitorSlopeVector();
+  void     BuildDetectorResidualVector();
   void     BuildMonitorAvSlope();
   void     BuildNewEBPM();
   void     Calculate2DSlope(Int_t, Int_t);
-  void     CalculateSlope(Int_t);
+  void     CalculateCoefficients(Int_t);
+  void     CalculateResiduals();
   Int_t    CalculateWeightedSlope(Int_t);
   void     CheckFlags(void);
   Int_t    CheckRampLinearity(TString);
@@ -278,6 +289,7 @@ public :
   void     ComputeAsymmetryCorrections(); 
   void     ComputeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
   void     ComputeSlopeErrors(TMatrixD, TMatrixD, TMatrixD, TMatrixD);
+  void     CopyDataVectors(Int_t);
   Int_t    ConvertPatternNumber(Int_t);
   Int_t    Cut(Long64_t entry);
   Int_t    ErrorCodeCheck(TString);

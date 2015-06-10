@@ -85,7 +85,8 @@ Int_t GetMonitorAndDetectorLists(TString *monitorList, TString *detectorList,
 }
 
 
-Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
+Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = "", 
+			     Bool_t add_pmtavg = 0){
 
   //Declare needed variables
   /////////////////////////////////////////////////////////
@@ -140,6 +141,11 @@ Int_t MakeSlopesDBFriendTree(int run_period = 1, TString stem = ""){
     return -1;
   }
   if(debug)std::cout<<"(4)Working.\n"; 
+  if(add_pmtavg){
+    DetectorList[nDet] = "mdallpmtavg";
+    DetectorListFull[nDet] = "mdallpmtavg";
+    ++nDet;
+  }
   delete ch;
   /////////////////////////////////////////////////////////
 

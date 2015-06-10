@@ -98,7 +98,7 @@ Int_t GetMonitorAndDetectorLists(TString *monitorList, TString *detectorList,
   return nDet;
 }
 
-Int_t MakeCorrectedSlugFile(int slug, TString stem ="")
+Int_t MakeCorrectedSlugFile(int slug, TString stem ="", int harddisk=2)
 {
   Int_t run_period = ((slug >= 42 && slug <=136) ? 1 : 0);
   if( slug >= 137 && slug<=321 )
@@ -117,8 +117,8 @@ Int_t MakeCorrectedSlugFile(int slug, TString stem ="")
 
   TString rootFileDir = Form("/net/data2/paschkelab2/reduced_slugfiles/run%i/", 
 			     run_period);
-  TString outFileDir = Form("/net/data2/paschkelab1/reduced_slugfiles/run%i/", 
-			     run_period);
+  TString outFileDir = Form("/net/data2/paschkelab%i/reduced_slugfiles/run%i/", 
+			    harddisk, run_period);
   TString rootFileName_in = rootFileDir + Form("reduced_slug%i.root", slug);
   TString rootFileName_out = outFileDir + 
     Form("corrected_slug%i%s.root", slug, stem.Data());
