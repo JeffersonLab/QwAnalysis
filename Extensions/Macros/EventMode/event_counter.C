@@ -12,95 +12,142 @@
 #include <TLeaf.h>
 #include <TStyle.h>
 
-//CodaEventType (1=mps, 2=TS)
-void event_counter(int runNumber, double eventType=1, int eventLow=0, int eventHigh=4e6) {
-  gROOT -> Reset();
-  gROOT -> SetStyle("Modern");
+/* Function to determine the livetime for different trigger types in the
+ * QwAnalysis framework. Previous versions available in the QwAnalysis revision
+ * repository allow one to specify and select the trigger type. This revised
+ * script only focuses on EventTypes 1 and 2, which are for the MPS and Trigger
+ * Scintillator triggered events only.
+ */
+void event_counter2(int runNumber, double eventLow=0, double eventHigh=4e6) {
+  gROOT->Reset();
+  gROOT->SetStyle("Modern");
 
   //open rootfile
   TString filename = Form("Qweak_%i.root",runNumber);
   TFile *file = new TFile(filename);
-  if ( !file->IsOpen() ) {
+  if ( file->IsOpen() ) {
+    std::cout <<"Successfully opened ROOTFILE " <<file->GetName() <<std::endl;
+  }
+  else {
     std::cout <<"Error opening ROOTFILE " << file->GetName() <<std::endl;
     return;
   }
-  else {
-    std::cout <<"Successfully opened ROOTFILE " <<file->GetName() <<std::endl;
-  }
 
-  int events_total    = 0;  //number of recorded events
-  int events_recorded = 0;  //number of recorded events
-  int mps1 = 0;
-  int mps2 = 0;
-//  double eventType    = 1;    //CodaEventType (1=mps, 2=TS)
-  double delta        = 0;      //delta is the number of triggers skipped if
-                                //not starting at event 0
-  bool debug = false;
-  TString trigger = Form("sca_trig0%i",int(eventType));
-
-  //grab the tree and set all the addresses we want
-  TTree   *tree   = (TTree*) file->Get("Mps_Tree");
-  tree->ResetBranchAddresses();
-  TBranch *sca_trig = (TBranch*) tree->GetBranch(trigger.Data());
-  TLeaf *trig = sca_trig->GetLeaf("value");
-  TLeaf *type = tree->GetLeaf("CodaEventType");
-  TLeaf *mps_count  = tree->GetLeaf("mps_counter");
-
-  int n_entries  = (int) tree->GetEntries();  //get the number of entries
-
-  /* We want to compare the number of mps events recorded
-   * with the total number of mps events in all.
-   * The general idea is to count each mps trigger and
-   * at the end number_of_triggers/total counter
-   *
-   * To account for beam trips at the beginning of the run,
-   * the "offset" is delta. For instance, lets say there is a
-   * beam trip from events 1-2000. The total events counted would
-   * be (total_number-delta), with delta=2000.
+  /* We are interested in determining the total number of events for a given
+   * CodaEventRange. We are interested in both MPS and trigger scintillator
+   * event types - these are CodaEventType==1 and ==2, respectively.
+   * To do this we need 3 things for each type:
+   *    first_event  == first event
+   *    last_event   == last event
+   *    num_recorded == number of events recorded
+   *    tot_events   == total number of events
+   * Convention:
+   *    Append each of the above with _type1 (MPS) or _type2 (TS)
    */
-  if (debug) printf("Events recorded \tEventType \ttotal\n");
-  eventHigh = (n_entries<eventHigh) ? n_entries : eventHigh;
+
+  double first_event_type1  = 0;
+  double last_event_type1   = 0;
+  double num_recorded_type1 = 0;
+  double tot_events_type1   = 0;
+
+  double first_event_type2  = 0;
+  double last_event_type2   = 0;
+  double num_recorded_type2 = 0;
+  double tot_events_type2   = 0;
+
+  double eventType = 0;
+
+  double clock_first = 0;
+  double clock_last  = 0;
+
+  //grab the TTree and configure TLeaf's
+  TTree *tree = (TTree*) file->Get("Mps_Tree");
+  tree->ResetBranchAddresses();
+  TBranch *trig01_branch = (TBranch*) tree->GetBranch("sca_trig01");
+  TBranch *trig02_branch = (TBranch*) tree->GetBranch("sca_trig02");
+  TBranch *time_branch   = (TBranch*) tree->GetBranch("sca_totaltime");
+  TLeaf *trig01 = trig01_branch->GetLeaf("value");
+  TLeaf *trig02 = trig02_branch->GetLeaf("value");
+  TLeaf *type   = tree->GetLeaf("CodaEventType");
+  TLeaf *clock  = time_branch->GetLeaf("raw");
+
+  int n_entries = (int) tree->GetEntries(); //number of events
   for(int j=eventLow; j<n_entries; j++) {
-    tree->GetEntry(j);
-    sca_trig->GetEntry(j);
     if (j<eventLow) {continue;}
     if (j>eventHigh) {break;}
     if (j % 100000==0) {
       printf("Processing event #%i out of %i\n",j,n_entries);
     }
 
-    //ignore if not the appropriate trigger
-    if (eventType!=type->GetValue()) {
-      continue;
+    tree->GetEntry(j);
+    trig01_branch->GetEntry(j);
+    trig02_branch->GetEntry(j);
+    time_branch->GetEntry(j);
+
+    //determine event trigger type
+    eventType = type->GetValue();
+    //we only care about these two eventTypes
+//    if (eventType!=1 && eventType!=2) {
+//      continue;
+//    }
+
+
+    if (eventType==1) {
+      //if the first_event was never filled, this must be the first event!
+      if (first_event_type1==0) {
+        first_event_type1 = trig01->GetValue();
+        if (clock_first==0)
+          clock_first = clock->GetValue();
+      }
+      //we can keep repopulating the last event - it's the easiest way to
+      //determine the last event of this type
+      last_event_type1 = trig01->GetValue();
+      num_recorded_type1++; //increment the number of recorded events
     }
 
-    /* delta must be defined as the first good event of its type.
-     * Therefore, it must be determined *before* any previous
-     * events are recorded. delta=0 if we start with event 0.
-     * Lastly, if delta>0, it's already been determined.
-     *
-     * I know I don't need to explicitly put eventLow && delta==0
-     * in my if statement, but I wanted it logically clear what I was
-     * doing and why I was doing it.
-     */
-    if (events_recorded==0 && eventLow!=0 && delta==0)
-    { delta = trig->GetValue(); }
-    events_recorded++;
-    events_total = trig->GetValue();
-    if (mps1==0)
-      mps1 = mps_count->GetValue();
-    mps2 = mps_count->GetValue();
-    if (debug)
-      printf("%i \t\t%i \t\t%d\n",events_recorded,int(eventType),events_total);
-  }
-  events_total = events_total-delta;
-  double quotient = double(events_recorded)/events_total;
-  std::cout <<"Events recorded: " <<events_recorded <<" \t"
-    <<"Total: " <<events_total <<" \t" <<std::endl
-    <<"LT estimate: " <<quotient <<" \t"
-    <<"for EventType = " <<eventType <<std::endl;
-  std::cout <<"Number of MPS: " <<mps2-mps1 <<std::endl;
-}
+    if (eventType==2) {
+      //if the first_event was never filled, this must be the first event!
+      if (first_event_type2==0) {
+        first_event_type2 = trig02->GetValue();
+        if (clock_first ==0)
+          clock_first = clock->GetValue();
+      }
+      //we can keep repopulating the last event - it's the easiest way to
+      //determine the last event of this type
+      last_event_type2 = trig02->GetValue();
+      num_recorded_type2++; //increment the number of recorded events
+    }
+
+    clock_last = clock->GetValue();
+
+  } //end loop over events
+
+  tot_events_type1 = last_event_type1 - first_event_type1;
+  double livetime_type1 = double(num_recorded_type1)/tot_events_type1;
+
+  tot_events_type2 = last_event_type2 - first_event_type2;
+  double livetime_type2 = double(num_recorded_type2)/tot_events_type2;
+
+  printf("MPS events: \t first: \t%.f\n",first_event_type1);
+  printf("\t\t last: \t\t%.f\n",last_event_type1);
+  printf("\t\t recorded: \t%.f\n",num_recorded_type1);
+  printf("\t\t total num: \t%.f\n",tot_events_type1);
+  printf("\t\t MPS LT: \t%f\n\n",livetime_type1);
+
+  printf("TS events: \t first: \t%.f\n",first_event_type2);
+  printf("\t\t last: \t\t%.f\n",last_event_type2);
+  printf("\t\t recorded: \t%.f\n",num_recorded_type2);
+  printf("\t\t total num: \t%.f\n",tot_events_type2);
+  printf("\t\t TS LT: \t%f\n\n",livetime_type2);
+
+  printf("Time estimate:   mps: \t%.2f\n",double(tot_events_type1)/10);
+  printf("Clock: \t\t first: %.f\n",clock_first);
+  printf("\t\t last: \t%.f\n",clock_last);
+  printf("\t\t diff: \t%.f\n",double(clock_last-clock_first));
+  printf("\t\t time (sec): \t%.5f\n\n",double(clock_last-clock_first)/195480);
+
+} //end event_counter function
+
 
 
 
