@@ -16,25 +16,29 @@
 
 #include "QwHelicity.h"
 
-class QwFakeHelicity: public QwHelicity {
+class QwFakeHelicity: public QwHelicityBase , public MQwSubsystemCloneable<QwFakeHelicity> {
  public:
-  QwFakeHelicity(TString region_tmp):VQwSubsystem(region_tmp),QwHelicity(region_tmp),fMinPatternPhase(1)
-
-    {
-      // using the constructor of the base class
-    };
-
-    virtual ~QwFakeHelicity() { };
+  /// Constructor with name
+ QwFakeHelicity(const TString& name):VQwSubsystem(name),QwHelicityBase(name){
+    fMinPatternPhase = 1;
+    fMaxPatternPhase = 4;
+  };
+  /// Copy constructor
+ QwFakeHelicity(const QwFakeHelicity& source):VQwSubsystem(source),QwHelicityBase(source){};
+  /// Virtual destructor
+  virtual ~QwFakeHelicity() { };
 
     void    ClearEventData();
     Bool_t  IsGoodHelicity();
     void    ProcessEvent();
 
  protected:
-    Int_t fMinPatternPhase;
-
     Bool_t CollectRandBits();
     UInt_t GetRandbit(UInt_t& ranseed);
+
+ private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwFakeHelicity();
 
 };
 

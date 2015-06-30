@@ -9,5 +9,5 @@ sample_size=464
   VQWK, 0, 3,  IntegrationPMT,  qwk_slowled,    NOT_BLINDABLE,  NOT_NORMALIZABLE
   VQWK, 0, 4,  IntegrationPMT,  qwk_fastled,    NOT_BLINDABLE,  NOT_NORMALIZABLE
   VQWK, 0, 5,  IntegrationPMT,  qwk_chan05,    NOT_BLINDABLE,  NOT_NORMALIZABLE
-  VQWK, 0, 6,  IntegrationPMT,  qwk_chan06,    NOT_BLINDABLE,  NOT_NORMALIZABLE
-  VQWK, 0, 7,  IntegrationPMT,  qwk_chan07,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 6,  IntegrationPMT,  qwk_3h04b,    NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 0, 7,  IntegrationPMT,  qwk_3h04c,    NOT_BLINDABLE,  NOT_NORMALIZABLE

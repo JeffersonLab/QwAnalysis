@@ -35,19 +35,19 @@ enum HelicityRootSavingType{kHelSaveMPS = 0,
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHelicity> {
+class QwHelicityBase: public VQwSubsystemParity{
 
  private:
   /// Private default constructor (not implemented, will throw linker error on use)
-  QwHelicity();
+  QwHelicityBase();
 
  public:
   /// Constructor with name
-  QwHelicity(const TString& name);
+  QwHelicityBase(const TString& name);
   /// Copy constructor
-  QwHelicity(const QwHelicity& source);
+  QwHelicityBase(const QwHelicityBase& source);
   /// Virtual destructor
-  virtual ~QwHelicity() { }
+  virtual ~QwHelicityBase() { }
 
 
 
@@ -300,6 +300,19 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
 
 };
 
+class QwHelicity: public QwHelicityBase, public MQwSubsystemCloneable<QwHelicity> {
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwHelicity();
+  
+ public:
+  /// Constructor with name
+ QwHelicity(const TString& name):VQwSubsystem(name),QwHelicityBase(name){};
+  /// Copy constructor
+ QwHelicity(const QwHelicity& source):VQwSubsystem(source),QwHelicityBase(source){};
+  /// Virtual destructor
+  virtual ~QwHelicity() { };
+};
 
 #endif
 

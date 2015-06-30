@@ -1,0 +1,12 @@
+[QwMainCerenkovDetector]
+ name = Main Detector
+ map = eeltest_maindet.map
+ param = eeltest_maindet_pedestal.map
+
+#[QwHelicity]
+# name = Helicity Info
+# map = eeltest_helicity.map
+
+[QwFakeHelicity]
+name = FakeHelicity
+map = eeltest_helicity.map

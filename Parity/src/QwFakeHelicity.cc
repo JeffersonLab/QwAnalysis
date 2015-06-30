@@ -23,7 +23,7 @@ RegisterSubsystemFactory(QwFakeHelicity);
  void  QwFakeHelicity::ProcessEvent()
 {
 
-  Bool_t fake_the_counters=kFALSE; 
+  Bool_t fake_the_counters=kTRUE; 
 
   // First get the information from the Input Register. Even though there are no helicity 
   // information we can still get the MPS, Pattern SYNC and Pattern phase.
