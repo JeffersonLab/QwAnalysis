@@ -1,9 +1,9 @@
 #!/bin/bash
-#This script goes through a given run range and first runs the QwMpsOnly code
-#and then executes finBModResiduals2.C to produce the residual cosine and
-#sine amplitudes.
+#This script goes through a given run range running the QwMpsOnly code.
 #The run range is determined by the arguments passed. This program will only
 #analyze runs between 10000 and 19999.
+#For an appended stem add a third argument
+# Eg. run_bmod_analysis.sh 10000 11000 _my_favorite_monitor_set
 START_RUN=$1
 LAST_RUN=$2
 POST=$3
