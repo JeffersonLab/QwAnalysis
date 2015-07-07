@@ -4,6 +4,7 @@
 #analyze runs between 10000 and 19999.
 #For an appended stem add a third argument
 # Eg. run_bmod_analysis.sh 10000 11000 _my_favorite_monitor_set
+
 START_RUN=$1
 LAST_RUN=$2
 POST=$3
