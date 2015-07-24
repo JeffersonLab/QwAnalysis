@@ -1,7 +1,7 @@
 //
 // authors: Siyuan Yang, David Armstrong, Eric Henderson
 //
-//   this script is for light attenuatuion studies in the Main Detector using
+//   This script is for light attenuation studies in the Main Detector using
 // projected tracks from Region 3.
 // 
 //  based originally on  r3_projection.C
@@ -14,8 +14,30 @@
 //         "runnumber" = run number
 //         "events" is number of events to analyze (default is whole run)
 //   
-//    Results are output in several .txt files, which I need to 
-//      document... soon...  
+//    Results are output in several .txt files:
+//           mean.txt: 
+//                 mean value of the radial location of the MD
+//                 based on where R3 projected tracks "hit" detector
+//
+//           pedestal_mean: 
+//                  MD ADC pedestals
+//
+//           slope_intercept.txt:
+//             intercepts and slopes of linear fits to PMT ADC pulseheight
+//             vs. y (position on long axis of detector). Separate fits 
+//             are done for "+" and "-" tube on each side of the glue joint
+//             (y=0). Also, the number of "trials" (hits+misses) output.
+//
+//           nslope_gja.txt:
+//              normalized slopes (i.e. slope/intercept, i.e. fractional
+//              pulseheight loss vs y (fraction/cm); again, for both
+//             "+" and "-" tube on each side of the glue joint (y=0).
+//             Also, "glue joint attentuation factor": ratio of pulseheight
+//             on either side of glue joint (using y=0 intercepts of fits)
+//             as seen by the "+" and +-" tubes separately. 
+//             Also, the number of "trials" (hits+misses) output.
+//              
+//
 //
 //     There are two other functions included that are not directly 
 //      related to light attenuation studies, but are kept here for now:
@@ -39,14 +61,13 @@ const double pe_convert[]={14.0141,16.6726,21.9799,38.5315,20.4254,20.3896,22.10
 TCanvas *c;
 
 
-void project_root(int package=1,int md_number=1,int run_number=6327,int max_events=-1,TString file_suffix="Qweak_",string command="")
+void project_root(int package=1,int md_number=1,int run_number=6327,int max_events=-1,TString file_suffix="Qweak_",string command="MD_")
 {
-//this z_pos was the original used. We believe it is 5 cm off now. 2012-05-09 JAM
-//  Double_t md_zpos[9] = {0.0, 581.665,  576.705, 577.020, 577.425, 582.515,  577.955, 577.885, 577.060};
-  Double_t md_zpos[9] = {0.0, 576.665,  571.705, 572.020, 572.425, 577.515,  572.955, 572.885, 572.060};
 
+  Double_t md_zpos[9] = {0.0, 576.665,  576.705, 577.020, 577.425, 577.515,  577.955, 577.885, 577.060};
+
+  TString outputPrefix(Form("LightAtten_run%d_MD%d_",run_number,md_number));
   TString file_name = "";
-  string command = "MD_";
   file_name += gSystem->Getenv ( "QW_ROOTFILES" );
   file_name +="/";
   file_name += file_suffix;
@@ -82,17 +103,13 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       type.assign(command,0,type_found);
     }
 
-  bool IsProfile=false;
-  if (command.find("profile")==string::npos)
-    IsProfile=false;
-  else IsProfile=true;
-
   bool pe=false;
   if (command.find("photon")==string::npos)
     pe=false;
   else pe=true;
 
-  int mode=0;   //p,m,m+p,p-m;starting from 1
+  //  int mode=0;   //p,m,m+p,p-m;starting from 1
+  int mode=3;   // make mode=3 the default
   size_t found=0;
   if ((found=command.find("+"))!=string::npos)
     mode=3;
@@ -115,20 +132,19 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
 
 
-  TH2F* h_2d;
   TProfile2D* hp_2d;
-  if (IsProfile==false)
-    h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",240,0,0,480,0,0);
-  else
-    hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",240,0,0,480,0,0);
+  hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"hp_2d ",240,0,0,480,0,0);
 
   TH1D* h_1f=new TH1D("project run","project run",240,280,400);
-  TH1D* adcph = new TH1D("ADCP", "ADCP data", 1650, 0, 3500);
-  TH1D* adcmh = new TH1D("ADCM", "ADCM data", 1650, 0, 3500);
+  TH1D* adcph = new TH1D("ADCP", "ADCP data", 400, 0, 4000);
+  TH1D* adcmh = new TH1D("ADCM", "ADCM data", 400, 0, 4000);
   TH1D* tdcph = new TH1D("TDCP", "TDCP data", 1650, 0, 0);
   TH1D* tdcmh = new TH1D("TDCM", "TDCM data", 1650, 0, 0);
-  TH1D* adcpped = new TH1D("ADCPPED", "ADCP pedestal", 50, 0, 0);
-  TH1D* adcmped = new TH1D("ADCMPED", "ADCM pedestal", 50, 0, 0);
+  TH1D* adcpped = new TH1D("ADCPPED", "ADCP pedestal", 50, 0, 400);
+  TH1D* adcmped = new TH1D("ADCMPED", "ADCM pedestal", 50, 0, 400);
+
+  TH1D* adc_sum = new TH1D("adc_sum", "summed ADC spectrum", 500, 0, 5000);
+  TH1D* adc_sum_tight = new TH1D("adc_sum_tight", "summed ADC spectrum, y= 10-20cm", 500, 0, 5000);
 
   TProfile* adcpp1;
   TProfile* adcpp2;
@@ -143,15 +159,16 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   TProfile* x2adcpp;
   TProfile* x2adcmp;
   TProfile* x3adcpp;
-  TProfile* x3adcmp;
+  TProfile* xdistribution;
+  TProfile* ydistribution;
 
 
   adcpp1 = new TProfile("ADCPP1", "ADCP1 profile", 50, -100, 0);
   adcpp2 = new TProfile("ADCPP2", "ADCP2 profile", 50, 0, 100);
   adcmp1 = new TProfile("ADCMP1", "ADCM1 profile", 50, -100, 0);
   adcmp2 = new TProfile("ADCMP2", "ADCM2 profile", 50, 0, 100);
-  fulladcpp = new TProfile("FULLADCPP", Form("Exponential Run %d Octant %d positive PMT", run_number, md_number), 150, -105, 105);
-  fulladcmp = new TProfile("FULLADCMP", Form("Exponential Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
+  fulladcpp = new TProfile("FULLADCPP", Form("Linear Fit Run %d Octant %d positive PMT", run_number, md_number), 150, -105, 105);
+  fulladcmp = new TProfile("FULLADCMP", Form("LInear Fit Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
   linadcpp = new TProfile("LINADCPP", Form("Linear Run %d Octant %d plus PMT", run_number, md_number), 150, -105, 105);
   linadcmp = new TProfile("LINADCMP", Form("Linear Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
   x1adcpp = new TProfile("X1P", "X1 ADCP profile", 200, -110, 110);
@@ -160,7 +177,8 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   x2adcmp = new TProfile("X2M", "X2 ADCM profile", 200, -110, 110);
   x3adcpp = new TProfile("X3P", "X3 ADCP profile", 200, -110, 110);
   x3adcmp = new TProfile("X3M", "X3 ADCM profile", 200, -110, 110);
-
+  xdistribution = new TProfile("xdistribution","total ADC pulse height vs. x", 200, 300, 360);
+  ydistribution = new TProfile("ydistribution","total ADC pulse height vs. y", 200, -110, 110);
 
   TH2F* hits = new TH2F("hits", Form("Run %d Octant %d Hit Chart", run_number, md_number), 400, -130, 130, 300, 320, 360);
   TH2F* misses = new TH2F("misses", Form("Run %d Octant %d Miss Chart", run_number, md_number), 400, -130, 130, 300, 320, 360);
@@ -194,7 +212,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   }
 
 
-  for (int i=0;i<1000;i++)
+  for (int i=0;i<10000;i++)
     {
 
       branch_event->GetEntry(i);
@@ -218,6 +236,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   Int_t size = 125;
   Double_t hit[125];
   Double_t trial[125];
+  Int_t trial_total=0;
   Int_t bin;
   Int_t xmin = 323;
   Double_t width = 0.2;
@@ -236,7 +255,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   for(int i = 0; i < max_events; i++)
 	{
-	  if(i % 1000 == 0) cout <<"events processed so far:" << i << endl;
+	  if(i % 100000 == 0) cout <<"events processed so far:" << i << endl;
 	  branch_event->GetEntry(i);
 	  branch->GetEntry(i);
 
@@ -264,44 +283,45 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	      x = xx;
 	      y = yy;
 
-	      Double_t m = padcm;
-	      Double_t p = padcp;
+	      //	      Double_t m = padcm;
+	      //	      Double_t p = padcp;
+
 	      Double_t weight = 1.0;
 	      Double_t adcpdata = mdp->GetValue();
 	      Double_t adcmdata = mdm->GetValue();
 	      Double_t tdcpdata = mdp_t->GetValue();
 	      Double_t tdcmdata = mdm_t->GetValue();
-	      int p_t = pdataplus;
-	      int m_t = pdataminus;
+	      int p_t = tdcpdata;
+	      int m_t = tdcmdata;
+	      //	      int p_t = pdataplus;
+	      //	      int m_t = pdataminus;
 	      if (pe==true) {
-		p = p/pe_convert[2*md_number-1];
-		m = m/pe_convert[2*(md_number-1)];
+		adcpdata = adcpdata/pe_convert[2*md_number-1];
+		adcmdata = adcmdata/pe_convert[2*(md_number-1)];
 	      }
 	      
 	      switch (mode)
                 {
                 case 1:
-		  weight = p;
+		  weight = adcpdata - adcpmean;
 		  break;
                 case 2:
-		  weight = m;
+		  weight = adcmdata - adcmmean;
 		  break;
                 case 3:
-		  weight = m+p;
+		  weight = (adcpdata-adcpmean) + (adcmdata-adcmmean);
 		  break;
                 case 4:
-		  weight = p-m;
+		  weight = adcpdata-adcmdata - adcpmean + adcmmean;
 		  break;
                 default:
 		  weight = 1.0;
                 }
 
 	      //  printf("x %10.2f y %10.2f weight %10.2f mdp %10.2f mdm %10.2f \n", x, y, weight, p, m);
-	      if (p!=0.0 && m!=0.0 && p_t<-10 && m_t <-10)
+
+	      if (adcpdata!=0.0 && adcmdata!=0.0 && p_t < -150 && p_t > -250 && m_t <-150 && p_t > -250)
                 {
-		  if (IsProfile==false)
-		    h_2d->Fill(x,y);
-		  else
 		    hp_2d->Fill(x,y,weight);
                 }
 
@@ -325,30 +345,34 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 		  if(tdcpdata < -150 && tdcpdata > -250)
 		    {
 		      hits->Fill(y,x);
+		      xdistribution->Fill(x,adcmdata-adcmmean+adcpdata-adcpmean);
+		      ydistribution->Fill(y,adcmdata-adcmmean+adcpdata-adcpmean);
+		      adc_sum->Fill(adcmdata-adcmmean+adcpdata-adcpmean);
+		      if (y>10 && y<20){
+			adc_sum_tight->Fill(adcmdata-adcmmean+adcpdata-adcpmean);
+		      }
+		      if (x >= 330 && x < 335)
+			{
+			  x1adcpp->Fill(y,adcpdata-adcpmean);
+			  x1adcmp->Fill(y,adcmdata-adcmmean);
+			}
+		      
+		      if (x >= 335 && x < 340)
+			{
+			  x2adcpp->Fill(y,adcpdata-adcpmean);
+			  x2adcmp->Fill(y,adcmdata-adcmmean);
+			}
+		      
+		      if (x >= 340 && x <= 345)
+			{
+			  x3adcpp->Fill(y,adcpdata-adcpmean);
+			  x3adcmp->Fill(y,adcmdata-adcmmean);
+			}
 		    }
 		}
-
 	      if (tdcpdata == 0 && tdcmdata == 0)
 		{
 		  misses->Fill(y,x);
-		}
-
-	      if (x >= 330 && x < 335)
-		{
-		  x1adcpp->Fill(y,adcpdata-adcpmean);
-		  x1adcmp->Fill(y,adcmdata-adcmmean);
-		}
-
-	      if (x >= 335 && x < 340)
-		{
-		  x2adcpp->Fill(y,adcpdata-adcpmean);
-		  x2adcmp->Fill(y,adcmdata-adcmmean);
-		}
-
-	      if (x >= 340 && x <= 345)
-		{
-		  x3adcpp->Fill(y,adcpdata-adcpmean);
-		  x3adcmp->Fill(y,adcmdata-adcmmean);
 		}
 
 	      tdcph->Fill(tdcpdata);
@@ -365,6 +389,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 		{
 		  //		  cout << "the bin is " << bin << endl;
 		  trial[bin] = trial[bin] + 1;
+		  trial_total++;
 
 		  if (tdcpdata > -250 && tdcpdata < -150)
 		    {
@@ -433,19 +458,9 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   fclose(mean);
 
 
-
   c = new TCanvas("c","Region 3 Projections",10, 10, 800,800);
   c->Divide(2,2);
   c->cd(1);
-  if (IsProfile==false)
-    {
-      string title="track projection on " + type + "  " +  w_title + ": not profile";
-      h_2d->GetXaxis()->SetTitle("position x:cm");
-      h_2d->GetYaxis()->SetTitle("position y:cm");
-      h_2d->SetTitle(title.c_str());
-      h_2d->Draw("colz");
-    }
-  else
     {
       string title="track projection on " + type + "  " +  w_title + ": profile";
       hp_2d->GetXaxis()->SetTitle("position x:cm");
@@ -455,25 +470,17 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
     }
     
   c->cd(2);
-  if(IsProfile==false){
-    h_2d->ProjectionX()->Draw();
-  }
-  else if(IsProfile==true){
-    hp_2d->ProjectionX()->Draw();
-  }
+  hp_2d->ProjectionX()->Draw();
   c->cd(3);
-  if(IsProfile==false){
-    h_2d->ProjectionY()->Draw();
-  }
-  else if(IsProfile==true){
-    hp_2d->ProjectionY()->Draw();
-  }
+  hp_2d->ProjectionY()->Draw();
   c->cd(4);
-  adcph->Draw();
+  adc_sum->Draw();
+
+  c->SaveAs(outputPrefix+"R3_projections.pdf");
 
 
-  pedestals = new TCanvas("pedestals", "Pedestal Data", 10, 10, 800, 800);
-  pedestals->Divide(1,2);
+  pedestals = new TCanvas("pedestals", "Pedestal Data", 10, 10, 700, 700);
+  pedestals->Divide(2,2);
 
   pedestals->cd(1);
   adcpped->Draw();
@@ -481,8 +488,15 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   pedestals->cd(2);
   adcmped->Draw();
 
+  pedestals->cd(3);
+  adc_sum->Draw();
 
-  quad = new TCanvas("quad", "ADC and TDC data", 10, 10, 800, 800);
+  pedestals->cd(4);
+  adc_sum_tight->Draw();
+
+  pedestals->SaveAs(outputPrefix+"adc_pedestals_sums.pdf");
+
+  quad = new TCanvas("quad", "ADC and TDC data", 10, 10, 600, 600);
   quad->Divide(2,2);
 
   quad->cd(1);
@@ -496,7 +510,8 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   quad->cd(4);
   tdcmh->Draw();
-
+  
+  quad->SaveAs(outputPrefix+"adc_tdc.pdf");
 
   hitandmiss = new TCanvas("hitandmiss", "Hit and Miss Charts", 10, 10, 800, 800);
   hitandmiss->Divide(1,2);
@@ -509,40 +524,61 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   //misses->SetContour(20,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]);
   misses->Draw("COLZ");
 
+  hitandmiss->SaveAs(outputPrefix+"hit_and_miss.pdf");
+
+
+  distributions = new TCanvas("distributions", "Total Pulse Height distributions", 10, 10, 800, 800);
+  distributions->Divide(1,2);
+
+  distributions->cd(1);
+  xdistribution->Draw();
+  //gStyle->SetOptFit(1111);
+  //adcpp1->Fit("pol1");
+  adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
+
+  distributions->cd(2);
+  ydistribution->Draw();
+  //gStyle->SetOptFit(1111);
+  //adcpp1->Fit("pol1");
+  adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
+
+  distributions->SaveAs(outputPrefix+"total_pulse.pdf");
+
+  TF1* fit1 = new TF1("FIT1", "pol1", -95, -5);
+  TF1* fit2 = new TF1("FIT2", "pol1", 5, 95);
+  TF1* fit3 = new TF1("FIT3", "pol1", -3, 3);
+  TF1* fit4 = new TF1("FIT4", "pol1", -95, -5);
+  TF1* fit5 = new TF1("FIT5", "pol1", 5, 95);
 
   profiles = new TCanvas("profiles", "ADC profiles", 10, 10, 800, 800);
   profiles->Divide(2,2);
 
   profiles->cd(1);
   adcpp1->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcpp1->Fit("pol1");
+  gStyle->SetOptFit(1111);
+  adcpp1->Fit(fit1, "R");
   adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
 
   profiles->cd(2);
   adcpp2->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcpp2->Fit("pol1");
+  gStyle->SetOptFit(1111);
+  adcpp2->Fit(fit2, "R");
   adcpp2->GetXaxis()->SetTitle("Position on MD (cm)");
 
   profiles->cd(3);
   adcmp1->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcmp1->Fit("pol1");
+  gStyle->SetOptFit(1111);
+  adcmp1->Fit(fit1, "R");
   adcmp1->GetXaxis()->SetTitle("Position on MD (cm)");
 
   profiles->cd(4);
   adcmp2->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcmp2->Fit("pol1");
+  gStyle->SetOptFit(1111);
+  adcmp2->Fit(fit2, "R");
   adcmp2->GetXaxis()->SetTitle("Position on MD (cm)");
 
+  profiles->SaveAs(outputPrefix+"profiles.pdf");
 
-  TF1* fit1 = new TF1("FIT1", "pol1", -95, -5);
-  TF1* fit2 = new TF1("FIT2", "pol1", 5, 95);
-  TF1* fit3 = new TF1("FIT3", "pol1", -3, 3);
-  TF1* fit4 = new TF1("FIT4", "expo", -95, -5);
-  TF1* fit5 = new TF1("FIT5", "expo", 5, 95);
 
 
   sections = new TCanvas("Sections", "MD_Sections", 10, 10, 800, 800);
@@ -629,6 +665,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   FILE* ratios;
 
+  /*
   ratios = fopen("ratios.txt","a");
 
   if (ratios == NULL)
@@ -639,7 +676,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   fprintf(ratios, "%d \t %d \t %d \t %f \t %f \t %f \t %f\n", run_number, package, md_number, ratio1, ratio2, ratio3, ratio4);
 
   fclose(ratios);
-
+  */
 
 
 
@@ -670,15 +707,30 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   Double_t mintercept2 = fit2->GetParameter(0);
   Double_t mslope2 = fit2->GetParameter(1);
 
+  fulls->SaveAs(outputPrefix+"FullProfiles.pdf");
 
 
   EFF = new TCanvas("EFF", "Efficiency Plot", 10, 10, 800, 800);
   effplot = new TGraph(size, xpos, efficiency);
   effplot->SetMarkerStyle(20);
   effplot->SetMarkerColor(4);
+  effplot->GetXaxis()->SetTitle("MD Radial location (cm)");
+  effplot->SetTitle(Form("MD %d efficiency vs. radial track location",md_number));
   effplot->Draw("AP");
+  TPaveText *myText= new TPaveText(0.30,0.2,0.7,0.27, "NDC");
+  myText->SetTextSize(0.025); 
+  myText->SetFillColor(0);
+  myText->SetTextAlign(12);
+  myTextEntry = myText->AddText(Form("Mean Location = %0.2f  cm",effmean));
+  myText->Draw();
+  TPaveText *RunNumText= new TPaveText(0.30,0.28,0.52,0.33, "NDC");
+  RunNumText->SetTextSize(0.025); 
+  RunNumText->SetFillColor(42);
+  RunNumText->SetTextAlign(12);
+  RunNumTextEntry = RunNumText->AddText(Form("Run Number %d",run_number));
+  RunNumText->Draw();
 
-
+  EFF->SaveAs(outputPrefix+"efficiency.pdf");
 
   //Double_t mm = -1*pslope3 + pslope1;
   //Double_t bb = -1* pintercept3 + pintercept1;
@@ -771,16 +823,17 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       cout << "slope_intercept did not open" << endl;
     }
 
-  if (nslope_gja == NULL);
+  if (nslope_gja == NULL)
     {
       cout << "nslope_gja did not open" << endl;
     }
 
-  fprintf(pedestal_mean, "%d \t %d \t %d \t %f \t %f\n", run_number, package, md_number, adcpmean, adcmmean);
-  
+   fprintf(pedestal_mean, "%d \t %d \t %d \t %f \t %f \t %f \t %d\n", run_number, package, md_number, adcpmean, adcmmean, effmean, trial_total);
+
+
   fprintf(slope_intercept, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f\n", run_number, package, md_number, pintercept1, pslope1, pintercept2, pslope2, mintercept1, mslope1, mintercept2, mslope2);
 
-  fprintf(nslope_gja, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f\n",run_number, package, md_number, gjap, gjam, nslopep1, nslopep2, nslopem1, nslopem2);
+  fprintf(nslope_gja, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f \t %d \n",run_number, package, md_number, gjap, gjam, nslopep1, nslopep2, nslopem1, nslopem2,trial_total);
 
 
 
@@ -814,15 +867,23 @@ void CleanTrack(int package=1, int md_number=5,int run=6327, int max_events=-1)
     string w_title="weighted light yield";
     TH1F* h_f=new TH1F(Form("h_f %s profile",w_title.c_str()),"h_f ",200,0,8000);
     TH1F* h_fg=new TH1F(Form("h_f %s profile",w_title.c_str()),"h_fg ",200,0,8000);
+
     TH2F* h_2f=new TH2F(Form("h_2f %s profile",w_title.c_str()),"h_2f ",200,0,8000,100,0,0.1);
     
+    TH1F* h_resid=new TH1F("h_resid","Average VDC residual",200,0,1000);
+
+    TH1F* h_resid1=new TH1F("h_resid1","Average VDC residual plane 1",200,0,1000);
+    TH1F* h_resid2=new TH1F("h_resid2","Average VDC residual plane 2",200,0,1000);
+    TH1F* h_resid3=new TH1F("h_resid3","Average VDC residual plane 3",200,0,1000);
+    TH1F* h_resid4=new TH1F("h_resid4","Average VDC residual plane 4",200,0,1000);
+
     int nevents=event_tree->GetEntries();
     if (max_events == -1)max_events = nevents; 
 
 
     for (int i=0;i<max_events;i++)
     {
-        if(i%1000==0) cout << "events process so far: " << i << endl;
+        if(i%1000==0) cout << "events processed so far: " << i << endl;
         branch_event->GetEntry(i);
         branch->GetEntry(i);
 
@@ -836,37 +897,97 @@ void CleanTrack(int package=1, int md_number=5,int run=6327, int max_events=-1)
 
         //retrieve the residual
         double residual=0;
+        double residual1=0;
+        double residual2=0;
+        double residual3=0;
+        double residual4=0;
+	int r3_tl=0;
         if (valid)
         {
-            int ntl=fEvent->GetNumberOfTreeLines();
+	    int ntl=fEvent->GetNumberOfTreeLines();
             for (int j=0;j<ntl;j++)
             {
                 tl=fEvent->GetTreeLine(j);
-                if (tl->GetRegion()==3 && tl->GetPackage()==package && tl->GetPlane()==0)
-                    residual+=tl->GetAverageResidual();
-            }
-        }
-        
-        residual/=2;
+
+		//                if (tl->GetRegion()==3 && tl->GetPackage()==package)
+		//		  cout << "plane   " <<  tl->GetPlane() << endl;
+
+                if (tl->GetRegion()==3 && tl->GetPackage()==package)
+		  {
+		  if (tl->GetPlane()==0)
+		    {
+		      residual+=tl->GetAverageResidual();
+		      r3_tl++;
+		    }    
+		  if (tl->GetPlane()==1) residual1+=tl->GetAverageResidual();
+		  if (tl->GetPlane()==2) residual2+=tl->GetAverageResidual();
+		  if (tl->GetPlane()==3) residual3+=tl->GetAverageResidual();
+		  if (tl->GetPlane()==4) residual4+=tl->GetAverageResidual();
+		  }
+	    }
+	}
+
+	if (valid) residual = residual/r3_tl;   // average over the expected 2 treelines in the partial track
+
         if(valid==false) h_f->Fill(mdp->GetValue()+mdm->GetValue());
 	if(valid){
 	  h_2f->Fill((mdp->GetValue()+mdm->GetValue()),residual);
 	  h_fg->Fill(mdp->GetValue()+mdm->GetValue());
+	  h_resid->Fill(10000.*residual);
+
+	  h_resid1->Fill(10000.*residual1);
+	  h_resid2->Fill(10000.*residual2);
+	  h_resid3->Fill(10000.*residual3);
+	  h_resid4->Fill(10000.*residual4);
 	}
     }
-        TCanvas* c=new TCanvas("c","R3 partial track residuals and MD pulseheights",700,700);
-        c->Divide(1,3);
-        c->cd(1);
-	c_1->SetLogy();
+
+
+        TCanvas* resid=new TCanvas("resid","R3 partial track residuals and MD pulseheights",700,700);
+        resid->Divide(1,3);
+        resid->cd(1);
+	resid_1->SetLogy();
         h_f->Draw();
 	h_f->SetTitle("MD pulse height for events with no Region 3 partial track");
-        c->cd(2);
-	c_2->SetLogy();
+        resid->cd(2);
+	resid_2->SetLogy();
         h_fg->Draw();
 	h_fg->SetTitle("MD pulse height for events with Region 3 partial track");
-        c->cd(3);
+        resid->cd(3);
 	h_2f->SetTitle("Region 3 partial track residual vs. MD pulseheight sum");
         h_2f->Draw("colz");
+
+	resid->SaveAs(outputPrefix+"VDC_residuals_and_pulses.pdf");
+
+        TCanvas* c2=new TCanvas("c2","R3 partial track Residual",600,600);
+
+	h_resid->SetXTitle("Average Residual  (#mum)");
+	h_resid->SetYTitle("Events");
+	h_resid->SetLabelFont(62,"x");
+	h_resid->SetLabelFont(62,"y");
+	h_resid->SetTitleFont(62,"x");
+	h_resid->SetTitleFont(62,"y");
+	h_resid->SetTitleSize(.04,"x");
+	h_resid->SetTitleSize(.04,"y");
+	h_resid->GetXaxis()->CenterTitle();
+	h_resid->GetYaxis()->CenterTitle();
+
+	h_resid->Draw();
+
+	c2->SaveAs(outputPrefix+"pt_residuals.pdf");
+
+        TCanvas* c3=new TCanvas("c3","R3 Residuals by plane",600,600);
+	c3->Divide(2,2);
+	c3->cd(1);
+	h_resid1->Draw();
+	c3->cd(2);
+	h_resid2->Draw();
+	c3->cd(3);
+	h_resid3->Draw();
+	c3->cd(4);
+	h_resid4->Draw();
+
+	c3->SaveAs(outputPrefix+"residuals_by_plane.pdf");
   }
 
 void Angle(int package=1, int md_number=5,int run=6327, int max_events=-1)
@@ -899,7 +1020,7 @@ void Angle(int package=1, int md_number=5,int run=6327, int max_events=-1)
 
     for (int i=0;i<max_events;i++)
     {
-        if(i%1000==0) cout << "events process so far: " << i << endl;
+        if(i%1000==0) cout << "events processed so far: " << i << endl;
         branch_event->GetEntry(i);
         branch->GetEntry(i);
 

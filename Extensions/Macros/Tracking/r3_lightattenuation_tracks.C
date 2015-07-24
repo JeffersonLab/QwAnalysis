@@ -1,14 +1,17 @@
+//  r3_lightattenuation_tracks.C
 //
 // authors: Siyuan Yang, David Armstrong, Eric Henderson
 //
-//   this script is for light attenuatuion studies in the Main Detector using
+//   This script is for light attenuation studies in the Main Detector using
 // projected tracks from Region 3.
 // 
-//  based originally on  r3_projection.C
+//   Based originally on  r3_projection.C
+//     Then based on r3_lightattenuation.C
 //
 //   In this version, only full tracks (bridged between Region 2 and Region 3)
 //                    are used; also, some Q^2 distributions plotted
-//                    will not work for Region 3-only runs
+//                    Can use to study light-weighting effects on Q^2
+//                    This will not work for Region 3-only runs
 //
 //  Usage: first you must put the rootfile which contains 
 //   the data under the $QW_ROOTFILES directory and then type:
@@ -16,10 +19,25 @@
 //   where "package" = package number (1 or 2)
 //         "octant" = main detector octant number (1 to 8)
 //         "runnumber" = run number
-//         events is number of events to analyze (default is whole run)
+//         "events" is number of events to analyze (default is whole run)
 //
-//    Results are output in several .txt files, which I need to 
-//      document... soon...  
+//
+//    Results are output in two .txt files:
+//
+//           pedestal_mean_tracks: 
+//                  MD ADC pedestals and mean radial location 
+//                 of the MD based on where R3 projected tracks "hit" detector
+//                  (same as above), and number of trials
+//
+//           nslope_gja_tracks.txt:
+//              normalized slopes (i.e. slope/intercept, i.e. fractional
+//              pulseheight loss vs y (fraction/cm); again, for both
+//             "+" and "-" tube on each side of the glue joint (y=0).
+//             Also, "glue joint attentuation factor": ratio of pulseheight
+//             on either side of glue joint (using y=0 intercepts of fits)
+//             as seen by the "+" and +-" tubes separately. 
+//             Also, the number of "trials" (hits+misses) output.
+//
 //
 //     There are two other functions included that are not directly 
 //      related to light attenuation studies, but are kept here for now:
@@ -44,13 +62,13 @@ TCanvas *c;
 void project_root(int package=1,int md_number=1,int run_number=6327,int max_events=-1,
 		  TString file_suffix="Qweak_", string command="MD_")
 {
-//this z_pos was the original used. We believe it is 5 cm off now. 2012-05-09 JAM
-//  Double_t md_zpos[9] = {0.0, 581.665,  576.705, 577.020, 577.425, 582.515,  577.955, 577.885, 577.060};
-  Double_t md_zpos[9] = {0.0, 576.665,  571.705, 572.020, 572.425, 577.515,  572.955, 572.885, 572.060};
+  Double_t md_zpos[9] = {0.0, 576.665,  576.705, 577.020, 577.425, 577.515,  577.955, 577.885, 577.060};
 
   QwTrack* track      = 0;
 
+  TString outputPrefix(Form("LightAttenTracks_run%d_MD%d_",run_number,md_number));
   TString file_name = "";
+
   file_name += gSystem->Getenv ( "QW_ROOTFILES" );
   file_name +="/";
   file_name += file_suffix;
@@ -86,17 +104,15 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       type.assign(command,0,type_found);
     }
 
-  bool IsProfile=false;
-  if (command.find("profile")==string::npos)
-    IsProfile=false;
-  else IsProfile=true;
 
   bool pe=false;
   if (command.find("photon")==string::npos)
     pe=false;
   else pe=true;
 
-  int mode=0;   //p,m,m+p,p-m;starting from 1
+  //  int mode=0;   //p,m,m+p,p-m;starting from 1
+  int mode=3;   // change default to p+m (ped subtracted)
+
   size_t found=0;
   if ((found=command.find("+"))!=string::npos)
     mode=3;
@@ -121,16 +137,12 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   //This is where most of the graphs in the script are initialized/created
 
-  TH2F* h_2d;
   TProfile2D* hp_2d;
+  hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"hp_2d ",50,320,345,220,-110,110);
   TH2F* hrate_2d;
   TProfile2D* hL_2d;
   TProfile2D* hQ2_2d;
 
-  if (IsProfile==false)
-    h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",50,0,0,220,-110,110);
-  else
-    hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",50,320,345,220,-110,110);
 
   hL_2d=new TProfile2D(Form("hL_2d %s profile",w_title.c_str()),"hL_2d ",110,-110,110,40,320,360);
 
@@ -138,12 +150,15 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   hrate_2d=new TH2F(Form("hrate %s ",w_title.c_str()),"hrate_2d ",110,-110,110,40,320,360);
 
   TH1D* h_1f=new TH1D("project run","project run",240,280,400);
-  TH1D* adcph = new TH1D("ADCP", "ADCP data", 1650, 0, 3500); //positive PMT ADChistogram
-  TH1D* adcmh = new TH1D("ADCM", "ADCM data", 1650, 0, 3500); //minus PMT ADC histogram
+  TH1D* adcph = new TH1D("ADCP", "ADCP data", 400, 0, 4000); //positive PMT ADChistogram
+  TH1D* adcmh = new TH1D("ADCM", "ADCM data", 400, 0, 4000); //minus PMT ADC histogram
   TH1D* tdcph = new TH1D("TDCP", "TDCP data", 1650, 0, 0);
   TH1D* tdcmh = new TH1D("TDCM", "TDCM data", 1650, 0, 0);
-  TH1D* adcpped = new TH1D("ADCPPED", "ADCP pedestal", 50, 0, 0); //positive PMT ADC pedestal graph
-  TH1D* adcmped = new TH1D("ADCMPED", "ADCM pedestal", 50, 0, 0); //negative PMT ADC pedestal graph
+  TH1D* adcpped = new TH1D("ADCPPED", "ADCP pedestal", 50, 0, 400); //positive PMT ADC pedestal graph
+  TH1D* adcmped = new TH1D("ADCMPED", "ADCM pedestal", 50, 0, 400); //negative PMT ADC pedestal graph
+
+  TH1D* adc_sum = new TH1D("adc_sum", "summed ADC spectrum", 500, 0, 5000);
+  TH1D* adc_sum_tight = new TH1D("adc_sum_tight", "summed ADC spectrum, y= 10-20cm", 500, 0, 5000);
 
   TH1D* h_Q2=new TH1D("Q2 ","h_Q2",120,0,120.);
   TH1D* h_Q2w=new TH1D("Q2 weighted","h_Q2w",120,0,120.);
@@ -172,8 +187,8 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   adcpp2 = new TProfile("ADCPP2", "ADCP2 profile", 50, 0, 100);
   adcmp1 = new TProfile("ADCMP1", "ADCM1 profile", 50, -100, 0);
   adcmp2 = new TProfile("ADCMP2", "ADCM2 profile", 50, 0, 100);
-  fulladcpp = new TProfile("FULLADCPP", Form("Exponential Run %d Octant %d positive PMT", run_number, md_number), 150, -105, 105);
-  fulladcmp = new TProfile("FULLADCMP", Form("Exponential Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
+  fulladcpp = new TProfile("FULLADCPP", Form("Linear Fit Run %d Octant %d positive PMT", run_number, md_number), 150, -105, 105);
+  fulladcmp = new TProfile("FULLADCMP", Form("Linear Fit Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
 
   x1adcpp = new TProfile("X1P", "X1 ADCP profile", 200, -110, 110);
   x1adcmp = new TProfile("X1M", "X1 ADCM profile", 200, -110, 110);
@@ -262,7 +277,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   for(int i = 0; i < max_events; i++)
 	{
-	  if(i % 1000 == 0) cout <<"events processed so far:" << i << endl;
+	  if(i % 100000 == 0) cout <<"events processed so far:" << i << endl;
 	  branch_event->GetEntry(i);
 	  branch->GetEntry(i);
 
@@ -275,6 +290,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	  if (ntracks>0){
 	    track=fEvent->GetTrack ( 0 );
 	    Q2_val=fEvent->fKinElasticWithLoss.fQ2;
+
             pt = track->fBack;
             if ( pt->GetRegion() ==3 && pt->GetPackage()==package)
 		{
@@ -331,15 +347,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
 	      if (adcpdata!=0.0 && adcmdata!=0.0 && p_t < -150 && p_t > -250 && m_t <-150 && p_t > -250)
                 {
-		  if (IsProfile==false)
-		    h_2d->Fill(x,y);
-		  else{
 		    hp_2d->Fill(x,y,weight);
 		    hQ2_2d->Fill(y,x,Q2_val*1000);
 		    hL_2d->Fill(y,x,weight);
 		    h_Q2->Fill(Q2_val*1000);
 		    h_Q2w->Fill(Q2_val*1000,weight);
-		  }
 		}
 
 
@@ -364,6 +376,10 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 		  if(tdcpdata < -150 && tdcpdata > -250)
 		    {
 		      hits->Fill(y,x);
+		      adc_sum->Fill(adcmdata-adcmmean+adcpdata-adcpmean);
+		      if (y>10 && y<20){
+			adc_sum_tight->Fill(adcmdata-adcmmean+adcpdata-adcpmean);
+		      }
 		    }
 		}
 
@@ -394,8 +410,6 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	      tdcmh->Fill(tdcmdata);
 
 	      //end graph filling
-
-
 
 
 	      bin = (x - xmin)/width; //finding the bin for efficiency
@@ -491,7 +505,9 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   hL_2d->GetYaxis()->SetTitle("position x:cm");
   hL_2d->SetTitle(titlel.c_str());
   hL_2d->Draw("colz");
-    
+
+  cq->SaveAs(outputPrefix+"weighted.pdf");
+
   cq2 = new TCanvas("cq2","Q2 histograms",10, 10, 800,800);
   gStyle->SetStatFormat("6.6g");
   cq2->Divide(1,2);
@@ -508,18 +524,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   h_Q2w->SetTitle(titleq2l.c_str());
   h_Q2w->Draw();
 
+  cq2->SaveAs(outputPrefix+"Q2_histos.pdf");
+
   c = new TCanvas("c","Region 3 Projections",10, 10, 800,800);
   c->Divide(2,2);
   c->cd(1);
-  if (IsProfile==false)
-    {
-      string title="track projection on " + type + "  " +  w_title + ": not profile";
-      h_2d->GetXaxis()->SetTitle("position x:cm");
-      h_2d->GetYaxis()->SetTitle("position y:cm");
-      h_2d->SetTitle(title.c_str());
-      h_2d->Draw("colz");
-    }
-  else
     {
       string title="track projection on " + type + "  " +  w_title + ": profile";
       hp_2d->GetXaxis()->SetTitle("position x:cm");
@@ -529,27 +538,18 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
     }
     
   c->cd(2);
-  if(IsProfile==false){
-    h_2d->ProjectionX()->Draw();
-  }
-  else if(IsProfile==true){
-    hp_2d->ProjectionX()->Draw();
-  }
+  hp_2d->ProjectionX()->Draw();
   c->cd(3);
-  if(IsProfile==false){
-    h_2d->ProjectionY()->Draw();
-  }
-  else if(IsProfile==true){
-    hp_2d->ProjectionY()->Draw();
-  }
+  hp_2d->ProjectionY()->Draw();
   c->cd(4);
-  adcph->Draw();
+  adc_sum->Draw();
 
+  c->SaveAs(outputPrefix+"R3projections.pdf");
 
   //pedestal graphs
 
-  pedestals = new TCanvas("pedestals", "Pedestal Data", 10, 10, 800, 800);
-  pedestals->Divide(1,2);
+  pedestals = new TCanvas("pedestals", "Pedestal Data", 10, 10, 700, 700);
+  pedestals->Divide(2,2);
 
   pedestals->cd(1);
   adcpped->Draw();
@@ -557,12 +557,17 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   pedestals->cd(2);
   adcmped->Draw();
 
+  pedestals->cd(3);
+  adc_sum->Draw();
+
+  pedestals->cd(4);
+  adc_sum_tight->Draw();
+
+  pedestals->SaveAs(outputPrefix+"ADC_pedestals.pdf");
 
   //ADC/TDC graphs
 
-  /* TEMPORARY COMMWNT OUT DAS
-
-  quad = new TCanvas("quad", "ADC and TDC data", 10, 10, 800, 800);
+  quad = new TCanvas("quad", "ADC and TDC data", 10, 10, 600, 600);
   quad->Divide(2,2);
 
   quad->cd(1);
@@ -577,7 +582,6 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   quad->cd(4);
   tdcmh->Draw();
 
-  */
 
   //hit and miss charts
 
@@ -592,47 +596,46 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   //misses->SetContour(20,[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]);
   misses->Draw("COLZ");
 
+  hitandmiss->SaveAs(outputPrefix+"HitsMisses.pdf");
 
-  //initial profile plots
 
-  /* TEMPORARY COMMENT OUT DSA
-
-  profiles = new TCanvas("profiles", "ADC profiles", 10, 10, 800, 800);
-  profiles->Divide(2,2);
-
-  profiles->cd(1);
-  adcpp1->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcpp1->Fit("pol1");
-  adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
-
-  profiles->cd(2);
-  adcpp2->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcpp2->Fit("pol1");
-  adcpp2->GetXaxis()->SetTitle("Position on MD (cm)");
-
-  profiles->cd(3);
-  adcmp1->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcmp1->Fit("pol1");
-  adcmp1->GetXaxis()->SetTitle("Position on MD (cm)");
-
-  profiles->cd(4);
-  adcmp2->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcmp2->Fit("pol1");
-  adcmp2->GetXaxis()->SetTitle("Position on MD (cm)");
-
-  */
 
   //fits for profile plots
 
   TF1* fit1 = new TF1("FIT1", "pol1", -95, -5);
   TF1* fit2 = new TF1("FIT2", "pol1", 5, 95);
   TF1* fit3 = new TF1("FIT3", "pol1", -3, 3);
-  TF1* fit4 = new TF1("FIT4", "expo", -95, -5);
-  TF1* fit5 = new TF1("FIT5", "expo", 5, 95);
+  TF1* fit4 = new TF1("FIT4", "pol1", -95, -5);
+  TF1* fit5 = new TF1("FIT5", "pol1", 5, 95);
+
+  //initial profile plots
+
+  profiles = new TCanvas("profiles", "ADC profiles", 10, 10, 800, 800);
+  profiles->Divide(2,2);
+
+  profiles->cd(1);
+  adcpp1->Draw();
+  gStyle->SetOptFit(1111);
+  adcpp1->Fit(fit1, "R");
+  adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
+
+  profiles->cd(2);
+  adcpp2->Draw();
+  gStyle->SetOptFit(1111);
+  adcpp2->Fit(fit2, "R");
+  adcpp2->GetXaxis()->SetTitle("Position on MD (cm)");
+
+  profiles->cd(3);
+  adcmp1->Draw();
+  gStyle->SetOptFit(1111);
+  adcmp1->Fit(fit1, "R");
+  adcmp1->GetXaxis()->SetTitle("Position on MD (cm)");
+
+  profiles->cd(4);
+  adcmp2->Draw();
+  gStyle->SetOptFit(1111);
+  adcmp2->Fit(fit2, "R");
+  adcmp2->GetXaxis()->SetTitle("Position on MD (cm)");
 
 
 
@@ -728,7 +731,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   FILE* ratios;
 
-  ratios = fopen("ratios.txt","a");
+  ratios = fopen("ratios_tracks.txt","a");
 
   if (ratios == NULL)
     {
@@ -771,17 +774,31 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   Double_t mintercept2 = fit2->GetParameter(0);
   Double_t mslope2 = fit2->GetParameter(1);
 
-
+  fulls->SaveAs(outputPrefix+"FullProfiles.pdf");
 
   //efficiency plot
 
-  EFF = new TCanvas("EFF", "Efficiency Plot", 10, 10, 800, 800);
+  EFF = new TCanvas("EFF", "Efficiency Plot", 10, 10, 600, 600);
   effplot = new TGraph(size, xpos, efficiency);
   effplot->SetMarkerStyle(20);
   effplot->SetMarkerColor(4);
+  effplot->GetXaxis()->SetTitle("MD Radial location (cm)");
+  effplot->SetTitle(Form("MD %d efficiency vs. radial track location",md_number));
   effplot->Draw("AP");
+  TPaveText *myText= new TPaveText(0.30,0.2,0.7,0.27, "NDC");
+  myText->SetTextSize(0.025); 
+  myText->SetFillColor(0);
+  myText->SetTextAlign(12);
+  myTextEntry = myText->AddText(Form("Mean Location = %0.2f  cm",effmean));
+  myText->Draw();
+  TPaveText *RunNumText= new TPaveText(0.30,0.28,0.52,0.33, "NDC");
+  RunNumText->SetTextSize(0.025); 
+  RunNumText->SetFillColor(42);
+  RunNumText->SetTextAlign(12);
+  RunNumTextEntry = RunNumText->AddText(Form("Run Number %d",run_number));
+  RunNumText->Draw();
 
-
+  EFF->SaveAs(outputPrefix+"Efficiency.pdf");
   //finding normalized slopes and glue joint factors
 
   Double_t gjap;  //glue joint factor positive PMT
@@ -836,15 +853,13 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       nslopem2 = mslope2 / p;
     }
 
-
-
   //writing everything out to files
 
   FILE *pedestal_mean; //pedestal values and mean MD value
   FILE *nslope_gja;  //glue joint factors and normalized slopes
 
-  pedestal_mean = fopen("pedestal_mean.txt", "a");
-  nslope_gja = fopen("nslope_gja.txt", "a");
+  pedestal_mean = fopen("pedestal_mean_tracks.txt", "a");
+  nslope_gja = fopen("nslope_gja_tracks.txt", "a");
 
   if (pedestal_mean == NULL)
     {
@@ -903,7 +918,7 @@ void CleanTrack(int package=1, int md_number=5,int run=6327, int max_events=-1)
 
     for (int i=0;i<max_events;i++)
     {
-        if(i%1000==0) cout << "events process so far: " << i << endl;
+        if(i%1000==0) cout << "events processed so far: " << i << endl;
         branch_event->GetEntry(i);
         branch->GetEntry(i);
 
@@ -980,7 +995,7 @@ void Angle(int package=1, int md_number=5,int run=6327, int max_events=-1)
 
     for (int i=0;i<max_events;i++)
     {
-        if(i%1000==0) cout << "events process so far: " << i << endl;
+        if(i%1000==0) cout << "events processed so far: " << i << endl;
         branch_event->GetEntry(i);
         branch->GetEntry(i);
 
