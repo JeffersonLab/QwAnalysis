@@ -121,12 +121,10 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     query += "JOIN slow_controls_settings ON runlet.runlet_id = slow_controls_settings.runlet_id\n";
     query += "JOIN slow_controls_data ON runlet.runlet_id = slow_controls_data.runlet_id\n";
     query += "JOIN slow_controls_data raster ON runlet.runlet_id = raster.runlet_id\n";
-    query += "JOIN sc_detector ON sc_detector.sc_detector_id = slow_controls_data.sc_detector_id\n";
     query += "JOIN sc_detector raster_detector ON raster_detector.sc_detector_id = raster.sc_detector_id\n";
 
     /* Runlet and analysis level cuts are done here. */
     query += "WHERE analysis.slope_correction = \"" + reg_type + "\"\n";
-    query += "AND sc_detector.name = \"Q1HallP\"\n";
     query += "AND raster_detector.name = \"EHCFR_LIXWidth\"\n";
 
     /* set target */
@@ -135,14 +133,8 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
     /* set run quality checks */
     if(!ignore_quality) {
         query += Form("AND runlet.runlet_quality_id = \"%d\"\n", run_quality);
-        /* use the FIND_IN_SET method instead */
-        //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
         query += "AND FIND_IN_SET('3',run.good_for_id)\n";
-        if(db_name == "qw_run2_pass5b")
-            query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
-        if(db_name == "qw_run1_pass5b")
-            query += "AND slow_controls_data.value <= -709.5 AND slow_controls_data.value >= -711.5\n";
     }
 
     /* if using runlist, cut on run number */
@@ -195,16 +187,12 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     query += "JOIN slow_controls_settings ON runlet.runlet_id = slow_controls_settings.runlet_id\n";
     query += "JOIN slow_controls_data ON runlet.runlet_id = slow_controls_data.runlet_id\n";
     query += "JOIN slow_controls_data raster ON runlet.runlet_id = raster.runlet_id\n";
-    query += "JOIN sc_detector ON sc_detector.sc_detector_id = slow_controls_data.sc_detector_id\n";
     query += "JOIN sc_detector raster_detector ON raster_detector.sc_detector_id = raster.sc_detector_id\n";
 
     /* Runlet and analysis level cuts are done here. The regression type is set
      * based on the mapfile.
-     *
-     * FIXME: this method seems retarded and needs revamping
      */
     query += "WHERE analysis.slope_correction = \"off\"\n";
-    query += "AND sc_detector.name = \"Q1HallP\"\n";
     query += "AND raster_detector.name = \"EHCFR_LIXWidth\"\n";
 
     if(reg_type == "off") query += "AND analysis.slope_calculation = \"on\"\n";
@@ -217,14 +205,8 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
     /* set run quality checks */
     if(!ignore_quality) {
         query += Form("AND runlet.runlet_quality_id = \"%d\"\n", run_quality);
-        /* use the FIND_IN_SET method instead */
-        //query += "AND (run.good_for_id = \"1\" OR run.good_for_id = \"1,3\")\n";
         query += "AND FIND_IN_SET('1',run.good_for_id)\n";
         query += "AND FIND_IN_SET('3',run.good_for_id)\n";
-        if(db_name == "qw_run2_pass5b")
-            query += "AND slow_controls_data.value <= -706.5 AND slow_controls_data.value >= -708.5\n";
-        if(db_name == "qw_run1_pass5b")
-            query += "AND slow_controls_data.value <= -709.5 AND slow_controls_data.value >= -711.5\n";
     }
 
     /* if using runlist, cut on run number */

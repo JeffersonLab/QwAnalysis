@@ -112,7 +112,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
          *
          * Fill main detector slope object vector
          */
-        if(reg_type == "on_5+1" || reg_type == "on" || reg_type == "on_set11" || reg_type == "on_set13") {
+        if(reg_type == "on_5+1" || reg_type == "on" || reg_type == "on_set10" || reg_type == "on_set11" || reg_type == "on_set13") {
             for(Int_t i = 0; i < num_mds; i++) {
                 QwMainDetSlope temp_detector(mds.detector(i), mds.id_type(i), reg_type, slopes, good_runlets, db, runavg, slugavg, wienavg);
                 temp_detector.fill();
@@ -120,7 +120,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
             }
         }
 
-        if(reg_type == "on_5+1" || reg_type == "on" || reg_type == "on_set11" || reg_type == "on_set13") {
+        if(reg_type == "on_5+1" || reg_type == "on" || reg_type == "on_set10" || reg_type == "on_set11" || reg_type == "on_set13") {
             for(Int_t i = 0; i < num_lumis; i++ || reg_type == "on") {
                 QwLumiDetSlope temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, slopes, good_runlets, db, runavg, slugavg, wienavg);
                 temp_detector.fill();
