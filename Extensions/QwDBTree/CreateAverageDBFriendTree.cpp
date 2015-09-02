@@ -181,7 +181,7 @@ Int_t CreateAverageDBFriendTree(Int_t run_period, Bool_t run_average, TString di
             continue;
         }
         //don't include slugs that aren't LH2
-        if(!(slug>=42&&slug<=321))continue;
+        if(!(slug>=42&&slug<=321)||slug==135)continue;
         double err_MD = average_tree->GetBranch(mdallbars.Data())->
             GetLeaf("err")->GetValue();
 
