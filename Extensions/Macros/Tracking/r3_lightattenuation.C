@@ -152,8 +152,6 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   TProfile* adcmp2;
   TProfile* fulladcpp;
   TProfile* fulladcmp;
-  TProfile* linadcpp;
-  TProfile* linadcmp;
   TProfile* x1adcpp;
   TProfile* x1adcmp;
   TProfile* x2adcpp;
@@ -163,14 +161,12 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   TProfile* ydistribution;
 
 
-  adcpp1 = new TProfile("ADCPP1", "ADCP1 profile", 50, -100, 0);
-  adcpp2 = new TProfile("ADCPP2", "ADCP2 profile", 50, 0, 100);
-  adcmp1 = new TProfile("ADCMP1", "ADCM1 profile", 50, -100, 0);
-  adcmp2 = new TProfile("ADCMP2", "ADCM2 profile", 50, 0, 100);
+  adcpp1 = new TProfile("ADCPP1", Form("Run %d  Oct. %d +PMT far end", run_number, md_number), 50, -100, 0);
+  adcpp2 = new TProfile("ADCPP2", Form("Run %d  Oct. %d +PMT near end", run_number, md_number), 50, 0, 100);
+  adcmp1 = new TProfile("ADCMP1", Form("Run %d  Oct. %d -PMT near end", run_number, md_number), 50, -100, 0);
+  adcmp2 = new TProfile("ADCMP2", Form("Run %d  Oct. %d -PMT far end", run_number, md_number), 50, 0, 100);
   fulladcpp = new TProfile("FULLADCPP", Form("Linear Fit Run %d Octant %d positive PMT", run_number, md_number), 150, -105, 105);
   fulladcmp = new TProfile("FULLADCMP", Form("LInear Fit Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
-  linadcpp = new TProfile("LINADCPP", Form("Linear Run %d Octant %d plus PMT", run_number, md_number), 150, -105, 105);
-  linadcmp = new TProfile("LINADCMP", Form("Linear Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
   x1adcpp = new TProfile("X1P", "X1 ADCP profile", 200, -110, 110);
   x1adcmp = new TProfile("X1M", "X1 ADCM profile", 200, -110, 110);
   x2adcpp = new TProfile("X2P", "X2 ADCP profile", 200, -110, 110);
@@ -328,10 +324,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	      if (tdcpdata < -150 && tdcpdata > -250)
 		{
 		  adcph->Fill(adcpdata);
-		  adcpp1->Fill(y,adcpdata-adcpmean);
-		  adcpp2->Fill(y,adcpdata-adcpmean);
-		  fulladcpp->Fill(y,adcpdata-adcpmean);
-		  linadcpp->Fill(y,adcpdata-adcpmean);
+		  //		  if(x>330 && x<335){
+		    adcpp1->Fill(y,adcpdata-adcpmean);
+		    adcpp2->Fill(y,adcpdata-adcpmean);
+		    fulladcpp->Fill(y,adcpdata-adcpmean);
+		    //		  }
 		}
 
 	      if (tdcmdata < -150 && tdcmdata > -250)
@@ -340,16 +337,15 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 		  adcmp1->Fill(y,adcmdata-adcmmean);
 		  adcmp2->Fill(y,adcmdata-adcmmean);
 		  fulladcmp->Fill(y,adcmdata-adcmmean);
-		  linadcmp->Fill(y,adcmdata-adcmmean);
 
 		  if(tdcpdata < -150 && tdcpdata > -250)
 		    {
 		      hits->Fill(y,x);
 		      xdistribution->Fill(x,adcmdata-adcmmean+adcpdata-adcpmean);
 		      ydistribution->Fill(y,adcmdata-adcmmean+adcpdata-adcpmean);
-		      adc_sum->Fill(adcmdata-adcmmean+adcpdata-adcpmean);
+		      adc_sum->Fill(adcmdata-adcmmean + adcpdata-adcpmean);
 		      if (y>10 && y<20){
-			adc_sum_tight->Fill(adcmdata-adcmmean+adcpdata-adcpmean);
+			adc_sum_tight->Fill(adcmdata-adcmmean+ adcpdata-adcpmean);
 		      }
 		      if (x >= 330 && x < 335)
 			{
@@ -458,7 +454,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   fclose(mean);
 
 
-  c = new TCanvas("c","Region 3 Projections",10, 10, 800,800);
+  c = new TCanvas("c","Region 3 Projections",10, 10, 500,500);
   c->Divide(2,2);
   c->cd(1);
     {
@@ -532,15 +528,13 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   distributions->cd(1);
   xdistribution->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcpp1->Fit("pol1");
-  adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
+  //  adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
+  xdistribution->GetXaxis()->SetTitle("Position on MD (cm)");
 
   distributions->cd(2);
   ydistribution->Draw();
-  //gStyle->SetOptFit(1111);
-  //adcpp1->Fit("pol1");
-  adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
+  //adcpp1->GetXaxis()->SetTitle("Position on MD (cm)");
+  xdistribution->GetXaxis()->SetTitle("Position on MD (cm)");
 
   distributions->SaveAs(outputPrefix+"total_pulse.pdf");
 
@@ -768,50 +762,72 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       gjam = mintercept1 / mintercept2;
     }
 
-  Double_t nslopep1;
-  Double_t nslopep2;
-  Double_t nslopem1;
-  Double_t nslopem2;
-  Double_t q;
-  Double_t p;
+  Double_t nslopep1 = 0;
+  Double_t nslopep2 = 0;
+  Double_t nslopem1 = 0;
+  Double_t nslopem2 = 0;
+  Double_t q = 0;
+  Double_t p = 0;
+  Double_t qq = 0;
+  Double_t pp = 0;
+  Double_t dynamic_range_p = 0;
+  Double_t dynamic_range_m = 0;
+  Double_t corr_dynamic_range_p = 0;
+  Double_t corr_dynamic_range_m = 0;
 
   if (pintercept1 > pintercept2)
     {
       nslopep2 = pslope2 / pintercept2;
       q = -100*pslope1 + pintercept1;
+      qq = -100*pslope2 + pintercept2;
       nslopep1 = pslope1 / q;
+      dynamic_range_p = q/qq;
+      corr_dynamic_range_p = q/(-200*pslope1+pintercept1);
+      corr_dynamic_range_p = q/qq;
     }
 
   if (pintercept2 > pintercept1)
     {
       nslopep1 = pslope1 / pintercept1;
       q = 100*pslope2 + pintercept2;
+      qq = -100*pslope1 + pintercept1;
       nslopep2 = pslope2 / q;
+      dynamic_range_p = q/qq;
+      corr_dynamic_range_p = q/(-200*pslope2+pintercept2);
+      cout << "corr p " << corr_dynamic_range_p << endl;
     }
 
   if (mintercept1 > mintercept2)
     {
       nslopem2 = mslope2 / mintercept2;
       p = -100*mslope1 + mintercept1;
+      pp = 100*mslope2 + mintercept2;
       nslopem1 = mslope1 / p;
+      dynamic_range_m = p/pp;
+      corr_dynamic_range_m = p/(-200*mslope1+mintercept1);
+      cout << "corr m " << corr_dynamic_range_m << endl;
     }
 
   if (mintercept2 > mintercept1)
     {
       nslopem1 = mslope1 / mintercept1;
       p = 100*mslope2 + mintercept2;
+      pp = -100*mslope1 + mintercept1;
       nslopem2 = mslope2 / p;
+      dynamic_range_m = p/pp;
+      corr_dynamic_range_m = p/(200*mslope2+mintercept2);
     }
-
 
 
   FILE *pedestal_mean;
   FILE *slope_intercept;
   FILE *nslope_gja;
+  FILE *dynamic_range;
 
   pedestal_mean = fopen("pedestal_mean.txt", "a");
   slope_intercept = fopen("slope_intercept.txt", "a");
   nslope_gja = fopen("nslope_gja.txt", "a");
+  dynamic_range = fopen("dynamic_range.txt", "a");
 
   if (pedestal_mean == NULL)
     {
@@ -828,18 +844,26 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       cout << "nslope_gja did not open" << endl;
     }
 
+  if (dynamic_range == NULL)
+    {
+      cout << "dynamic_range did not open" << endl;
+    }
+
    fprintf(pedestal_mean, "%d \t %d \t %d \t %f \t %f \t %f \t %d\n", run_number, package, md_number, adcpmean, adcmmean, effmean, trial_total);
 
 
   fprintf(slope_intercept, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f\n", run_number, package, md_number, pintercept1, pslope1, pintercept2, pslope2, mintercept1, mslope1, mintercept2, mslope2);
 
-  fprintf(nslope_gja, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f \t %d \n",run_number, package, md_number, gjap, gjam, nslopep1, nslopep2, nslopem1, nslopem2,trial_total);
+  fprintf(nslope_gja, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %d \n",run_number, package, md_number, gjap, gjam, nslopep1, nslopep2, nslopem1, nslopem2, q, p, dynamic_range_p, dynamic_range_m, trial_total);
+
+  fprintf(dynamic_range, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %d \n",run_number, package, md_number, gjap, gjam, q, p, dynamic_range_p, dynamic_range_m, corr_dynamic_range_p, corr_dynamic_range_m, trial_total);
 
 
 
   fclose(pedestal_mean);
   fclose(slope_intercept);
   fclose(nslope_gja);
+  fclose(dynamic_range);
 
 
   return;
