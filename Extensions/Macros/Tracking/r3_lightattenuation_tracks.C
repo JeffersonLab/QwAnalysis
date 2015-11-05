@@ -525,6 +525,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   h_Q2w->Draw();
 
   cq2->SaveAs(outputPrefix+"Q2_histos.pdf");
+  cq2->SaveAs(outputPrefix+"Q2_histos.C");
 
   c = new TCanvas("c","Region 3 Projections",10, 10, 800,800);
   c->Divide(2,2);
@@ -775,6 +776,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   Double_t mslope2 = fit2->GetParameter(1);
 
   fulls->SaveAs(outputPrefix+"FullProfiles.pdf");
+  fulls->SaveAs(outputPrefix+"FullProfiles.C");
 
   //efficiency plot
 

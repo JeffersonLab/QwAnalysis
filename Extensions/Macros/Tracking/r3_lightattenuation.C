@@ -473,6 +473,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   adc_sum->Draw();
 
   c->SaveAs(outputPrefix+"R3_projections.pdf");
+  c->SaveAs(outputPrefix+"R3_projections.C");
 
 
   pedestals = new TCanvas("pedestals", "Pedestal Data", 10, 10, 700, 700);
@@ -491,6 +492,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   adc_sum_tight->Draw();
 
   pedestals->SaveAs(outputPrefix+"adc_pedestals_sums.pdf");
+  pedestals->SaveAs(outputPrefix+"adc_pedestals_sums.C");
 
   quad = new TCanvas("quad", "ADC and TDC data", 10, 10, 600, 600);
   quad->Divide(2,2);
@@ -537,6 +539,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   xdistribution->GetXaxis()->SetTitle("Position on MD (cm)");
 
   distributions->SaveAs(outputPrefix+"total_pulse.pdf");
+  distributions->SaveAs(outputPrefix+"total_pulse.C");
 
   TF1* fit1 = new TF1("FIT1", "pol1", -95, -5);
   TF1* fit2 = new TF1("FIT2", "pol1", 5, 95);
@@ -572,6 +575,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   adcmp2->GetXaxis()->SetTitle("Position on MD (cm)");
 
   profiles->SaveAs(outputPrefix+"profiles.pdf");
+  profiles->SaveAs(outputPrefix+"profiles.C");
 
 
 
@@ -702,6 +706,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   Double_t mslope2 = fit2->GetParameter(1);
 
   fulls->SaveAs(outputPrefix+"FullProfiles.pdf");
+  fulls->SaveAs(outputPrefix+"FullProfiles.C");
 
 
   EFF = new TCanvas("EFF", "Efficiency Plot", 10, 10, 800, 800);
