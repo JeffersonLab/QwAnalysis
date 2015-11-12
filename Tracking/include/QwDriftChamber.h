@@ -52,7 +52,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   /// Define options
   static void DefineOptions(QwOptions& options) {
-    options.AddOptions("Tracking Options")("QwDriftChamber.print-f1tdc-configuration",
+    options.AddOptions("Tracking options")("QwDriftChamber.print-f1tdc-configuration",
         po::value<bool>(&fPrintF1TDCConfiguration)->default_bool_value(false),
         "print F1TDC configuration");
   }

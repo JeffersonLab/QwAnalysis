@@ -904,13 +904,13 @@ void QwDriftChamberVDC::ClearEventData()
 
 void QwDriftChamberVDC::DefineOptions ( QwOptions& options )
 {
-  options.AddOptions("Tracking Options") ( "use-tdchit",
+  options.AddOptions("Tracking options") ( "use-tdchit",
       po::value<bool>()->default_bool_value(false),
       "create TDC-based tree" );
-  options.AddOptions("Tracking Options") ( "disable-wireoffset",
+  options.AddOptions("Tracking options") ( "disable-wireoffset",
       po::value<bool>()->default_bool_value(false),
       "disable subtraction of t0 for every wire" );
-  options.AddOptions("Tracking Options") ("R3-octant",
+  options.AddOptions("Tracking options") ("R3-octant",
       po::value<int>()->default_value(1),
       "MD Package 2 of R3 is in front of" );
 }
