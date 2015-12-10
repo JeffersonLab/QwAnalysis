@@ -26,9 +26,14 @@ fi
 
 #BCM6 config run range is broader than the Al range and Al config files already use BCM6. So this comes first.
 confDir="run1pass5"
+    # pre wien 0 al running
+    if  [ $run -ge 7041  -a  $run -le 7077 ] ; then
+        confDir="run1pass5_pre_w0_al"
     # pre wien 0 running
-    if [ $run -ge 5000  -a  $run -le 7654 ] ; then
+    elif [ $run -ge 5000  -a  $run -le 7654 ] ; then
 	    confDir="run1pass5_pre_w0"
+    elif [ $run -ge 13930  -a  $run -le 13940 ] ; then
+        confDir="run1pass5_pre_w0_al"
     elif [ $run -ge 11002 ] ; then
         confDir="run1pass5_11002"
     fi
