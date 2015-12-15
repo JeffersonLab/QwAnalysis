@@ -16,6 +16,11 @@
 #include "globals.h"
 #include "matrix.h"
 
+//Minuit2 
+#include "Minuit2/FCNBase.h"
+#include "TFitterMinuit.h"
+
+
 #define HASHSIZE 1024		/* power of 2 */
 #define HASHMASK 1023		/* hashsize-1 */
 

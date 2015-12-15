@@ -1379,6 +1379,147 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*!--------------------------------------------------------------------------*\
+ Minuit2 Set-up
+   The following is the code that the minuit2 minimizer calls in 
+   r2_PartialTrackFit to optimize the fit parameters.  It applies
+   rotation parameters defined in the geofile (qweak_HDC.<runrange>.geo) 
+   found in the QwAnalysis/Tracking/src/ directory.  These rotation 
+   parameters (defined by plane) allow the individual planes in Region 2
+   to be rotated around the center of each chamber. **this eventually needs
+   to be corrected to have both chambers in a package rotate around the same 
+   point**      
+ *//*-------------------------------------------------------------------------*/
+
+class MyFCN : public ROOT::Minuit2::FCNBase { 
+
+	public: 
+
+		MyFCN(std::vector<QwHit*> fhits) : hits(fhits)  {}
+
+		double operator() (const std::vector<double> & fit) const {
+			double value = 0;
+			double chi2 = 0;
+			double resolution = hits[0]->GetDetectorInfo()->GetSpatialResolution();
+			double normalization = 1/(resolution*resolution);
+
+	
+			// Calculate the metric matrix
+			double dx_[12] = { 0.0 };
+			double l[3] = { 0.0 };
+			double h[3] = { 0.0 };
+			for (int i = 0; i < hits.size(); ++i)
+				dx_[hits[i]->GetPlane() - 1] = hits[i]->GetDetectorInfo()->GetPlaneOffset();
+
+			for (int i = 0; i < 3; ++i)
+			{
+				h[i] = dx_[6 + i] == 0 ? dx_[9 + i] : dx_[6 + i];
+				l[i] = dx_[i] == 0 ? dx_[3 + i] : dx_[i];
+				dx_[i] = dx_[3 + i] = 0;
+				dx_[6 + i] = dx_[9 + i] = h[i] - l[i];
+			}
+
+			for (int i=0; i<hits.size();i++)
+			{
+
+				double cosx = hits[i]->GetDetectorInfo()->GetDetectorRollCos();
+				double sinx = hits[i]->GetDetectorInfo()->GetDetectorRollSin();
+				double cosy = hits[i]->GetDetectorInfo()->GetDetectorPitchCos();
+				double siny = hits[i]->GetDetectorInfo()->GetDetectorPitchSin();
+				double rcos = hits[i]->GetDetectorInfo()->GetElementAngleCos();
+				double rsin = hits[i]->GetDetectorInfo()->GetElementAngleSin();
+
+				double dx = dx_[hits[i]->GetPlane() - 1];
+
+				double wire_off = -0.5 * hits[i]->GetDetectorInfo()->GetElementSpacing()
+				    + hits[i]->GetDetectorInfo()->GetElementOffset();
+				double hit_pos = hits[i]->GetDriftPosition() + wire_off - dx;
+
+				// Get end points of the hit wire
+				double x0 = hit_pos/rsin;
+				double y0 = hit_pos/rcos;
+		
+				double zRot = 1e6;	
+				if(hits[i]->GetPackage()==1) 
+				{
+					if(hits[i]->GetPlane() > 6) zRot = -294.655;
+ 					else  zRot = -337.338;
+				}
+				else{ 
+					if(hits[i]->GetPlane() > 6) zRot = -293.905;
+ 					else  zRot = -336.755;
+				}			
+
+				double z0 = hits[i]->GetDetectorInfo()->GetZPosition();
+				double zD = z0 - zRot;
+	
+				double xR_1 = x0;
+				double yR_1 = 0.0;
+				double zR_1 = z0;
+				double xR_2 = 0.0;
+				double yR_2 = y0;
+				double zR_2 = z0;
+	
+				xR_1 = cosy*x0 +zD*cosx*siny;
+				yR_1 = zD*sinx;
+				zR_1 = zD*cosx*cosy + zRot - siny*x0;
+				
+				xR_2 = zD*cosx*siny - siny*sinx*y0;
+				yR_2 = cosx*y0 + zD*sinx;
+				zR_2 = zD*cosx*cosy + zRot - sinx*cosx*y0;
+
+				double xc = hits[i]->GetDetectorInfo()->GetXPosition();
+				double yc = hits[i]->GetDetectorInfo()->GetYPosition();
+				
+				double z = (-(fit[1]-xc-zD*cosx*siny)*cosx*siny - 
+					     (fit[3]-yc-zD*sinx)*sinx + 
+					     (zRot + zD*cosx*cosy)*cosy*cosx)  / 
+					     (fit[0]*cosx*siny + fit[2]*sinx + cosy*cosx);	
+				
+				double x = fit[1] + fit[0] * z;
+				double y = fit[3] + fit[2] * z;
+			
+	
+				x -= xc;
+				y -= yc;
+			
+				double diffx = xR_2 - xR_1;
+				double diffy = yR_2 - yR_1;
+				double diffz = zR_2 - zR_1;
+
+				double numx = -y*diffz + z*diffy + yR_1*zR_2 - yR_2*zR_1;
+				double numy =  x*diffz - z*diffx - xR_1*zR_2 + xR_2*zR_1;
+				double numz = -x*diffy + y*diffx + xR_1*yR_2 - xR_2*yR_1;
+				
+				double num = sqrt(numx*numx + numy*numy + numz*numz);
+
+				double demx = xR_2 - xR_1;
+				double demy = yR_2 - yR_1;
+				double demz = zR_2 - zR_1;
+				double dem = sqrt(demx*demx + demy*demy + demz*demz);
+				
+				double residual = num / dem;
+
+				chi2 += normalization * residual * residual;
+			}
+			chi2 /= (hits.size() - 4);
+			return chi2;
+
+
+		} 
+
+
+		double Up() const { return 1.; }
+
+
+
+	private: 
+
+		std::vector<QwHit*> hits;
+};
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/*!--------------------------------------------------------------------------*\
 
  r2_TrackFit()
 
@@ -1515,6 +1656,40 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
   // Calculate chi2^2,rewrite
   chi2 = 0.0;
   std::pair<int, double> worst_case(0, -0.01);
+  //Call the Minuit2 code to minimize chi2 
+  TFitterMinuit * minuit = new TFitterMinuit();
+  std::vector<QwHit*> test;
+
+  for (int i = 0; i < num_hits; ++i)
+  {
+     test.push_back(hits[i]); 
+  
+  }
+
+  MyFCN *fcn = new MyFCN(test);
+  minuit->SetMinuitFCN(fcn);
+
+  minuit->SetParameter(0,"M",fit[1],1,0,0);
+  minuit->SetParameter(1,"XOff",fit[0],100,0,0);
+  
+  minuit->SetParameter(2,"N",fit[3],1,0,0);
+  minuit->SetParameter(3,"YOff",fit[2],100,0,0);
+       minuit->CreateMinimizer();
+        int iret = minuit->Minimize();
+
+
+  std::vector<double> test2;
+  test2.push_back(minuit->GetParameter(0));
+  test2.push_back(minuit->GetParameter(1));
+  test2.push_back(minuit->GetParameter(2));
+  test2.push_back(minuit->GetParameter(3));
+  
+  fit[0] = minuit->GetParameter(1);
+  fit[1] = minuit->GetParameter(0);
+  fit[2] = minuit->GetParameter(3);
+  fit[3] = minuit->GetParameter(2);
+ 
+
   for (int i = 0; i < num_hits; ++i)
   {
     // Normalization = 1/sigma^2
@@ -1556,9 +1731,12 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
     chi2 += normalization * residual * residual;
   }
 
-  // Divide by degrees of freedom (number of hits minus two offsets, two slopes)
-  chi2 /= (num_hits - 4);
+ // Divide by degrees of freedom (number of hits minus two offsets, two slopes)
+ // chi2 /= (num_hits - 4);
 
+  //this is the minuit calculated chi2
+  chi2 = fcn->operator()(test2);
+ 
   // Return if we are done
   if (drop_worst_hit == false) {
     return 0;
