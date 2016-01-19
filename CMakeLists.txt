@@ -1,5 +1,5 @@
-# Require at least cmake 2.6.0
-cmake_minimum_required(VERSION 2.6.0 FATAL_ERROR)
+# Require at least cmake 2.8.4
+cmake_minimum_required(VERSION 2.8.4 FATAL_ERROR)
 
 # Name of this project
 project(QwAnalysis)
@@ -43,18 +43,16 @@ file(GLOB my_evio_sources
 # Load ROOT and setup include directory
 find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIR})
-set(ROOT_LIBRARIES ${ROOT_LIBRARIES} -lGui)
+set(ROOT_LIBRARIES ${ROOT_LIBRARIES} -lGui -lMinuit2)
 
 # Load MYSQLPP
 find_package(MYSQLPP REQUIRED)
 include_directories(${MYSQLPP_INCLUDE_DIR})
 
 # Find Boost libraries
-# Though, there seems to be a bug in version 2.8 of CMake's boost
-# finding process. As such, we'll disable it for version 2.8
-if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} EQUAL 2.8)
-  SET( Boost_NO_BOOST_CMAKE ON )
-endif(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} EQUAL 2.8)
+# There seems to be a bug starting in version 2.8.4 of CMake's boost
+# finding process. As such, we'll disable it here and require 2.8.4 or higher
+SET( Boost_NO_BOOST_CMAKE ON )
 find_package(Boost COMPONENTS program_options filesystem system regex REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIR})
