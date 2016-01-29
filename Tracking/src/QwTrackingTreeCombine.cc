@@ -1439,15 +1439,8 @@ class MyFCN : public ROOT::Minuit2::FCNBase {
 				double y0 = hit_pos/rcos;
 		
 				double zRot = 1e6;	
-				if(hits[i]->GetPackage()==1) 
-				{
-					if(hits[i]->GetPlane() > 6) zRot = -294.655;
- 					else  zRot = -337.338;
-				}
-				else{ 
-					if(hits[i]->GetPlane() > 6) zRot = -293.905;
- 					else  zRot = -336.755;
-				}			
+				if(hits[i]->GetPackage()==1) zRot = -315.9965; 
+				if(hits[i]->GetPackage()==2) zRot = -315.33;
 
 				double z0 = hits[i]->GetDetectorInfo()->GetZPosition();
 				double zD = z0 - zRot;
@@ -1739,7 +1732,10 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
  
   // Return if we are done
   if (drop_worst_hit == false) {
-    return 0;
+  delete minuit;
+
+
+   return 0;
   }
 
   double best_chi2 = chi2;
@@ -1873,6 +1869,9 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
   }
 
   chi2 = best_chi2;
+  delete minuit;
+
+
   return 0;
 }
 
