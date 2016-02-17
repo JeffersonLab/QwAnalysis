@@ -141,7 +141,7 @@ void QwTrackingTree::PrintHashTable() const
 
 *//*-------------------------------------------------------------------------*/
 QwTrackingTree::QwTrackingTree(unsigned int numlayers)
-: fNumPlanes(fNumLayers),fNumWires(fNumLayers)
+: fNumPlanes(numlayers),fNumWires(numlayers)
 {
   fDebug = 0; // debug level
 

@@ -609,7 +609,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 
 void QwDriftChamberHDC::DefineOptions ( QwOptions& options )
 {
-  options.AddOptions() ("R2-octant",
+  options.AddOptions("Tracking options") ("R2-octant",
 			po::value<int>()->default_value(1),
 			"MD Package 2 of R2 is in front of" );
 }
