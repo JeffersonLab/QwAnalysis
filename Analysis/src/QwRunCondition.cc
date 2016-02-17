@@ -38,10 +38,17 @@ QwRunCondition::SetArgs(Int_t argc, Char_t* argv[])
   TString root_version = gROOT->GetVersion();
   root_version += ", Date : ";
   root_version += gROOT->GetVersionDate();
+#if ROOT_VERSION_CODE < ROOT_VERSION(6,0,0)
   root_version += ", SVN : ";
   root_version += gROOT->GetSvnRevision();
-  root_version += " ";
+  root_version += " ";   
   root_version += gROOT->GetSvnBranch();
+#else // ROOT_VERSION_CODE >= ROOT_VERSION(6,0,0)
+  root_version += ", GIT : ";
+  root_version += gROOT->GetGitCommit();
+  root_version += " ";
+  root_version += gROOT->GetGitBranch();
+#endif
 
   // get hostname and user name
   char host_string[fCharLength];
