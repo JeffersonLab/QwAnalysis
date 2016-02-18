@@ -43,7 +43,7 @@ file(GLOB my_evio_sources
 # Load ROOT and setup include directory
 find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIR})
-set(ROOT_LIBRARIES ${ROOT_LIBRARIES} -lGui -lMinuit2)
+set(ROOT_LIBRARIES ${ROOT_LIBRARIES} -lNew -lGui -lMinuit2)
 
 # Load MYSQLPP
 find_package(MYSQLPP REQUIRED)
