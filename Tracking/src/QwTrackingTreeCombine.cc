@@ -1651,6 +1651,7 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
   std::pair<int, double> worst_case(0, -0.01);
   //Call the Minuit2 code to minimize chi2 
   TFitterMinuit * minuit = new TFitterMinuit();
+  minuit->SetPrintLevel(fDebug-1);
   std::vector<QwHit*> test;
 
   for (int i = 0; i < num_hits; ++i)
