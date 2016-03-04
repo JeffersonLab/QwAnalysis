@@ -1458,15 +1458,15 @@ class MyFCN : public ROOT::Minuit2::FCNBase {
 				
 				xR_2 = zD*cosx*siny - siny*sinx*y0;
 				yR_2 = cosx*y0 + zD*sinx;
-				zR_2 = zD*cosx*cosy + zRot - sinx*cosx*y0;
+				zR_2 = zD*cosx*cosy + zRot - sinx*cosy*y0;
 
 				double xc = hits[i]->GetDetectorInfo()->GetXPosition();
 				double yc = hits[i]->GetDetectorInfo()->GetYPosition();
 				
 				double z = (-(fit[1]-xc-zD*cosx*siny)*cosx*siny - 
-					     (fit[3]-yc-zD*sinx)*sinx + 
+					     (fit[3]-yc-zD*sinx)*sinx*(cosy*cosy-siny*siny) + 
 					     (zRot + zD*cosx*cosy)*cosy*cosx)  / 
-					     (fit[0]*cosx*siny + fit[2]*sinx + cosy*cosx);	
+					     (fit[0]*cosx*siny + fit[2]*sinx*(cosy*cosy-siny*siny) + cosy*cosx);	
 				
 				double x = fit[1] + fit[0] * z;
 				double y = fit[3] + fit[2] * z;
