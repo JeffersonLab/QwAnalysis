@@ -3,7 +3,7 @@
  <Project name="qweak"/>
  <Track name="one_pass"/>
  <Name name="Qweak_%RUN%"/>
- <OS name="centos62"/>
+ <OS name="centos65"/>
  <TimeLimit unit="minutes" time="4000"/>
  <DiskSpace space="13000" unit="MB"/>
  <Memory space="2048" unit="MB"/>
