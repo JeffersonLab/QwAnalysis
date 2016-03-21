@@ -49,7 +49,11 @@ echo "s|%PASS%|${PASS}|g"	>> ${SED}
 echo "s|%RUN%|${RUN}|g"		>> ${SED}
 echo "s|%OTHER%|${OTHER}|g"	>> ${SED}
 
-BASE=${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml
+if [ "$PASS" == "sim" ] ; then
+  BASE=${QWANALYSIS}/Extensions/Tracking/macros/submit_sim.xml
+else
+  BASE=${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml
+fi
 sed -f ${SED} ${BASE} > ${XML}
 
 echo "Job: ${XML}"

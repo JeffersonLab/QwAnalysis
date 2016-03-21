@@ -1,0 +1,34 @@
+<Request>
+ <Email email="%USER%@jlab.org" request="false" job="false"/>
+ <Project name="qweak"/>
+ <Track name="one_pass"/>
+ <Name name="Qweak_%RUN%"/>
+ <OS name="centos65"/>
+ <TimeLimit unit="minutes" time="4000"/>
+ <DiskSpace space="13000" unit="MB"/>
+ <Memory space="2048" unit="MB"/>
+ <Command><![CDATA[
+  set nonomatch
+  umask 002
+  echo %DATE%_%TIME% > $WORKDIR/timeStamp
+  echo "User:         " `whoami`
+  echo "Groups:       " `groups`
+  echo "WORKDIR:      " $WORKDIR
+  echo "PWD:          " $PWD
+  setenv QWSCRATCH  %QWSCRATCH%
+  setenv QWANALYSIS %QWANALYSIS%
+  echo "QWSCRATCH:    " $QWSCRATCH
+  echo "QWANALYSIS:   " $QWANALYSIS
+  source $QWANALYSIS/SetupFiles/SET_ME_UP.csh
+  echo "------"
+  echo "Started at `date`"
+  echo \
+  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN% %OTHER%
+  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN% %OTHER%
+  echo "Finished at `date`"
+]]></Command>
+ <Job>
+  <Stdout dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.out"/>
+  <Stderr dest="%QWSCRATCH%/tracking/log/process_run_%RUN%_%DATE%_%TIME%.err"/>
+ </Job>
+</Request>

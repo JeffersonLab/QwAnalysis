@@ -203,7 +203,9 @@ Again plane X is red, plane U is blue and plane V is green.
 </p></center>
 
 <div style="width: 1200px; margin: 0 auto;">
-<img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
+<img src="%%RUNNUM%%_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
+
+<img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
 
 <center><p>
 These plots graph the drift time distribution for all HDC hits (no requirement that the hits be part of valid tracks) for each of the 4 chambers, first on linear and then on log scales. 

@@ -29,7 +29,7 @@ void run_macro(const char* macroName, const char* functionName,
    TString macro = macroDir + Form("/%s",macroName);
    std::cout << "Loading macro " << macro << std::endl;
    if (compile)
-      gROOT->LoadMacro(macro + "+");
+      gROOT->LoadMacro(macro + "+g");
    else
       gROOT->LoadMacro(macro);
 
