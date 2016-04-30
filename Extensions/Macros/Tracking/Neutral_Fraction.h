@@ -311,7 +311,7 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TChain *chain);
-   virtual void     Loop(Int_t cleanData = 0);
+   virtual void     Loop(Int_t cleanData = 0, Double_t ts1_cut = 250, Double_t ts2_cut = 250,);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
 };
