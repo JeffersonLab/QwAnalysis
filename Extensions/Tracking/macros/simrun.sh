@@ -1,7 +1,10 @@
 #!/bin/bash
 
-masterlist=${QWSCRATCH}/work/simrun.list
-touch $masterlist
+masterlist=/group/qweak/www/html/tracking/sim/simrun.list
+derivedlist=/group/qweak/www/html/tracking/sim/simrun.txt
+touch $masterlist $derivedlist
+chmod -f g+w $masterlist $derivedlist
+chown -f $USER:c-qweak $masterlist $derivedlist
 for file in /volatile/hallc/qweak/wdconinc/scratch/rootfiles/myTrackingRun_*_tracking.root ; do
   md5=`echo $file | md5sum | awk '{print$1}' | tr 'abcdef' 'ABCDEF'`
 
@@ -15,7 +18,7 @@ for file in /volatile/hallc/qweak/wdconinc/scratch/rootfiles/myTrackingRun_*_tra
   fi
 
   # Get description
-  desc=`grep $md5 $masterlist | awk '{print$4}'`
+  desc=`grep $md5 $masterlist | cut -f4- -d\ `
   # If the info wasn't listed yet
   if [ -z $inf ] ; then
     f=`basename $file _tracking.root`
@@ -30,4 +33,4 @@ for file in /volatile/hallc/qweak/wdconinc/scratch/rootfiles/myTrackingRun_*_tra
   ln -sf $file ${QW_ROOTFILES}
   ln -sf $file ${QW_ROOTFILES}/Qweak_$run.root
 
-done > ${QWSCRATCH}/work/simrun.txt
+done > $derivedlist
