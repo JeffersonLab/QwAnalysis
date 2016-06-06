@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in /cache/mss/home/wdconinc/rootfiles/myTrackingRun_* ; do
+for i in /cache/home/wdconinc/rootfiles/myTrackingRun_* ; do
   for tag in tracking ; do
     out=/volatile/hallc/qweak/wdconinc/scratch/rootfiles/`basename $i`_$tag
     hadd -k -f $out.root $i/*_$tag.root 2>&1 | \
