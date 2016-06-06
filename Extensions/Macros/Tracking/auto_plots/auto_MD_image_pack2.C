@@ -339,6 +339,7 @@ TCanvas  *c = new TCanvas("c","Region 3 Projections",10, 10, 800,800);
   adcph->Draw();
 
   c->SaveAs(outputPrefix+"MD_projections_p2.png");
+  c->SaveAs(outputPrefix+"MD_projections_p2.C");
 
 
   //  plots of MD ADC data for pedestals (no corresponding TDC hit)
@@ -353,6 +354,7 @@ TCanvas  *pedestals = new TCanvas("pedestals", "Pedestal Data", 10, 10, 800, 800
   adcmped->Draw();
 
   pedestals->SaveAs(outputPrefix+"MD_ADC_pedestals_p2.png");
+  pedestals->SaveAs(outputPrefix+"MD_ADC_pedestals_p2.C");
 
   //  plots of MD ADC and TDC data for both PMTs
   //  ADC data are for "prompt TDC hits"
@@ -373,6 +375,7 @@ TCanvas  *quad = new TCanvas("quad", "ADC and TDC data", 10, 10, 800, 800);
   tdcmh->Draw();
 
   quad->SaveAs(outputPrefix+"MD_ADC_and_TDC_p2.png");
+  quad->SaveAs(outputPrefix+"MD_ADC_and_TDC_p2.C");
 
 
   // x,y plots of where R3 partial tracks project to MD, for events that fire the MD ("hits") and 
@@ -390,6 +393,7 @@ TCanvas  *hitandmiss = new TCanvas("hitandmiss", "Hit and Miss Charts", 10, 10, 
   misses->Draw("COLZ");
 
   hitandmiss->SaveAs(outputPrefix+"MD_hit_and_miss_p2.png");
+  hitandmiss->SaveAs(outputPrefix+"MD_hit_and_miss_p2.C");
 
 
 // now calculate slopes and intercepts of light vs. long-axis location; linear fits to ADC amplitude vs. location
@@ -425,6 +429,7 @@ TCanvas  *fulls = new TCanvas("FULLS","Full Profiles", 10, 10, 800, 800);
   Double_t mslope2 = fit2->GetParameter(1);
 
   fulls->SaveAs(outputPrefix+"MD_full_profiles_p2.png");
+  fulls->SaveAs(outputPrefix+"MD_full_profiles_p2.C");
 
 // end of calculation of slopes and intercepts of light vs. location
 
@@ -454,6 +459,7 @@ TCanvas  *fulls = new TCanvas("FULLS","Full Profiles", 10, 10, 800, 800);
   RunNumText->Draw();
 
   EFF->SaveAs(outputPrefix+"MD_radial_projection_p2.png");
+  EFF->SaveAs(outputPrefix+"MD_radial_projection_p2.C");
 
   // done mean radial location calculation
 

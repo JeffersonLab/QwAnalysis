@@ -289,11 +289,17 @@ void LightWeighting (int runnum, bool is100k)
 	
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c_q2_proj->SaveAs(Prefix+"Q2_vs_position_on_bar.png");
+	c_q2_proj->SaveAs(Prefix+"Q2_vs_position_on_bar.C");
 	c_lw_proj->SaveAs(Prefix+"Light_yield_vs_position_on_bar.png");
+	c_lw_proj->SaveAs(Prefix+"Light_yield_vs_position_on_bar.C");
 	c_sa_proj->SaveAs(Prefix+"Scattering_angle_vs_position_on_bar.png");
+	c_sa_proj->SaveAs(Prefix+"Scattering_angle_vs_position_on_bar.C");
 	c_q2_lw->SaveAs(Prefix+"Q2_with_light_wieghting_and_NO_pedestal.png");
+	c_q2_lw->SaveAs(Prefix+"Q2_with_light_wieghting_and_NO_pedestal.C");
 	c_q2->SaveAs(Prefix+"Q2.png");
+	c_q2->SaveAs(Prefix+"Q2.C");
 	c_q2_lw_p->SaveAs(Prefix+"Q2_light_wieghting_and_pedestal.png");
+	c_q2_lw_p->SaveAs(Prefix+"Q2_light_wieghting_and_pedestal.C");
 
 
 //need to get a table of the values form the profile for bot Q2 and light weight vs. bar poition.....	

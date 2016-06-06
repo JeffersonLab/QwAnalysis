@@ -104,6 +104,7 @@ void QtorCurrent(int runnum, bool is100k)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"current_vs_time.png");
+	c1.SaveAs(Prefix+"current_vs_time.C");
 
 	//write down the QTOR current in a file
 

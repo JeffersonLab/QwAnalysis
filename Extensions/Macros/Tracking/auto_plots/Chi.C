@@ -282,6 +282,7 @@ void Chi(int runnum, bool is100k)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"LogChi.png");
+	c1.SaveAs(Prefix+"LogChi.C");
 
 
 	//Draw the time histograms - all, x ,u,v across and package 1 on top and package 2 on the bottom
@@ -304,6 +305,7 @@ void Chi(int runnum, bool is100k)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 //	c3.SaveAs(Prefix+"chi_vs_time.png");
+//	c3.SaveAs(Prefix+"chi_vs_time.C");
 
 	//write the stats about chi to a file
 

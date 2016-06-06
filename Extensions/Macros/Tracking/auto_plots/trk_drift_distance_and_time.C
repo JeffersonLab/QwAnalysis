@@ -325,6 +325,7 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"Package_1.png");
+	c1.SaveAs(Prefix+"Package_1.C");
 
 	//Create the canvas - for package 2
 	TCanvas c2("c2", "Drift Distance and Drift Time for Package 2", 1000,700);
@@ -411,6 +412,7 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c2.SaveAs(Prefix+"Package_2.png");
+	c2.SaveAs(Prefix+"Package_2.C");
 	return;
 
 }

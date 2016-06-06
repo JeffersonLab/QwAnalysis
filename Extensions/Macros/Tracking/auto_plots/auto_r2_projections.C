@@ -385,6 +385,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     t6->Draw("same");
 
     coll1->SaveAs(outputPrefix+"p1_coll1_proj.png");
+    coll1->SaveAs(outputPrefix+"p1_coll1_proj.C");
 
     // Collimator 2
 
@@ -451,6 +452,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     t6->Draw("same");
 
     coll2->SaveAs(outputPrefix+"p1_coll2_proj.png");
+    coll2->SaveAs(outputPrefix+"p1_coll2_proj.C");
 
 
     // Center (in z) of lH2 target
@@ -478,6 +480,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     p1_projection_lh2->SetTitle(Form("run %d: Package 1:  projection to lH2 target center, Z=%f",runnum,z_lh2));
     
     lh2->SaveAs(outputPrefix+"p1_lh2_proj.png");
+    lh2->SaveAs(outputPrefix+"p1_lh2_proj.C");
 
 
     // make plots; Package 2 now
@@ -546,6 +549,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     t6->Draw("same");
 
     coll1_p2->SaveAs(outputPrefix+"p2_coll1_proj.png");
+    coll1_p2->SaveAs(outputPrefix+"p2_coll1_proj.C");
 
     // Collimator 2
 
@@ -611,6 +615,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     t6->Draw("same");
 
     coll2_p2->SaveAs(outputPrefix+"p2_coll2_proj.png");
+    coll2_p2->SaveAs(outputPrefix+"p2_coll2_proj.C");
 
 
     // Center (in z) of lH2 target
@@ -638,6 +643,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     p2_projection_lh2->SetTitle(Form("run %d: Package 2:  projection to lH2 target center, Z=%f",runnum,z_lh2));
     
     lh2_p2->SaveAs(outputPrefix+"p2_lh2_proj.png");
+    lh2_p2->SaveAs(outputPrefix+"p2_lh2_proj.C");
 
 
      // Vertex, chi for Region 2 partial tracks
@@ -662,6 +668,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     p2_Chi_histo->Draw();
 
     vertex->SaveAs(outputPrefix+"r2_vertex_chi.png");
+    vertex->SaveAs(outputPrefix+"r2_vertex_chi.C");
 
 
     //  Output summary data to text files

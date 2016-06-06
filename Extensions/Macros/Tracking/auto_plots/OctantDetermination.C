@@ -206,6 +206,7 @@ void OctantDetermination(int runnum, bool is100k)
 
 		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 		c1.SaveAs(Prefix+Form("Main_Detector_vs_Trigger_Scint_Package_%d.png",pkg));
+		c1.SaveAs(Prefix+Form("Main_Detector_vs_Trigger_Scint_Package_%d.C",pkg));
 	}
 
 	for (int reg = 2 ; reg < 4 ;reg ++) 
@@ -237,6 +238,7 @@ void OctantDetermination(int runnum, bool is100k)
 		
         		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
        			c2.SaveAs(Prefix+Form("Main_Detector_Region_%d_Package_%d.png", reg, pkg2));
+       			c2.SaveAs(Prefix+Form("Main_Detector_Region_%d_Package_%d.C", reg, pkg2));
 		}	
 
 	}

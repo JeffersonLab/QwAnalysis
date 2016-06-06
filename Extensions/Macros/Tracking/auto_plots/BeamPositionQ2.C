@@ -264,7 +264,9 @@ void BeamPositionQ2(int runnum, bool is100k)
       gStyle->SetOptFit(1);
 
 //      Q2BeamXPositionTCanvas->SaveAs("~/TestScripts/Output/Q2_vs_beamxposition.png");
+//      Q2BeamXPositionTCanvas->SaveAs("~/TestScripts/Output/Q2_vs_beamxposition.C");
       Q2BeamXPositionTCanvas->SaveAs(Prefix+"Q2_vs_beamxposition.png");
+      Q2BeamXPositionTCanvas->SaveAs(Prefix+"Q2_vs_beamxposition.C");
 
       Q2BeamYPositionTCanvas->cd(1);
       Q2BeamYPositionTProfile[0]->Draw();
@@ -276,10 +278,14 @@ void BeamPositionQ2(int runnum, bool is100k)
       gStyle->SetOptFit(1);
 
 //      Q2BeamYPositionTCanvas->SaveAs("~/TestScripts/Output/Q2_vs_beamyposition.png");
+//      Q2BeamYPositionTCanvas->SaveAs("~/TestScripts/Output/Q2_vs_beamyposition.C");
       Q2BeamYPositionTCanvas->SaveAs(Prefix+"Q2_vs_beamyposition.png");
+      Q2BeamYPositionTCanvas->SaveAs(Prefix+"Q2_vs_beamyposition.C");
 
 //      hprof.SaveAs(Prefix+"Q2_vs_beamposition.png");
+//      hprof.SaveAs(Prefix+"Q2_vs_beamposition.C");
       //.SaveAs("~/Q2_vs_beamposition.png");
+      //.SaveAs("~/Q2_vs_beamposition.C");
 
 return;
 

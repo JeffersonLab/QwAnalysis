@@ -576,6 +576,7 @@ st1->SetY1NDC(.90);
 st1->SetY2NDC(.70);
 
 diff->SaveAs(PREFIX+Form("adcdiff_center_pkg%d.png",package));
+diff->SaveAs(PREFIX+Form("adcdiff_center_pkg%d.C",package));
 
   return;
 };

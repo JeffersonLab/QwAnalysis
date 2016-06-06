@@ -234,6 +234,7 @@ void Residual(int runnum, bool is100k)
 
 		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 		c1.SaveAs(Prefix+Form("Residual_Package_%d.png",pkg1));
+		c1.SaveAs(Prefix+Form("Residual_Package_%d.C",pkg1));
 
 	}
 
@@ -312,6 +313,7 @@ RMS/sqrt(N)
 
         	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
         	c3.SaveAs(Prefix+Form("Residual_By_Plane_Package_%d.png",pkg));
+        	c3.SaveAs(Prefix+Form("Residual_By_Plane_Package_%d.C",pkg));
 
 	}
 
@@ -349,6 +351,7 @@ RMS/sqrt(N)
 	}
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	cplane.SaveAs(Prefix+"Hits.png");
+	cplane.SaveAs(Prefix+"Hits.C");
 	cout << "Number of hits this added to things: " << numhits << endl;
 	//write down that stats for the Residual in a file 
 

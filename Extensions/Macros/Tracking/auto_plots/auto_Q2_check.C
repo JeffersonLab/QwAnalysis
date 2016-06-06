@@ -765,5 +765,6 @@ That is all folks in terms of the ROOT tree :D
     q2_2->SetTitle(Form("Q2 (version 1) in Package 2  octant %d",md_2));
 
     c->SaveAs(outputPrefix+"q2.png");
+    c->SaveAs(outputPrefix+"q2.C");
 }
 

@@ -1231,8 +1231,16 @@ void Plot()
                     PREFIX + Form("%s_Slope_package_%d_%s_VDC.png",
                         INDEXTOBRANCH[branch].c_str(), pkg,
                         INDEXTOVDC[VDC].c_str()));
+                c_Slope[branch][pkg][VDC]->SaveAs(
+                    PREFIX + Form("%s_Slope_package_%d_%s_VDC.C",
+                        INDEXTOBRANCH[branch].c_str(), pkg,
+                        INDEXTOVDC[VDC].c_str()));
                 c_Chi2[branch][pkg][VDC]->SaveAs(
                     PREFIX + Form("%s_Chi2_package_%d_%s_VDC.png",
+                        INDEXTOBRANCH[branch].c_str(), pkg,
+                        INDEXTOVDC[VDC].c_str()));
+                c_Chi2[branch][pkg][VDC]->SaveAs(
+                    PREFIX + Form("%s_Chi2_package_%d_%s_VDC.C",
                         INDEXTOBRANCH[branch].c_str(), pkg,
                         INDEXTOVDC[VDC].c_str()));
               }

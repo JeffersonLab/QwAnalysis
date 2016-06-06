@@ -178,6 +178,7 @@ void plot_planes()
   wires_c->cd(4);
   h_wires_hit_4 -> Draw();
   wires_c->SaveAs(outputPrefix+"wires_package1.png");
+  wires_c->SaveAs(outputPrefix+"wires_package1.C");
 
 // -----------------------------------------------------------------------------
 
@@ -203,6 +204,7 @@ void plot_planes()
   wires_c2->cd(4);
   h_wires_hit_8 -> Draw();
   wires_c2->SaveAs(outputPrefix+"wires_package2.png");
+  wires_c2->SaveAs(outputPrefix+"wires_package2.C");
 
 // -----------------------------------------------------------------------------
 
@@ -228,6 +230,7 @@ void plot_planes()
   ambig_c->cd(4);
   h_wires_amb_4 -> Draw();
   ambig_c->SaveAs(outputPrefix+"wires_ambig_package1.png");
+  ambig_c->SaveAs(outputPrefix+"wires_ambig_package1.C");
   
 // -----------------------------------------------------------------------------
 
@@ -253,6 +256,7 @@ void plot_planes()
   ambig_c2->cd(4);
   h_wires_amb_8 -> Draw();
   ambig_c2->SaveAs(outputPrefix+"wires_ambig_package2.png");
+  ambig_c2->SaveAs(outputPrefix+"wires_ambig_package2.C");
   
 // -----------------------------------------------------------------------------
 
@@ -272,6 +276,7 @@ void plot_planes()
   planes_c->cd(2);
   h_planes_hit_2->Draw();
   planes_c->SaveAs(outputPrefix+"planes_hits.png");
+  planes_c->SaveAs(outputPrefix+"planes_hits.C");
 
 // -----------------------------------------------------------------------------
 
@@ -291,6 +296,7 @@ void plot_planes()
   am_planes_c->cd(2);
   h_planes_am_hit_2->Draw();
   am_planes_c->SaveAs(outputPrefix+"planes_hit_ambigious.png");
+  am_planes_c->SaveAs(outputPrefix+"planes_hit_ambigious.C");
 
 }
 
@@ -349,6 +355,7 @@ void plot_delaylines()
   delaylines_c->cd(4);
   h_delay_line_4 -> Draw();
    delaylines_c->SaveAs(outputPrefix+"delaylines_hit.png");
+   delaylines_c->SaveAs(outputPrefix+"delaylines_hit.C");
   //  delaylines_c->Draw(outputPrefix+"delaylines_hit.png");
 
 }
@@ -441,6 +448,7 @@ void plot_times()
   h_time_8 -> Draw();
   //  times_c->Draw(outputPrefix+"drifttimes.png");
   times_c->SaveAs(outputPrefix+"drifttimes.png");
+  times_c->SaveAs(outputPrefix+"drifttimes.C");
 
 }
 
@@ -503,6 +511,7 @@ void plot_hitnumber()
   gPad->SetLogy();
   h_nhits_4 -> Draw();
   nhits_c->SaveAs(outputPrefix+"hit_number.png");
+  nhits_c->SaveAs(outputPrefix+"hit_number.C");
 }
 
 void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)

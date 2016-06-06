@@ -147,6 +147,7 @@ void QwHits_Region (TChain * event_tree)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"Region.png");
+	c1.SaveAs(Prefix+"Region.C");
 
 	return;
 }
@@ -242,6 +243,7 @@ void QwHits_Package (TChain * event_tree)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c2.SaveAs(Prefix+"Package.png");
+	c2.SaveAs(Prefix+"Package.C");
 
 	return;
 }
@@ -343,6 +345,7 @@ void QwHits_Direction (TChain * event_tree)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c3.SaveAs(Prefix+"Direction.png");
+	c3.SaveAs(Prefix+"Direction.C");
 
 	return;
 
@@ -481,6 +484,7 @@ void QwHits_Element (TChain * event_tree)
 
 		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 		c4.SaveAs(Prefix+Form("Elements_Region_%d.png",r));
+		c4.SaveAs(Prefix+Form("Elements_Region_%d.C",r));
 	}
 
 	for (int r2 = 4 ; r2<= 5; r2++)
@@ -494,6 +498,7 @@ void QwHits_Element (TChain * event_tree)
 
 		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 		c5.SaveAs(Prefix+Form("Elements_Region_%d.png",r2));
+		c5.SaveAs(Prefix+Form("Elements_Region_%d.C",r2));
 	}
 
 	return;
@@ -552,6 +557,7 @@ void NQwTracks (TChain * event_tree)
 
         //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
         c4.SaveAs(Prefix+"fNQwTracks.png");
+        c4.SaveAs(Prefix+"fNQwTracks.C");
 
         return;
 

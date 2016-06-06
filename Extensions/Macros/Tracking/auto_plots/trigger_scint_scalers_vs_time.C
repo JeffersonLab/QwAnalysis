@@ -106,6 +106,7 @@ void trigger_scint_scalers_vs_time(int runnum, bool is100k)
 
   //save the canvas as a png file - right now it goes to the rootfile directory
   c1.SaveAs(PREFIX + "trigger_scint_scalers_vs_time.png");
+  c1.SaveAs(PREFIX + "trigger_scint_scalers_vs_time.C");
 
   return;
 

@@ -42,6 +42,7 @@ for(int i =1; i<=4;i++)
 
 //save the canvas as a png file - right now it goes to the rootfile directory
 c1.SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/dslumi_ratios_vs_time_%d.png",runnum, runnum));
+c1.SaveAs(Form("$QWSCRATCH/tracking/www/run_%d/dslumi_ratios_vs_time_%d.C",runnum, runnum));
 
 return;
 }

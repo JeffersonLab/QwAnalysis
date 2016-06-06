@@ -287,6 +287,7 @@ void NumTracks(Int_t runnum, bool is100k)
 
 		//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 		c[d]->SaveAs(Prefix+Form("NTracks_Region_%d.png",d));
+		c[d]->SaveAs(Prefix+Form("NTracks_Region_%d.C",d));
 		
 	} 
 
@@ -299,6 +300,7 @@ void NumTracks(Int_t runnum, bool is100k)
 
 	//Now let's save this
 	c[0]->SaveAs(Prefix+"NTracks.png");
+	c[0]->SaveAs(Prefix+"NTracks.C");
 
 	// Delete stuff
 	for (size_t i = 0; i < h.size(); i++) delete h[i];

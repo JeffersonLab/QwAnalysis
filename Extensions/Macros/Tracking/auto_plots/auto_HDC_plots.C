@@ -698,11 +698,17 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 
 		//Save the plots
 		c1->SaveAs(PREFIX+"trk_hit_patterns.png");
+		c1->SaveAs(PREFIX+"trk_hit_patterns.C");
 		c2->SaveAs(PREFIX+"trk_drift_times.png");
+		c2->SaveAs(PREFIX+"trk_drift_times.C");
 		c3->SaveAs(PREFIX+"full_hit_patterns.png");
+		c3->SaveAs(PREFIX+"full_hit_patterns.C");
 		c4->SaveAs(PREFIX+"full_drift_times.png");
+		c4->SaveAs(PREFIX+"full_drift_times.C");
 		cplane->SaveAs(PREFIX+"hdc_hits_plane.png");
+		cplane->SaveAs(PREFIX+"hdc_hits_plane.C");
 		chits->SaveAs(PREFIX+"hits_per_track.png");
+		chits->SaveAs(PREFIX+"hits_per_track.C");
 
 		return;  
 	}

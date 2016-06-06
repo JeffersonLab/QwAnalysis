@@ -149,6 +149,7 @@ void dslumi(int runnum, bool is100k)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1->SaveAs(Prefix+"vs_time.png");
+	c1->SaveAs(Prefix+"vs_time.C");
 
 	delete c1;
 
@@ -178,6 +179,7 @@ void dslumi(int runnum, bool is100k)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c2->SaveAs(Prefix+"ratios_vs_time.png");
+	c2->SaveAs(Prefix+"ratios_vs_time.C");
 
 	delete c2;
 
@@ -194,6 +196,7 @@ void dslumi(int runnum, bool is100k)
 
 	//save the canvas as a png file - right now it goes to the rootfile directory
 	c3->SaveAs(Prefix+"sum_vs_time.png");
+	c3->SaveAs(Prefix+"sum_vs_time.C");
 
 	delete c3;
 
@@ -310,6 +313,7 @@ void dslumi_vs_time(TChain* Mps_Tree)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c1.SaveAs(Prefix+"vs_time.png");
+	c1.SaveAs(Prefix+"vs_time.C");
 
 	for (int i = 0 ; i <= 8 ; i++) {
 		delete h[i];
@@ -403,6 +407,7 @@ void dslumi_ratios_vs_time(TChain* Mps_Tree)
 
 	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
 	c2.SaveAs(Prefix+"ratios_vs_time.png");
+	c2.SaveAs(Prefix+"ratios_vs_time.C");
 
 	return;
 }
@@ -472,6 +477,7 @@ void dslumi_sum_vs_time(TChain* Mps_Tree)
 
 	//save the canvas as a png file - right now it goes to the rootfile directory
 	c3.SaveAs(Prefix+"sum_vs_time.png");
+	c3.SaveAs(Prefix+"sum_vs_time.C");
 	
 	return;
 
