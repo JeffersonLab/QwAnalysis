@@ -80,8 +80,8 @@ const int multiple=18;
 //const int multiple=15;
 
 // below are various cut parameters. Note: need to check that the MD time windows are correct for all running periods!
-const int md_low=-210;
-const int md_high=-150;
+int md_low=-210;
+int md_high=-150;
 
 int getOctNumber(TChain* event_tree){
 
@@ -158,16 +158,24 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
    
     // Now get a pointer to the branches so that we can loop through the tree
-    event_tree->SetBranchStatus("events",1);
-    event_tree->SetBranchStatus("maindet",1);
-    TBranch* event_branch=event_tree->GetBranch("events");
-    TBranch* maindet_branch=event_tree->GetBranch("maindet");
-    TBranch* trig_branch=event_tree->GetBranch("trigscint");
+    TBranch* event_branch     = event_tree->GetBranch("events");
+    TBranch* maindet_branch   = event_tree->GetBranch("maindet");
+    TBranch* trigscint_branch = event_tree->GetBranch("trigscint");
+    if (event_branch)     event_tree->SetBranchStatus("events",1);
+    if (maindet_branch)   event_tree->SetBranchStatus("maindet",1);
+    if (trigscint_branch) event_tree->SetBranchStatus("trigscint",1);
+
     event_branch->SetAddress(&fEvent);
 
+    // disable md_low and md_high boundaries for simulation
+    if (! maindet_branch) {
+      md_low = -100;
+      md_high = +100;
+    }
+
     //get the octant numbers
-    int md_1=(oct+4)%8;  //package 1
-    int md_2=oct;    //package 2
+    int md_1=(oct+4)%8; // package 1
+    int md_2=oct;       // package 2
 
     // Temporary histograms to store projection angles
       TH1F* pkg1_theta=new TH1F("pkg1_theta","pkg1_theta",500,-0.1,0.1);
@@ -177,23 +185,23 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
       //  DSA: decide that Gaussian fits still sometimes wonky, so just use simple mean/rms of histogram
 
-      event_tree->Draw("events.fQwTracks.fDirectionThetaoff >> pkg1_theta","events.fQwTracks.fPackage==1","GOFF",500000);
+      event_tree->Draw("events.fQwTracks.fDirectionThetaoff >> pkg1_theta","events.fQwTracks.fPackage==1","GOFF",50000);
       double mean_thetaoff_pkg1  = pkg1_theta->GetMean();
       double sigma_thetaoff_pkg1 = pkg1_theta->GetRMS();
 
-      event_tree->Draw("events.fQwTracks.fDirectionThetaoff >> pkg2_theta","events.fQwTracks.fPackage==2","GOFF",500000);
+      event_tree->Draw("events.fQwTracks.fDirectionThetaoff >> pkg2_theta","events.fQwTracks.fPackage==2","GOFF",50000);
       double mean_thetaoff_pkg2  = pkg2_theta->GetMean();
       double sigma_thetaoff_pkg2 = pkg2_theta->GetRMS();
 
-      event_tree->Draw("events.fQwTracks.fDirectionPhioff >> pkg1_phi","events.fQwTracks.fPackage==1","GOFF",500000);
+      event_tree->Draw("events.fQwTracks.fDirectionPhioff >> pkg1_phi","events.fQwTracks.fPackage==1","GOFF",50000);
       double mean_phioff_pkg1  = pkg1_phi->GetMean();
       double sigma_phioff_pkg1 = pkg1_phi->GetRMS();
 
-      event_tree->Draw("events.fQwTracks.fDirectionPhioff >> pkg2_phi","events.fQwTracks.fPackage==2","GOFF",500000);
+      event_tree->Draw("events.fQwTracks.fDirectionPhioff >> pkg2_phi","events.fQwTracks.fPackage==2","GOFF",50000);
       double mean_phioff_pkg2  = pkg2_phi->GetMean();
       double sigma_phioff_pkg2 = pkg2_phi->GetRMS();
-      
-     
+
+
 
       // set minimum values for sigmas of matching parameters, in case Gaussian fits fails with crazy sigmas
       // these are in units of radians. Empirically chosen minimum values.
@@ -209,12 +217,12 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
      double pkg1_phioff_upper=mean_phioff_pkg1+width*sigma_phioff_pkg1;
      double pkg2_phioff_lower=mean_phioff_pkg2-width*sigma_phioff_pkg2;
      double pkg2_phioff_upper=mean_phioff_pkg2+width*sigma_phioff_pkg2;
-    
+
      double pkg1_thetaoff_lower=mean_thetaoff_pkg1-width*sigma_thetaoff_pkg1;
      double pkg1_thetaoff_upper=mean_thetaoff_pkg1+width*sigma_thetaoff_pkg1;
      double pkg2_thetaoff_lower=mean_thetaoff_pkg2-width*sigma_thetaoff_pkg2;
      double pkg2_thetaoff_upper=mean_thetaoff_pkg2+width*sigma_thetaoff_pkg2;
-    
+
      double thetaoff_lower;
      double thetaoff_upper;
      double phioff_lower;
@@ -226,28 +234,29 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
      int n_good_track_1=0;
      int n_good_track_2=0;
 
-     for(int i=start;i<end;++i){
-     //     for(int i=0;i<200002;++i){   // this line can be used for quick tests
+     for(int i = start; i < end; ++i) {
 
-      // Announce every 100000'th entry
-      if(i%100000==0)
+      // Announce every 1000'th entry
+      if(i%10000==0)
 	cout << "events processed so far: " << i << endl;
-      
-      event_branch->GetEntry(i);
-      maindet_branch->GetEntry(i);
-       
-      trig_branch->GetEntry(i);
-       
+
+      if (event_branch)     event_branch->GetEntry(i);
+      if (maindet_branch)   maindet_branch->GetEntry(i);
+      if (trigscint_branch) trigscint_branch->GetEntry(i);
+
+      // weight of this event, or 1 if the weight is not set (for data)
+      double w = fEvent->fCrossSection? fEvent->fCrossSection: 1;
+
       bool prompt_mdp1 = false;
       bool prompt_mdm1 = false;
       bool prompt_mdp2 = false;
       bool prompt_mdm2 = false;
 
       double ntracks=fEvent->GetNumberOfTracks();
-  
+
       int nhits=fEvent->GetNumberOfHits();
       int valid_hits_1=0,valid_hits_2=0;
-      
+
       // extract Q2 and Scattering Angle for all tracks in this event
       for(int j=0;j<nhits;++j){
           // Get pointer to j'th hit in entry i
@@ -265,6 +274,14 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	  if(hit->GetRegion()==5 && hit->GetPlane()==md_2 && hit->GetElement()==1 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdp2=true;
 	  if(hit->GetRegion()==5 && hit->GetPlane()==md_2 && hit->GetElement()==2 && hit->GetTimeNs()>md_low && hit->GetTimeNs()<md_high) prompt_mdm2=true;
 
+	  // Until QwSimTracking is fixed to write out the correct plane numbers for the MD, the previous code will never have hits, so we bypass it
+	  if (! maindet_branch && hit->GetRegion()==5) {
+            prompt_mdp1 = true;
+	    prompt_mdm1 = true;
+            prompt_mdp2 = true;
+	    prompt_mdm2 = true;
+ 	  }
+
 	}
 
 	if(ntracks > 0)
@@ -278,10 +295,10 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
         // Check if it is a valid track for the corresponding package
 	if(track->fBack->GetPackage()==1 && valid_hits_1 < multiple && prompt_mdm1 && prompt_mdp1){
-	  p1_theta->Fill(track->fDirectionThetaoff);
-	  p1_phi->Fill(track->fDirectionPhioff);
-	  p1_theta_p->Fill(track->fPositionThetaoff);
-	  p1_phi_p->Fill(track->fPositionPhioff);
+	  p1_theta->Fill(track->fDirectionThetaoff,w);
+	  p1_phi->Fill(track->fDirectionPhioff,w);
+	  p1_theta_p->Fill(track->fPositionThetaoff,w);
+	  p1_phi_p->Fill(track->fPositionPhioff,w);
 	  // since track matching results are stored based on package number of Region 2 (front)
 	  //  may need to switch which limits we use if we are in a "reverse" run configuration
 	  if(track->fFront->GetPackage()==2){
@@ -295,7 +312,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	    phioff_upper=pkg1_phioff_upper;
 	    thetaoff_lower=pkg1_thetaoff_lower;
 	    thetaoff_upper=pkg1_thetaoff_upper;
-	  }	      
+	  }
 
 	  if(track->fDirectionPhioff>phioff_lower && track->fDirectionPhioff<phioff_upper 
 	     && track->fDirectionThetaoff>thetaoff_lower && track->fDirectionThetaoff<thetaoff_upper ){
@@ -304,23 +321,23 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
 
 	  //Valid for package 1 Q^2 and angles, fill the histograms
-	  angle_1->Fill(fEvent->fScatteringAngle);
-	  q2_0_1->Fill(fEvent->fKin.fQ2);
+	  angle_1->Fill(fEvent->fScatteringAngle,w);
+	  q2_0_1->Fill(fEvent->fKin.fQ2,w);
 	  //	  q2_1->Fill(fEvent->fKin.fQ2);
-	  q2_1->Fill(fEvent->fKinElasticWithLoss.fQ2);
-	  angle->Fill(fEvent->fScatteringAngle);
+	  q2_1->Fill(fEvent->fKinElasticWithLoss.fQ2,w);
+	  angle->Fill(fEvent->fScatteringAngle,w);
 	  //	  q2->Fill(fEvent->fKin.fQ2);
-	  q2_0->Fill(fEvent->fKin.fQ2);
-	  q2->Fill(fEvent->fKinElasticWithLoss.fQ2);
-	  eprime_1->Fill(fEvent->fKin.fPp);
+	  q2_0->Fill(fEvent->fKin.fQ2,w);
+	  q2->Fill(fEvent->fKinElasticWithLoss.fQ2,w);
+	  eprime_1->Fill(fEvent->fKin.fPp,w);
 	   }
 	}
 	  else if(track->fBack->GetPackage()==2 && valid_hits_2 < multiple && prompt_mdm2 && prompt_mdp2){
  
-	    p2_theta->Fill(track->fDirectionThetaoff);
-	    p2_phi->Fill(track->fDirectionPhioff);
-	    p2_theta_p->Fill(track->fPositionThetaoff);
-	    p2_phi_p->Fill(track->fPositionPhioff);
+	    p2_theta->Fill(track->fDirectionThetaoff,w);
+	    p2_phi->Fill(track->fDirectionPhioff,w);
+	    p2_theta_p->Fill(track->fPositionThetaoff,w);
+	    p2_phi_p->Fill(track->fPositionPhioff,w);
 	  // since track matching results are stored based on package number of Region 2 (front)
 	  //  may need to switch which limits we use if we are in a "reverse" run configuration
 	    if(track->fFront->GetPackage()==1){
@@ -344,26 +361,26 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	    //	    cout << " theta lower " << thetaoff_lower << " theta_Off " << track->fDirectionThetaoff << endl;
 	    //	    cout << " theta upper " << thetaoff_upper << " theta_Off " << track->fDirectionThetaoff << endl;
 
-	    if(track->fDirectionPhioff>phioff_lower && track->fDirectionPhioff<phioff_upper 
+	    if(track->fDirectionPhioff>phioff_lower && track->fDirectionPhioff<phioff_upper
 	       && track->fDirectionThetaoff>thetaoff_lower && track->fDirectionThetaoff<thetaoff_upper){
-  
+
   	      n_good_track_2++;
 
 	      //if valid for package 2 fill the Q^2 and angle  histograms
-		angle_2->Fill(fEvent->fScatteringAngle);
-		q2_0_2->Fill(fEvent->fKin.fQ2);
-		//	  		q2_2->Fill(fEvent->fKin.fQ2);
-		q2_2->Fill(fEvent->fKinElasticWithLoss.fQ2);
-		angle->Fill(fEvent->fScatteringAngle);
-		//	  		q2->Fill(fEvent->fKin.fQ2);
-		q2_0->Fill(fEvent->fKin.fQ2);
-		q2->Fill(fEvent->fKinElasticWithLoss.fQ2);
-		eprime_2->Fill(fEvent->fKin.fPp);
+		angle_2->Fill(fEvent->fScatteringAngle,w);
+		q2_0_2->Fill(fEvent->fKin.fQ2,w);
+		//	  		q2_2->Fill(fEvent->fKin.fQ2,w);
+		q2_2->Fill(fEvent->fKinElasticWithLoss.fQ2,w);
+		angle->Fill(fEvent->fScatteringAngle,w);
+		//	  		q2->Fill(fEvent->fKin.fQ2,w);
+		q2_0->Fill(fEvent->fKin.fQ2,w);
+		q2->Fill(fEvent->fKinElasticWithLoss.fQ2,w);
+		eprime_2->Fill(fEvent->fKin.fPp,w);
 	   }
 	}
       }
     }  // end of for loop over events
-   
+
 
     cout << "raw and good tracks per package" << endl;
     if (n_raw_track_1>0){

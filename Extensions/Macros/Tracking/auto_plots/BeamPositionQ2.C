@@ -41,7 +41,7 @@ int getOctNumber(TChain* event_tree)
   event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.fRegion==3&&events.fQwPartialTracks.fPackage==2","GOFF",100000);
 
   // Mean of histgram h, this returns a double value that is the trunkated to integer which is the region 3 pacakge 2 octant number
-  int octant = int (h->GetMean());
+  int octant = int (h->GetMean() + 0.5);
   delete h;
 
   return (octant);
@@ -76,7 +76,6 @@ void BeamPositionQ2(int runnum, bool is100k)
       event_tree->SetBranchStatus("events", 1);
 
       TBranch* event_branch = event_tree->GetBranch("events");
-//      TLeaf* primaryQ2 = event_branch->GetLeaf("fPrimaryQ2");
       event_branch->SetAddress(&fEvent);
 
       // Pull out the raw adc position data
@@ -86,7 +85,6 @@ void BeamPositionQ2(int runnum, bool is100k)
 
       TChain* slow_tree = new TChain ("Slow_Tree");
       slow_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
-//      slow_tree->Add("~/scratch/rootfiles/Qweak_15121.root");
 
       // Pull out the raster widths for x and y
       TBranch* rasterX = slow_tree->GetBranch("EHCFR_LIXWidth");

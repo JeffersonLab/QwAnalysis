@@ -104,53 +104,53 @@ void init_planes()
   h_planes_am_hit_2= new TH1F("h_planes_am_hit_2", "VDC Planes Ambiguous Hits  Package 2", 6, 0, 6);
 }
 
-void fill_planes(const QwHit* hit)
+void fill_planes(const QwHit* hit, const double w)
 {
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==1)
-    h_wires_hit_1->Fill(hit->fElement);
+    h_wires_hit_1->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==2)
-    h_wires_hit_2->Fill(hit->fElement);
+    h_wires_hit_2->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==3)
-    h_wires_hit_3->Fill(hit->fElement);
+    h_wires_hit_3->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==4)
-    h_wires_hit_4->Fill(hit->fElement);
+    h_wires_hit_4->Fill(hit->fElement,w);
 
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==1)
-    h_wires_hit_5->Fill(hit->fElement);
+    h_wires_hit_5->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==2)
-    h_wires_hit_6->Fill(hit->fElement);
+    h_wires_hit_6->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==3)
-    h_wires_hit_7->Fill(hit->fElement);
+    h_wires_hit_7->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==4)
-    h_wires_hit_8->Fill(hit->fElement);
+    h_wires_hit_8->Fill(hit->fElement,w);
 
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==1&&hit->fAmbiguousElement==1)
-    h_wires_amb_1->Fill(hit->fElement);
+    h_wires_amb_1->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==2&&hit->fAmbiguousElement==1)
-    h_wires_amb_2->Fill(hit->fElement);
+    h_wires_amb_2->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==3&&hit->fAmbiguousElement==1)
-    h_wires_amb_3->Fill(hit->fElement);
+    h_wires_amb_3->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fPlane==4&&hit->fAmbiguousElement==1)
-    h_wires_amb_4->Fill(hit->fElement);
+    h_wires_amb_4->Fill(hit->fElement,w);
 
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==1&&hit->fAmbiguousElement==1)
-    h_wires_amb_5->Fill(hit->fElement);
+    h_wires_amb_5->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==2&&hit->fAmbiguousElement==1)
-    h_wires_amb_6->Fill(hit->fElement);
+    h_wires_amb_6->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==3&&hit->fAmbiguousElement==1)
-    h_wires_amb_7->Fill(hit->fElement);
+    h_wires_amb_7->Fill(hit->fElement,w);
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fPlane==4&&hit->fAmbiguousElement==1)
-    h_wires_amb_8->Fill(hit->fElement);
+    h_wires_amb_8->Fill(hit->fElement,w);
 
   if (hit->fRegion==3&&hit->fPackage==1)
-    h_planes_hit_1->Fill(hit->fPlane);
+    h_planes_hit_1->Fill(hit->fPlane,w);
   if (hit->fRegion==3&&hit->fPackage==2)
-    h_planes_hit_2->Fill(hit->fPlane);
+    h_planes_hit_2->Fill(hit->fPlane,w);
 
   if (hit->fRegion==3&&hit->fPackage==1&&hit->fAmbiguousElement==1)
-    h_planes_am_hit_1->Fill(hit->fPlane);
+    h_planes_am_hit_1->Fill(hit->fPlane,w);
   if (hit->fRegion==3&&hit->fPackage==2&&hit->fAmbiguousElement==1)
-    h_planes_am_hit_2->Fill(hit->fPlane);
+    h_planes_am_hit_2->Fill(hit->fPlane,w);
 }
 
 
@@ -309,16 +309,16 @@ void init_delaylines()
   h_delay_line_4= new TH1F("h_delay_line_4", "MUX crate 4 (Han) delay lines", 33, 0, 66);
 }
 
-void fill_delaylines(const QwHit* hit)
+void fill_delaylines(const QwHit* hit, const double w)
 {
   if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==1||hit->fPlane==2))
-    h_delay_line_1->Fill(hit->fChannel);
+    h_delay_line_1->Fill(hit->fChannel,w);
   if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==3||hit->fPlane==4))
-    h_delay_line_2->Fill(hit->fChannel);
+    h_delay_line_2->Fill(hit->fChannel,w);
   if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==1||hit->fPlane==2))
-    h_delay_line_3->Fill(hit->fChannel);
+    h_delay_line_3->Fill(hit->fChannel,w);
   if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==3||hit->fPlane==4))
-    h_delay_line_4->Fill(hit->fChannel);
+    h_delay_line_4->Fill(hit->fChannel,w);
 }
 
 void plot_delaylines()
@@ -376,24 +376,24 @@ void init_times()
   h_time_8= new TH1F("h_time_8", "Han Drift Time", 250, -300, 1300);
 }
 
-void fill_times(const QwHit* hit)
+void fill_times(const QwHit* hit, const double w)
 {
   if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==1||hit->fPlane==2))
-    h_time_1->Fill(hit->fTimeNs);
+    h_time_1->Fill(hit->fTimeNs,w);
   if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==3||hit->fPlane==4))
-    h_time_2->Fill(hit->fTimeNs);
+    h_time_2->Fill(hit->fTimeNs,w);
   if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==1||hit->fPlane==2))
-    h_time_3->Fill(hit->fTimeNs);
+    h_time_3->Fill(hit->fTimeNs,w);
   if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==3||hit->fPlane==4))
-    h_time_4->Fill(hit->fTimeNs);
+    h_time_4->Fill(hit->fTimeNs,w);
   if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==1||hit->fPlane==2))
-    h_time_5->Fill(hit->fTimeNs);
+    h_time_5->Fill(hit->fTimeNs,w);
   if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==3||hit->fPlane==4))
-    h_time_6->Fill(hit->fTimeNs);
+    h_time_6->Fill(hit->fTimeNs,w);
   if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==1||hit->fPlane==2))
-    h_time_7->Fill(hit->fTimeNs);
+    h_time_7->Fill(hit->fTimeNs,w);
   if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==3||hit->fPlane==4))
-    h_time_8->Fill(hit->fTimeNs);
+    h_time_8->Fill(hit->fTimeNs,w);
 }
 
 void plot_times()
@@ -459,16 +459,16 @@ void init_hitnumber()
   h_nhits_4= new TH1F("h_nhits_4", "Hit Multiplicity (Han) ", 12, 0, 12);
 }
 
-void fill_hitnumber(const QwHit* hit)
+void fill_hitnumber(const QwHit* hit, const double w)
 {
   if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==1||hit->fPlane==2))
-    h_nhits_1->Fill(hit->fHitNumber);
+    h_nhits_1->Fill(hit->fHitNumber,w);
   if (hit->fRegion==3&&hit->fPackage==1&&(hit->fPlane==3||hit->fPlane==4))
-    h_nhits_2->Fill(hit->fHitNumber);
+    h_nhits_2->Fill(hit->fHitNumber,w);
   if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==1||hit->fPlane==2))
-    h_nhits_3->Fill(hit->fHitNumber);
+    h_nhits_3->Fill(hit->fHitNumber,w);
   if (hit->fRegion==3&&hit->fPackage==2&&(hit->fPlane==3||hit->fPlane==4))
-    h_nhits_4->Fill(hit->fHitNumber);
+    h_nhits_4->Fill(hit->fHitNumber,w);
 }
 
 void plot_hitnumber()
@@ -534,13 +534,15 @@ void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)
     if (i%10000 == 0) cout << "Processing event " << i << "..." << endl;
     chain->GetEntry(i);
 
+    double w = event->fCrossSection? event->fCrossSection: 1;
+
     for (int j = 0; j < event->GetNumberOfHits(); j++) {
       const QwHit* hit = event->GetHit(j);
       //these are the funcitons that fill the histgrams with data, each being passed a hit
-      fill_planes(hit);
-      fill_delaylines(hit);
-      fill_times(hit);
-      fill_hitnumber(hit);
+      fill_planes(hit,w);
+      fill_delaylines(hit,w);
+      fill_times(hit,w);
+      fill_hitnumber(hit,w);
     }
 
   }

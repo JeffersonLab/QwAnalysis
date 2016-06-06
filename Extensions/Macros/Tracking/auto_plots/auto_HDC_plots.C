@@ -238,6 +238,10 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 	for(int i=0; i<nevents;i++){
 		//get event
 		event_branch->GetEntry(i);
+
+		// cross section weight for each event, or 1 for data
+		double w = fEvent->fCrossSection? fEvent->fCrossSection: 1;
+
 		//get number of hits
 
 		int nhitsf = fEvent->GetNumberOfHits();
@@ -246,131 +250,131 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 			const QwHit* hit = fEvent->GetHit(k);
 			if(hit->GetRegion()==2){
 				if(hit->GetPackage()==2){
-					P3->Fill(hit->GetPlane());
+					P3->Fill(hit->GetPlane(),w);
 
 					if(hit->GetPlane()==1){
-						F1->Fill(hit->GetElement());
-						S1->Fill(hit->GetTimeNs());
-						S5->Fill(hit->GetTimeNs());
+						F1->Fill(hit->GetElement(),w);
+						S1->Fill(hit->GetTimeNs(),w);
+						S5->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==2){
-						F2->Fill(hit->GetElement());
-						S1->Fill(hit->GetTimeNs());
-						S5->Fill(hit->GetTimeNs());
+						F2->Fill(hit->GetElement(),w);
+						S1->Fill(hit->GetTimeNs(),w);
+						S5->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==3){
-						F3->Fill(hit->GetElement());
-						S1->Fill(hit->GetTimeNs());
-						S5->Fill(hit->GetTimeNs());
+						F3->Fill(hit->GetElement(),w);
+						S1->Fill(hit->GetTimeNs(),w);
+						S5->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==4){
-						F4->Fill(hit->GetElement());
-						S1->Fill(hit->GetTimeNs());
-						S5->Fill(hit->GetTimeNs());
+						F4->Fill(hit->GetElement(),w);
+						S1->Fill(hit->GetTimeNs(),w);
+						S5->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==5){
-						F5->Fill(hit->GetElement());
-						S1->Fill(hit->GetTimeNs());
-						S5->Fill(hit->GetTimeNs());
+						F5->Fill(hit->GetElement(),w);
+						S1->Fill(hit->GetTimeNs(),w);
+						S5->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==6){
-						F6->Fill(hit->GetElement());
-						S1->Fill(hit->GetTimeNs());
-						S5->Fill(hit->GetTimeNs());
+						F6->Fill(hit->GetElement(),w);
+						S1->Fill(hit->GetTimeNs(),w);
+						S5->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==7){
-						F7->Fill(hit->GetElement());
-						S2->Fill(hit->GetTimeNs());
-						S6->Fill(hit->GetTimeNs());
+						F7->Fill(hit->GetElement(),w);
+						S2->Fill(hit->GetTimeNs(),w);
+						S6->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==8){
-						F8->Fill(hit->GetElement());
-						S2->Fill(hit->GetTimeNs());
-						S6->Fill(hit->GetTimeNs());
+						F8->Fill(hit->GetElement(),w);
+						S2->Fill(hit->GetTimeNs(),w);
+						S6->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==9){
-						F9->Fill(hit->GetElement());
-						S2->Fill(hit->GetTimeNs());
-						S6->Fill(hit->GetTimeNs());
+						F9->Fill(hit->GetElement(),w);
+						S2->Fill(hit->GetTimeNs(),w);
+						S6->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==10){
-						F10->Fill(hit->GetElement());
-						S2->Fill(hit->GetTimeNs());
-						S6->Fill(hit->GetTimeNs());
+						F10->Fill(hit->GetElement(),w);
+						S2->Fill(hit->GetTimeNs(),w);
+						S6->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==11){
-						F11->Fill(hit->GetElement());
-						S2->Fill(hit->GetTimeNs());
-						S6->Fill(hit->GetTimeNs());
+						F11->Fill(hit->GetElement(),w);
+						S2->Fill(hit->GetTimeNs(),w);
+						S6->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==12){
-						F12->Fill(hit->GetElement());
-						S2->Fill(hit->GetTimeNs());
-						S6->Fill(hit->GetTimeNs());
+						F12->Fill(hit->GetElement(),w);
+						S2->Fill(hit->GetTimeNs(),w);
+						S6->Fill(hit->GetTimeNs(),w);
 					}
 				}
 				if(hit->GetPackage()==1){
-					P1->Fill(hit->GetPlane());
+					P1->Fill(hit->GetPlane(),w);
 
 					if(hit->GetPlane()==1){
-						F13->Fill(hit->GetElement());
-						S3->Fill(hit->GetTimeNs());
-						S7->Fill(hit->GetTimeNs());
+						F13->Fill(hit->GetElement(),w);
+						S3->Fill(hit->GetTimeNs(),w);
+						S7->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==2){
-						F14->Fill(hit->GetElement());
-						S3->Fill(hit->GetTimeNs());
-						S7->Fill(hit->GetTimeNs());
+						F14->Fill(hit->GetElement(),w);
+						S3->Fill(hit->GetTimeNs(),w);
+						S7->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==3){
-						F15->Fill(hit->GetElement());
-						S3->Fill(hit->GetTimeNs());
-						S7->Fill(hit->GetTimeNs());
+						F15->Fill(hit->GetElement(),w);
+						S3->Fill(hit->GetTimeNs(),w);
+						S7->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==4){
-						F16->Fill(hit->GetElement());
-						S3->Fill(hit->GetTimeNs());
-						S7->Fill(hit->GetTimeNs());
+						F16->Fill(hit->GetElement(),w);
+						S3->Fill(hit->GetTimeNs(),w);
+						S7->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==5){
-						F17->Fill(hit->GetElement());
-						S3->Fill(hit->GetTimeNs());
-						S7->Fill(hit->GetTimeNs());
+						F17->Fill(hit->GetElement(),w);
+						S3->Fill(hit->GetTimeNs(),w);
+						S7->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==6){
-						F18->Fill(hit->GetElement());
-						S3->Fill(hit->GetTimeNs());
-						S7->Fill(hit->GetTimeNs());
+						F18->Fill(hit->GetElement(),w);
+						S3->Fill(hit->GetTimeNs(),w);
+						S7->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==7){
-						F19->Fill(hit->GetElement());
-						S4->Fill(hit->GetTimeNs());
-						S8->Fill(hit->GetTimeNs());
+						F19->Fill(hit->GetElement(),w);
+						S4->Fill(hit->GetTimeNs(),w);
+						S8->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==8){
-						F20->Fill(hit->GetElement());
-						S4->Fill(hit->GetTimeNs());
-						S8->Fill(hit->GetTimeNs());
+						F20->Fill(hit->GetElement(),w);
+						S4->Fill(hit->GetTimeNs(),w);
+						S8->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==9){
-						F21->Fill(hit->GetElement());
-						S4->Fill(hit->GetTimeNs());
-						S8->Fill(hit->GetTimeNs());
+						F21->Fill(hit->GetElement(),w);
+						S4->Fill(hit->GetTimeNs(),w);
+						S8->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==10){
-						F22->Fill(hit->GetElement());
-						S4->Fill(hit->GetTimeNs());
-						S8->Fill(hit->GetTimeNs());
+						F22->Fill(hit->GetElement(),w);
+						S4->Fill(hit->GetTimeNs(),w);
+						S8->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==11){
-						F23->Fill(hit->GetElement());
-						S4->Fill(hit->GetTimeNs());
-						S8->Fill(hit->GetTimeNs());
+						F23->Fill(hit->GetElement(),w);
+						S4->Fill(hit->GetTimeNs(),w);
+						S8->Fill(hit->GetTimeNs(),w);
 					}
 					if(hit->GetPlane()==12){
-						F24->Fill(hit->GetElement());
-						S4->Fill(hit->GetTimeNs());
-						S8->Fill(hit->GetTimeNs());
+						F24->Fill(hit->GetElement(),w);
+						S4->Fill(hit->GetTimeNs(),w);
+						S8->Fill(hit->GetTimeNs(),w);
 					}
 				}
 			}
@@ -398,132 +402,132 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 							//      if(hit->GetRegion()==2){
 							numhits++;
 							if(hit->GetPackage()==2){
-								P4->Fill(hit->GetPlane());
+								P4->Fill(hit->GetPlane(),w);
 								hitspertrack2++;
 								if(hit->GetPlane()==1){
-									E1->Fill(hit->GetElement());
-									T1->Fill(hit->GetTimeNs());
-									T5->Fill(hit->GetTimeNs());
+									E1->Fill(hit->GetElement(),w);
+									T1->Fill(hit->GetTimeNs(),w);
+									T5->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==2){
-									E2->Fill(hit->GetElement());
-									T1->Fill(hit->GetTimeNs());
-									T5->Fill(hit->GetTimeNs());
+									E2->Fill(hit->GetElement(),w);
+									T1->Fill(hit->GetTimeNs(),w);
+									T5->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==3){
-									E3->Fill(hit->GetElement());
-									T1->Fill(hit->GetTimeNs());
-									T5->Fill(hit->GetTimeNs());
+									E3->Fill(hit->GetElement(),w);
+									T1->Fill(hit->GetTimeNs(),w);
+									T5->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==4){
-									E4->Fill(hit->GetElement());
-									T1->Fill(hit->GetTimeNs());
-									T5->Fill(hit->GetTimeNs());
+									E4->Fill(hit->GetElement(),w);
+									T1->Fill(hit->GetTimeNs(),w);
+									T5->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==5){
-									E5->Fill(hit->GetElement());
-									T1->Fill(hit->GetTimeNs());
-									T5->Fill(hit->GetTimeNs());
+									E5->Fill(hit->GetElement(),w);
+									T1->Fill(hit->GetTimeNs(),w);
+									T5->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==6){
-									E6->Fill(hit->GetElement());
-									T1->Fill(hit->GetTimeNs());
-									T5->Fill(hit->GetTimeNs());
+									E6->Fill(hit->GetElement(),w);
+									T1->Fill(hit->GetTimeNs(),w);
+									T5->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==7){
-									E7->Fill(hit->GetElement());
-									T2->Fill(hit->GetTimeNs());
-									T6->Fill(hit->GetTimeNs());
+									E7->Fill(hit->GetElement(),w);
+									T2->Fill(hit->GetTimeNs(),w);
+									T6->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==8){
-									E8->Fill(hit->GetElement());
-									T2->Fill(hit->GetTimeNs());
-									T6->Fill(hit->GetTimeNs());
+									E8->Fill(hit->GetElement(),w);
+									T2->Fill(hit->GetTimeNs(),w);
+									T6->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==9){
-									E9->Fill(hit->GetElement());
-									T2->Fill(hit->GetTimeNs());
-									T6->Fill(hit->GetTimeNs());
+									E9->Fill(hit->GetElement(),w);
+									T2->Fill(hit->GetTimeNs(),w);
+									T6->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==10){
-									E10->Fill(hit->GetElement());
-									T2->Fill(hit->GetTimeNs());
-									T6->Fill(hit->GetTimeNs());
+									E10->Fill(hit->GetElement(),w);
+									T2->Fill(hit->GetTimeNs(),w);
+									T6->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==11){
-									E11->Fill(hit->GetElement());
-									T2->Fill(hit->GetTimeNs());
-									T6->Fill(hit->GetTimeNs());
+									E11->Fill(hit->GetElement(),w);
+									T2->Fill(hit->GetTimeNs(),w);
+									T6->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==12){
-									E12->Fill(hit->GetElement());
-									T2->Fill(hit->GetTimeNs());
-									T6->Fill(hit->GetTimeNs());
+									E12->Fill(hit->GetElement(),w);
+									T2->Fill(hit->GetTimeNs(),w);
+									T6->Fill(hit->GetTimeNs(),w);
 								}
 							}
 							if(hit->GetPackage()==1){
 								hitspertrack1++;
-								P2->Fill(hit->GetPlane());
+								P2->Fill(hit->GetPlane(),w);
 
 								if(hit->GetPlane()==1){
-									E13->Fill(hit->GetElement());
-									T3->Fill(hit->GetTimeNs());
-									T7->Fill(hit->GetTimeNs());
+									E13->Fill(hit->GetElement(),w);
+									T3->Fill(hit->GetTimeNs(),w);
+									T7->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==2){
-									E14->Fill(hit->GetElement());
-									T3->Fill(hit->GetTimeNs());
-									T7->Fill(hit->GetTimeNs());
+									E14->Fill(hit->GetElement(),w);
+									T3->Fill(hit->GetTimeNs(),w);
+									T7->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==3){
-									E15->Fill(hit->GetElement());
-									T3->Fill(hit->GetTimeNs());
-									T7->Fill(hit->GetTimeNs());
+									E15->Fill(hit->GetElement(),w);
+									T3->Fill(hit->GetTimeNs(),w);
+									T7->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==4){
-									E16->Fill(hit->GetElement());
-									T3->Fill(hit->GetTimeNs());
-									T7->Fill(hit->GetTimeNs());
+									E16->Fill(hit->GetElement(),w);
+									T3->Fill(hit->GetTimeNs(),w);
+									T7->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==5){
-									E17->Fill(hit->GetElement());
-									T3->Fill(hit->GetTimeNs());
-									T7->Fill(hit->GetTimeNs());
+									E17->Fill(hit->GetElement(),w);
+									T3->Fill(hit->GetTimeNs(),w);
+									T7->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==6){
-									E18->Fill(hit->GetElement());
-									T3->Fill(hit->GetTimeNs());
-									T7->Fill(hit->GetTimeNs());
+									E18->Fill(hit->GetElement(),w);
+									T3->Fill(hit->GetTimeNs(),w);
+									T7->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==7){
-									E19->Fill(hit->GetElement());
-									T4->Fill(hit->GetTimeNs());
-									T8->Fill(hit->GetTimeNs());
+									E19->Fill(hit->GetElement(),w);
+									T4->Fill(hit->GetTimeNs(),w);
+									T8->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==8){
-									E20->Fill(hit->GetElement());
-									T4->Fill(hit->GetTimeNs());
-									T8->Fill(hit->GetTimeNs());
+									E20->Fill(hit->GetElement(),w);
+									T4->Fill(hit->GetTimeNs(),w);
+									T8->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==9){
-									E21->Fill(hit->GetElement());
-									T4->Fill(hit->GetTimeNs());
-									T8->Fill(hit->GetTimeNs());
+									E21->Fill(hit->GetElement(),w);
+									T4->Fill(hit->GetTimeNs(),w);
+									T8->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==10){
-									E22->Fill(hit->GetElement());
-									T4->Fill(hit->GetTimeNs());
-									T8->Fill(hit->GetTimeNs());
+									E22->Fill(hit->GetElement(),w);
+									T4->Fill(hit->GetTimeNs(),w);
+									T8->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==11){
-									E23->Fill(hit->GetElement());
-									T4->Fill(hit->GetTimeNs());
-									T8->Fill(hit->GetTimeNs());
+									E23->Fill(hit->GetElement(),w);
+									T4->Fill(hit->GetTimeNs(),w);
+									T8->Fill(hit->GetTimeNs(),w);
 								}
 								if(hit->GetPlane()==12){
-									E24->Fill(hit->GetElement());
-									T4->Fill(hit->GetTimeNs());
-									T8->Fill(hit->GetTimeNs());
+									E24->Fill(hit->GetElement(),w);
+									T4->Fill(hit->GetTimeNs(),w);
+									T8->Fill(hit->GetTimeNs(),w);
 								}     
 							}
 						}

@@ -135,7 +135,7 @@ void LightWeighting (int runnum, bool is100k)
     h_sa_proj[i]->GetYaxis()->SetTitle("Sacttering angle (degrees)");
     h_sa_proj[i]->GetXaxis()->SetTitle("position on the bar (cm)");
 
-    h_x[i]= new TH1D (Form("h_q2[%d]",i),Form("Position on bar for Octant %d, Package %d",oct[i],i),bin_size, -bar_length, bar_length);
+    h_x[i]= new TH1D (Form("h_x[%d]",i),Form("Position on bar for Octant %d, Package %d",oct[i],i),bin_size, -bar_length, bar_length);
 		h_x[i]->GetYaxis()->SetTitle("Frequency");
     h_x[i]->GetXaxis()->SetTitle("position on the bar (cm)");
 
@@ -161,33 +161,34 @@ void LightWeighting (int runnum, bool is100k)
 
   //Now I have to get a pointer to the events branch to loop through
 
-  //Start by setting the event_tree branch to be on
-  event_tree->SetBranchStatus("events",1);
-	event_tree->SetBranchStatus("maindet",1);
-
-  //now get the event branch of the event_tree branch and call it event_branch creatively
-  TBranch* event_branch=event_tree->GetBranch("events");
+  //Now get the event branch of the event_tree branch and call it event_branch creatively
+  TBranch* event_branch = event_tree->GetBranch("events");
   event_branch->SetAddress(&fEvent);
-  
-  //also get the maindet branch- we will need the leaves for the adcs
-  TBranch* maindet_branch=event_tree->GetBranch("maindet");
+  //Set events branch to be ON
+  event_tree->SetBranchStatus("events",1);
+
+  //Also get the maindet branch- we will need the leaves for the adcs
+  TBranch* maindet_branch = event_tree->GetBranch("maindet");
+  //Set maindet branch to be ON, if it exists
+  if (maindet_branch)
+    event_tree->SetBranchStatus("maindet",1);
 
   //get the leaves of the ADCs
   //here the 1 and 2 coresopnd to the package number
   TLeaf* mdp[3];
   TLeaf* mdm[3];
-  mdp[1] = maindet_branch->GetLeaf(Form("md%dp_adc",oct[1]));
-  mdm[1] = maindet_branch->GetLeaf(Form("md%dm_adc",oct[1]));
-  mdp[2] = maindet_branch->GetLeaf(Form("md%dp_adc",oct[2]));
-  mdm[2] = maindet_branch->GetLeaf(Form("md%dm_adc",oct[2]));
+  mdp[1] = maindet_branch? maindet_branch->GetLeaf(Form("md%dp_adc",oct[1])): 0;
+  mdm[1] = maindet_branch? maindet_branch->GetLeaf(Form("md%dm_adc",oct[1])): 0;
+  mdp[2] = maindet_branch? maindet_branch->GetLeaf(Form("md%dp_adc",oct[2])): 0;
+  mdm[2] = maindet_branch? maindet_branch->GetLeaf(Form("md%dm_adc",oct[2])): 0;
 
   //Loop through this and fill all the graphs at once
 
   for (int i = 0; i < nevents; i++)
   {
     //Get the ith entry form the event tree
-    event_branch->GetEntry(i);
-    maindet_branch->GetEntry(i);
+    if (event_branch)   event_branch->GetEntry(i);
+    if (maindet_branch) maindet_branch->GetEntry(i);
 
     //get the number of Treelines
     int nTracks = fEvent->GetNumberOfTracks();
@@ -201,7 +202,12 @@ void LightWeighting (int runnum, bool is100k)
 			// get the package
 			int pkg = tracks->fPackage;
 
-			if (abs(fEvent->fKin.fQ2) < Q2_cut_off && mdp[pkg]->GetValue() + mdm[pkg]->GetValue() > adc_cut_off[oct[pkg]])
+			// what is the MD+ + MD- ADC sum?
+			// first test whether mdp[pkg] and mdm[pkg] even exist (data), if they don't exist (simulation) add 50 to the cut off to be above it
+			double mdsum = (mdp[pkg] && mdm[pkg])? mdp[pkg]->GetValue() + mdm[pkg]->GetValue(): adc_cut_off[oct[pkg]] + 50.0;
+
+			// if Q2 < Q2 cut-off && MD+ + MD- > ADC cut-off
+			if (abs(fEvent->fKin.fQ2) < Q2_cut_off && mdsum > adc_cut_off[oct[pkg]])
 			{
 				// Original coordinates in global coordinate system
 				double x0 = tracks->fBack->fOffsetX + MD_bars_dist[oct[pkg]] * tracks->fBack->fSlopeX;
@@ -217,11 +223,11 @@ void LightWeighting (int runnum, bool is100k)
 				// Fill histograms
 				h_x[pkg]->Fill(x1);
 				h_q2_proj[pkg]->Fill(x1, fEvent->fKin.fQ2);
-				h_lw_proj[pkg]->Fill(x1, mdp[pkg]->GetValue() + mdm[pkg]->GetValue());
+				h_lw_proj[pkg]->Fill(x1, mdsum);
 				h_sa_proj[pkg]->Fill(x1, fEvent->fScatteringAngle);
 				h_q2[pkg]->Fill(fEvent->fKin.fQ2);
-				h_q2_lw[pkg]->Fill(fEvent->fKin.fQ2, (mdp[pkg]->GetValue() + mdm[pkg]->GetValue()));
-				h_q2_lw_p[pkg]->Fill(fEvent->fKin.fQ2, (mdp[pkg]->GetValue() + mdm[pkg]->GetValue() - adc_pedestal[pkg]));
+				h_q2_lw[pkg]->Fill(fEvent->fKin.fQ2, (mdsum));
+				h_q2_lw_p[pkg]->Fill(fEvent->fKin.fQ2, (mdsum - adc_pedestal[pkg]));
 			}
     }
   }
@@ -356,12 +362,25 @@ Modified:
 
 int DetermineOctantRegion3(TChain* event_tree, int package)
 {
-  for (int octant = 1; octant <= 8; octant++) 
-	{
-    TH1D* h_adc = new TH1D("h_adc","h_adc",128,0,4096);
-    event_tree->Draw(Form("maindet.md%dm_adc+maindet.md%dp_adc>>h_adc",octant,octant),
-                     Form("events.fQwTracks.fPackage==%d",package),"",1000);
-    if (h_adc->GetMean() > adc_pedestal[octant] + 50.0) return octant;
-    delete h_adc;
+  if (event_tree->GetBranch("maindet")) {
+    // The maindet branch is present (actual data)
+    for (int octant = 1; octant <= 8; octant++)
+    {
+      TH1D* h_adc = new TH1D("h_adc","h_adc",128,0,4096);
+      event_tree->Draw(Form("maindet.md%dm_adc + maindet.md%dp_adc >> h_adc",octant,octant),
+                       Form("events.fQwTracks.fPackage==%d",package),"",1000);
+      double mean = h_adc->GetMean();
+      delete h_adc;
+      if (mean > adc_pedestal[octant] + 50.0) return octant;
+    }
+  } else {
+    // The maindet branch is NOT present (simulation)
+    TH1I* h_oct = new TH1I("h_oct","h_oct",9,0,8);
+    event_tree->Draw("events.fQwHits.fOctant >> h_oct",
+                Form("events.fQwTracks.fPackage==%d && events.fQwHits.fRegion==3",package),"",1000);
+    int oct = (h_oct->GetMean() + 0.5);
+    delete h_oct;
+    return oct;
   }
+  return 0;
 }
