@@ -38,7 +38,7 @@ detector_tilt = 0
   detector_origin_y = 51.104
   detector_origin_z = -342.305
   element_angle_cos = 1
-  element_angle_sin = 0
+  element_angle_sin = 0.001
 
 [HDC_pkg1_front_plane02_u]
   plane = 2
@@ -68,7 +68,7 @@ detector_tilt = 0
   detector_origin_y = 51.104
   detector_origin_z = -336.365
   element_angle_cos = 1
-  element_angle_sin = 0
+  element_angle_sin = 0.001
   
 [HDC_pkg1_front_plane05_u]
   plane = 5
@@ -100,7 +100,7 @@ detector_tilt = 0
   detector_origin_y = 51.104
   detector_origin_z = -342.305
   element_angle_cos = 1
-  element_angle_sin = 0
+  element_angle_sin = 0.001
 
 [HDC_pkg2_front_plane02_u]
   plane = 2
@@ -130,7 +130,7 @@ detector_tilt = 0
   detector_origin_y = 51.104
   detector_origin_z = -336.365
   element_angle_cos = 1
-  element_angle_sin = 0
+  element_angle_sin = 0.001
   
 [HDC_pkg2_front_plane05_u]
   plane = 5
@@ -162,7 +162,7 @@ detector_tilt = 0
   detector_origin_y = 54.872
   detector_origin_z = -299.627
   element_angle_cos = 1
-  element_angle_sin = 0
+  element_angle_sin = 0.001
 
 [HDC_pkg1_back_plane08_u]
   plane = 8
@@ -192,7 +192,7 @@ detector_tilt = 0
   detector_origin_y = 54.872
   detector_origin_z = -293.687
   element_angle_cos = 1
-  element_angle_sin = 0
+  element_angle_sin = 0.001
 
 [HDC_pkg1_back_plane11_u]
   plane = 11
@@ -224,7 +224,7 @@ detector_tilt = 0
   detector_origin_y = 54.872
   detector_origin_z = -299.627
   element_angle_cos = 1
-  element_angle_sin = 0
+  element_angle_sin = 0.001
 
 [HDC_pkg2_back_plane08_u]
   plane = 8
@@ -255,7 +255,7 @@ detector_tilt = 0
   detector_origin_y = 54.872
   detector_origin_z = -293.687
   element_angle_cos = 1
-  element_angle_sin = 0
+  element_angle_sin = 0.001
 
 [HDC_pkg2_back_plane11_u]
   plane = 11
