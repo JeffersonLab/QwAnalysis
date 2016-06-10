@@ -80,8 +80,13 @@ void BeamPositionQ2(int runnum, bool is100k)
 
       // Pull out the raw adc position data
       TBranch* beamline_branch = event_tree->GetBranch("beamline");
-      TLeaf* raster_posx = beamline_branch->GetLeaf("raster_posx_adc_raw");
-      TLeaf* raster_posy = beamline_branch->GetLeaf("raster_posy_adc_raw");
+      if (beamline_branch) {
+        TLeaf* raster_posx = beamline_branch->GetLeaf("raster_posx_adc_raw");
+        TLeaf* raster_posy = beamline_branch->GetLeaf("raster_posy_adc_raw");
+      } else {
+        cout << "Error: no beamline branch found (this script does not support simulation files)." << endl;
+        return;
+      }
 
       TChain* slow_tree = new TChain ("Slow_Tree");
       slow_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
