@@ -104,8 +104,23 @@ class QwRayTracer: public VQwBridgingMethod {
     double fIntegrationMaximumStep; ///< Maximum step size
     double fIntegrationTolerance; ///< Allowable truncation error in adaptive step
 
-    /// Newton's method step size in position
-    double fPositionResolution;
+    /// Newton's method optimization variable
+    int fOptimizationVariable;
+    /// Optimization variable from position and direction
+    double GetOptimizationVariable(TVector3 &position, TVector3 &direction) {
+      switch (fOptimizationVariable) {
+        case 0: return position.Perp(); // perpendicular position at matching plane
+        case 1: return direction.Theta(); // polar angle of direction at matching plane
+          // since direction is normalized, sin(direction.Theta()) == direction.Perp()
+        default: return position.Perp(); // case 0 is default
+      }
+    }
+
+    /// Newton's method optimization resolution: continue optimization until the difference
+    /// between optimization variable after swimming and optimization variable of target
+    /// partial track in back chamber is below this value
+    double fOptimizationResolution;
+
     /// Newton's method step size in momentum
     double fMomentumStep;
 

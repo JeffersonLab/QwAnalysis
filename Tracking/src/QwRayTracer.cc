@@ -116,10 +116,6 @@ void QwRayTracer::DefineOptions(QwOptions& options)
   options.AddOptions("Momentum reconstruction")("QwRayTracer.momentum_step",
       po::value<float>(0)->default_value(30.0),
       "Newton's method momentum step [MeV]");
-  // Step size of Newton's method in position
-  options.AddOptions("Momentum reconstruction")("QwRayTracer.position_resolution",
-      po::value<float>(0)->default_value(0.3),
-      "Newton's method position step [cm]");
 
   // Starting momentum of Newton's method
   // Note: Start iteration from a higher momentum limit (1.250 GeV)
@@ -136,6 +132,15 @@ void QwRayTracer::DefineOptions(QwOptions& options)
   options.AddOptions("Momentum reconstruction")("QwRayTracer.end_position",
       po::value<float>(0)->default_value(+577.0),
       "Magnetic field swimming end position [cm]");
+
+  // Newton's method optimization variable
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.optim_variable",
+      po::value<int>(0)->default_value(0),
+      "Newton's method optimization variable: 0 for position.Perp(), 1 for direction.Theta()");
+  // Newton's method optimization cut-off resolution
+  options.AddOptions("Momentum reconstruction")("QwRayTracer.optim_resolution",
+      po::value<float>(0)->default_value(0.3),
+      "Newton's method optimization cut-off resolution [cm for position, rad for angles]");
 }
 
 /**
@@ -151,10 +156,17 @@ void QwRayTracer::ProcessOptions(QwOptions& options)
   fIntegrationTolerance = options.GetValue<float>("QwRayTracer.tolerance");
 
   fMomentumStep = Qw::MeV * options.GetValue<float>("QwRayTracer.momentum_step");
-  fPositionResolution = Qw::cm * options.GetValue<float>("QwRayTracer.position_resolution");
   fInitialMomentum = Qw::GeV * options.GetValue<float>("QwRayTracer.initial_momemtum");
   fStartPosition = Qw::cm * options.GetValue<float>("QwRayTracer.start_position");
   fEndPosition = Qw::cm * options.GetValue<float>("QwRayTracer.end_position");
+
+  fOptimizationVariable = options.GetValue<int>("QwRayTracer.optim_variable");
+  fOptimizationResolution = options.GetValue<float>("QwRayTracer.optim_resolution");
+  switch (fOptimizationVariable) {
+    case 0: fOptimizationResolution *= Qw::cm;
+    case 1: fOptimizationResolution *= Qw::rad;
+    default: fOptimizationResolution *= Qw::cm;
+  }
 }
 
 /**
@@ -171,17 +183,16 @@ const QwTrack* QwRayTracer::Bridge(
   QwTrack* track = 0;
 
   // Estimate initial momentum from
-  Double_t momentum[2] = {0.0};
-  momentum[0] = EstimateInitialMomentum(front->GetMomentumDirection());
+  Double_t momentum = EstimateInitialMomentum(front->GetMomentumDirection());
 
   // Start iteration from a smaller momentum than initial guess,
   // to avoid the gap in the momentum spectrum
-  // if(momentum[0] > 0.50 * Qw::GeV)
-  //     momentum[0] = momentum[0] - 0.30 * Qw::GeV;
+  // if(momentum > 0.50 * Qw::GeV)
+  //     momentum = momentum - 0.30 * Qw::GeV;
   // else
-  //     momentum[0] = 0.20 * Qw::GeV;
-
-  momentum[0] = fInitialMomentum;
+  //     momentum = 0.20 * Qw::GeV;
+  //
+  momentum = fInitialMomentum;
 
   // Front track position and direction
   TVector3 start_position = front->GetPosition(fStartPosition);
@@ -191,72 +202,61 @@ const QwTrack* QwRayTracer::Bridge(
   TVector3 end_position = back->GetPosition(fEndPosition);
   TVector3 end_direction = back->GetMomentumDirection();
 
+  // Position and direction after swimming from front track position and direction
   TVector3 position = start_position;
   TVector3 direction =  start_direction;
-  IntegrateRK(position, direction, momentum[0], end_position.Z(), fIntegrationOrder, fIntegrationStep);
-  double positionRoff = position.Perp() - end_position.Perp();
+  IntegrateRK(position, direction, momentum, end_position.Z(), fIntegrationOrder, fIntegrationStep);
 
-  int mode=0;
+  // Difference to optimize on
+  double difference = GetOptimizationVariable(position,direction) - GetOptimizationVariable(end_position,end_direction);
+
+  // Count the number of iterations in the Newton's method and Runge-Kutta method
   int iterations_newton = 0;
   int iterations_rungekutta = 0;
 
-  //std::cout<<"---"<<std::endl;
-
-  while (fabs(positionRoff) >= fPositionResolution
+  // Loop until we get blow the resolution required (or give up)
+  while (fabs(difference) >= fOptimizationResolution
       && iterations_newton < MAX_ITERATIONS_NEWTON) {
-    ++iterations_newton;
 
+    // Increment number of iterations
+    iterations_newton++;
+
+    // Evaluation optimization variable on both side of current momentum
     Double_t r[2] = {0.0, 0.0};
-    if(mode==0){
 
-      // momentum - dp
-      position = start_position;
-      direction = start_direction;
-      IntegrateRK(position, direction, momentum[0] - fMomentumStep, end_position.Z(), fIntegrationOrder, fIntegrationStep);
-      r[0] = position.Perp();
-
-      // momentum + dp
-      position = start_position;
-      direction = start_direction;
-      IntegrateRK(position, direction, momentum[0] + fMomentumStep, end_position.Z(), fIntegrationOrder, fIntegrationStep);
-      r[1] = position.Perp();
-    }
-
-    //std::cout<<"iteration "<<iterations_newton<<": Delta_P="<<fMomentumStep<<", r="<<end_position.Perp()<<", r[0]="<<r[0]<<", r[1]="<<r[1]<<std::endl;
-    // Correction = f(momentum)
-    if (r[0] != r[1]){
- //     if(r[1]>end_position.Perp() || r[0]<end_position.Perp())
-      {
-        momentum[1] = momentum[0] - fMomentumStep * (r[0] + r[1] - 2.0 * end_position.Perp()) / (r[1] - r[0]);
-        //std::cout<<"mode 0: momentum[0]="<<momentum[0]<<", momentum[1]="<<momentum[1]<<std::endl;
-      }
-/*      
-      else 
-      {
-        mode=1;
-        if (positionRoff < 0)
-          momentum[1] = momentum[0] - 0.001;
-        else
-          momentum[1] = momentum[0] + 0.001;
-
-        std::cout<<"mode 1: momentum[0]="<<momentum[0]<<", momentum[1]="<<momentum[1]<<std::endl;
-      }
-*/      
-    }
-
-    // p1
+    // momentum - dp
     position = start_position;
     direction = start_direction;
-    iterations_rungekutta = IntegrateRK(position, direction, momentum[1], end_position.Z(), fIntegrationOrder, fIntegrationStep);
-    positionRoff = position.Perp() - end_position.Perp();
+    IntegrateRK(position, direction, momentum - fMomentumStep, end_position.Z(), fIntegrationOrder, fIntegrationStep);
+    r[0] = GetOptimizationVariable(position,direction);
 
-    momentum[0] = momentum[1];
+    // momentum + dp
+    position = start_position;
+    direction = start_direction;
+    IntegrateRK(position, direction, momentum + fMomentumStep, end_position.Z(), fIntegrationOrder, fIntegrationStep);
+    r[1] = GetOptimizationVariable(position,direction);
+
+    // Correction = f(momentum)
+    if (r[0] != r[1]) {
+      momentum = momentum - fMomentumStep * (r[0] + r[1] - 2.0 * GetOptimizationVariable(end_position,end_direction)) / (r[1] - r[0]);
+    }
+
+    // Update momentum
+    position = start_position;
+    direction = start_direction;
+    iterations_rungekutta = IntegrateRK(position, direction, momentum, end_position.Z(), fIntegrationOrder, fIntegrationStep);
+    // update the difference
+    difference = GetOptimizationVariable(position,direction) - GetOptimizationVariable(end_position,end_direction);
+
   }
+
 
   if (iterations_newton < MAX_ITERATIONS_NEWTON) {
 
-    //QwMessage << "Converged after " << iterations_newton << " iterations." << QwLog::endl;
-    /*
+    QwVerbose << "Converged after " << iterations_newton << " iterations." << QwLog::endl;
+
+    /* The following restrictions can now be achieved through bridging filters
+
     if (fMomentum < 0.980 * Qw::GeV || fMomentum > 1.165 * Qw::GeV) {
       QwMessage << "Out of momentum range: determined momentum by shooting: "
 		<< fMomentum / Qw::GeV << " GeV" << std::endl;
@@ -274,27 +274,28 @@ const QwTrack* QwRayTracer::Bridge(
 		<< fDirectionPhiOff / Qw::deg << " deg" << std::endl;
       return -1;
     }
+
     */
 
     // Create a new track
     track = new QwTrack(front,back);
 
     // Reconstructed momentum
-    track->fMomentum = momentum[0];
+    track->fMomentum = momentum;
     track->fIterationsNewton = iterations_newton;
     track->fIterationsRungeKutta = iterations_rungekutta;
 
     // Runge-Kutta 4th order
     position = start_position;
     direction = start_direction;
-    track->fIterationsRK4 = IntegrateRK(position, direction, momentum[0], end_position.Z(), 4, fIntegrationStep);
+    track->fIterationsRK4 = IntegrateRK(position, direction, momentum, end_position.Z(), 4, fIntegrationStep);
     track->fEndPositionActualRK4 = position;
     track->fEndDirectionActualRK4 = direction;
 
     // Runge-Kutta-Fehlberg 4th-5th order
     position = start_position;
     direction = start_direction;
-    track->fIterationsRKF45 = IntegrateRK(position, direction, momentum[0], end_position.Z(), 5, fIntegrationStep);
+    track->fIterationsRKF45 = IntegrateRK(position, direction, momentum, end_position.Z(), 5, fIntegrationStep);
     track->fEndPositionActualRKF45 = position;
     track->fEndDirectionActualRKF45 = direction;
 
@@ -334,7 +335,7 @@ const QwTrack* QwRayTracer::Bridge(
     track->SetMagneticFieldIntegral(fBdl,fBdlx,fBdly,fBdlz);
 
   } else {
-    QwMessage << "Can't converge after " << iterations_newton << " iterations." << QwLog::endl;
+    QwMessage << "Couldn't converge after " << iterations_newton << " iterations." << QwLog::endl;
   }
 
   return track;
