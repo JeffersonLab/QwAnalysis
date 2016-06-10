@@ -93,7 +93,7 @@ void QwHits_Region (TChain * event_tree)
 	std::vector<TH1I*> h;
 	h.resize(2);
 
-	for (int j = 1; j<=2; j++)
+	for (int j = 1; j <= 2; j++)
 	{
 
 		//define the histograms 1 through 2 - one for each package
@@ -109,7 +109,7 @@ void QwHits_Region (TChain * event_tree)
 //start with looping over all the events and putting them in the correct histogram 
 
         //figure out how many evernts are in the rootfile so I know how long to have my loop go for
-        Int_t nevents=event_tree->GetEntries();
+        Int_t nevents = event_tree->GetEntries();
 
         //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
         QwEvent* fEvent = 0;
@@ -120,13 +120,16 @@ void QwHits_Region (TChain * event_tree)
         event_tree->SetBranchStatus("events",1);
 
         //now get the event branch of the event_tree branch and call it event_branch creativly
-        TBranch* event_branch=event_tree->GetBranch("events");
+        TBranch* event_branch = event_tree->GetBranch("events");
         event_branch->SetAddress(&fEvent);
 
         for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
         {
                 //Get the ith entry form the event tree
                 event_branch->GetEntry(i);
+
+		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
+		double w = fEvent->fCrossSection? fEvent->fCrossSection: 1;
 
                 //get the number of Hits
                 int nHits = fEvent->GetNumberOfHits();
@@ -135,9 +138,9 @@ void QwHits_Region (TChain * event_tree)
                 for (int t = 0; t < nHits; t++)
 		{
 			// Get pointer to t'th hit in entry i
-			 const QwHit* hit=fEvent->GetHit(t);
-			
-			h->Fill(hit->GetRegion());
+			const QwHit* hit = fEvent->GetHit(t);
+
+			h->Fill(hit->GetRegion(),w);
 		}
 
 	}
@@ -190,7 +193,7 @@ void QwHits_Package (TChain * event_tree)
 	std::vector<TH1I*> h2;
 	h2.resize(2);
 
-	for (int j = 1; j<=2; j++)
+	for (int j = 1; j <= 2; j++)
 	{
 
         	//define the histograms 1 through 2 - one for each package
@@ -206,7 +209,7 @@ void QwHits_Package (TChain * event_tree)
 //start with looping over all the events and putting them in the correct histogram 
 
         //figure out how many evernts are in the rootfile so I know how long to have my loop go for
-        Int_t nevents=event_tree->GetEntries();
+        Int_t nevents = event_tree->GetEntries();
 
         //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
         QwEvent* fEvent = 0;
@@ -217,13 +220,16 @@ void QwHits_Package (TChain * event_tree)
         event_tree->SetBranchStatus("events",1);
 
         //now get the event branch of the event_tree branch and call it event_branch creativly
-        TBranch* event_branch=event_tree->GetBranch("events");
+        TBranch* event_branch = event_tree->GetBranch("events");
         event_branch->SetAddress(&fEvent);
 
         for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
         {
                 //Get the ith entry form the event tree
                 event_branch->GetEntry(i);
+
+		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
+		double w = fEvent->fCrossSection? fEvent->fCrossSection: 1;
 
                 //get the number of Hits
                 int nHits = fEvent->GetNumberOfHits();
@@ -232,9 +238,9 @@ void QwHits_Package (TChain * event_tree)
                 for (int t = 0; t < nHits; t++)
 		{
 			// Get pointer to j'th hit in entry i
-			 const QwHit* hit=fEvent->GetHit(t);
-			
-			h2->Fill(hit->GetPackage());
+			const QwHit* hit = fEvent->GetHit(t);
+
+			h2->Fill(hit->GetPackage(),w);
 		}
 
 	}
@@ -278,7 +284,7 @@ Modified: 07-09-2012
 void QwHits_Direction (TChain * event_tree)
 {
 	//Create the canvas
-	TCanvas c3("c3", "QwHits by Dircetion - in Region 2", 400,400);
+	TCanvas c3("c3", "QwHits by Direction - in Region 2", 400,400);
 
 	//define the histogram
 	TH1I* h3 = new TH1I ("h3","QwHits - Direction",6,0,5);
@@ -292,7 +298,7 @@ void QwHits_Direction (TChain * event_tree)
 	std::vector<TH1I*> h3;
 	h3.resize(4);
  
-	for (int j = 1; j<=4; j++)
+	for (int j = 1; j <= 4; j++)
 	{
 
         	//define the histograms 1 through 4 - one for each plain and on for the all of them
@@ -307,7 +313,7 @@ void QwHits_Direction (TChain * event_tree)
 //start with looping over all the events and putting them in the correct histogram 
 
         //figure out how many evernts are in the rootfile so I know how long to have my loop go for
-        Int_t nevents=event_tree->GetEntries();
+        Int_t nevents = event_tree->GetEntries();
 
         //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
         QwEvent* fEvent = 0;
@@ -318,13 +324,16 @@ void QwHits_Direction (TChain * event_tree)
         event_tree->SetBranchStatus("events",1);
 
         //now get the event branch of the event_tree branch and call it event_branch creativly
-        TBranch* event_branch=event_tree->GetBranch("events");
+        TBranch* event_branch = event_tree->GetBranch("events");
         event_branch->SetAddress(&fEvent);
 
         for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
         {
                 //Get the ith entry form the event tree
                 event_branch->GetEntry(i);
+
+		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
+		double w = fEvent->fCrossSection? fEvent->fCrossSection: 1;
 
                 //get the number of Hits
                 int nHits = fEvent->GetNumberOfHits();
@@ -333,10 +342,10 @@ void QwHits_Direction (TChain * event_tree)
                 for (int t = 0; t < nHits; t++)
 		{
 			// Get pointer to j'th hit in entry i
-			 const QwHit* hit=fEvent->GetHit(t);
-			
+			const QwHit* hit = fEvent->GetHit(t);
+
 			//Directions (left to right (X,Y,U,V,R,phi,left,right))
-			h3->Fill(hit->GetDirection());
+			h3->Fill(hit->GetDirection(),w);
 		}
 	}
 
@@ -385,7 +394,7 @@ void QwHits_Element (TChain * event_tree)
 		for (int w = 0 ; w < 3; w++)
 		{
 	        	//define the histograms 1 through 4 - one for each plain and on for the all of them
-       		 	h4[q][w]= new TH1I (Form("h4[%d][%d]",q,w),Form("QwHits - Element for Region %d, Package %d",q,w),32,0,0);
+       		 	h4[q][w]= new TH1I (Form("h4[%d][%d]",q,w),Form("QwHits - Element for Region %d, Package %d",q,w),33,0,32);
 			//h4[region][package]
 		}
 	}
@@ -395,7 +404,7 @@ void QwHits_Element (TChain * event_tree)
 	h5.resize(2);
 
 	for(int e = 0 ; e < 2 ; e++)
-	{ 
+	{
         	//define the histograms 1 through 4 - one for each plain and on for the all of them
         	h5[e]= new TH1I (Form("h5[%d]",e ),Form("QwHits - Element for Region %d",e + 4),8,0,7);
 	}
@@ -403,7 +412,7 @@ void QwHits_Element (TChain * event_tree)
 //start with looping over all the events and putting them in the correct histogram 
 
         //figure out how many evernts are in the rootfile so I know how long to have my loop go for
-        Int_t nevents=event_tree->GetEntries();
+        Int_t nevents = event_tree->GetEntries();
 
         //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
         QwEvent* fEvent = 0;
@@ -414,13 +423,16 @@ void QwHits_Element (TChain * event_tree)
         event_tree->SetBranchStatus("events",1);
 
         //now get the event branch of the event_tree branch and call it event_branch creativly
-        TBranch* event_branch=event_tree->GetBranch("events");
+        TBranch* event_branch = event_tree->GetBranch("events");
         event_branch->SetAddress(&fEvent);
 
         for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
         {
                 //Get the ith entry form the event tree
                 event_branch->GetEntry(i);
+
+		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
+		double w = fEvent->fCrossSection? fEvent->fCrossSection: 1;
 
                 //get the number of Hits
                 int nHits = fEvent->GetNumberOfHits();
@@ -429,56 +441,56 @@ void QwHits_Element (TChain * event_tree)
                 for (int t = 0; t < nHits; t++)
 		{
 			// Get pointer to j'th hit in entry i
-			 const QwHit* hit=fEvent->GetHit(t);
-			
-			if(hit->GetRegion()==2)
+			const QwHit* hit = fEvent->GetHit(t);
+
+			if (hit->GetRegion() == 2)
 			{
-				if(hit->GetPackage()==1)
+				if (hit->GetPackage() == 1)
 				{
 					//h4[region][package]
-					h4[2][1]->Fill(hit->GetElement());
-				}else if (hit->GetPackage()==2)
+					h4[2][1]->Fill(hit->GetElement(),w);
+				} else if (hit->GetPackage() == 2)
 					{
-						h4[2][2]->Fill(hit->GetElement());
+						h4[2][2]->Fill(hit->GetElement(),w);
 					}
 			}
 
-			if(hit->GetRegion()==3)
+			if (hit->GetRegion() == 3)
 			{
-				if(hit->GetPackage()==1)
+				if (hit->GetPackage() == 1)
 				{
 					//h4[region][package]
-					h4[3][1]->Fill(hit->GetElement());
-				}else if (hit->GetPackage()==2)
+					h4[3][1]->Fill(hit->GetElement(),w);
+				} else if (hit->GetPackage() == 2)
 					{
-						h4[3][2]->Fill(hit->GetElement());
+						h4[3][2]->Fill(hit->GetElement(),w);
 					}
 			}
 
-			if(hit->GetRegion()==4)
+			if (hit->GetRegion() == 4)
 			{
-				h5[0]->Fill(hit->GetElement());
+				h5[0]->Fill(hit->GetElement(),w);
 			}
 
-			if(hit->GetRegion()==5)
+			if (hit->GetRegion() == 5)
 			{
-				h5[1]->Fill(hit->GetElement());
+				h5[1]->Fill(hit->GetElement(),w);
 			}
 		}
 	}
 
-	for (int r = 2; r <=3; r++)
+	for (int r = 2; r <= 3; r++)
 	{
 		//Create the canvas
 		TCanvas c4("c4", Form("QwHits by Element - in Region %d",r), 400,400);
 
 		c4.Divide(2,0);
 
-		for (int pkg = 1; pkg <=2; pkg++)
+		for (int pkg = 1; pkg <= 2; pkg++)
 		{
 
         		c4.cd(pkg);
-			h4[r][pkg]->Draw();	
+			h4[r][pkg]->Draw();
 //			event_tree->Draw("events.fQwHits.fElement",Form("events.fQwHits.fRegion==%d && events.fQwHits.fPackage==%d",r, pkg));
 		}
 
@@ -522,10 +534,10 @@ void NQwTracks (TChain * event_tree)
 	//define the histogram
 	TH1I* h6 = new TH1I ("h6","NQwTracks",11,0,10);
 
-//start with looping over all the events and putting them in the correct histogram 
+	//start with looping over all the events and putting them in the correct histogram 
 
         //figure out how many evernts are in the rootfile so I know how long to have my loop go for
-        Int_t nevents=event_tree->GetEntries();
+        Int_t nevents = event_tree->GetEntries();
 
         //To start this I think that I might have to define a QwEvent as a pointer - Why I have no idea :(
         QwEvent* fEvent = 0;
@@ -536,15 +548,18 @@ void NQwTracks (TChain * event_tree)
         event_tree->SetBranchStatus("events",1);
 
         //now get the event branch of the event_tree branch and call it event_branch creativly
-        TBranch* event_branch=event_tree->GetBranch("events");
+        TBranch* event_branch = event_tree->GetBranch("events");
         event_branch->SetAddress(&fEvent);
 
         for (int i = 0; i < nevents ; i++) //shouldn't this have and equal to it?
         {
                 //Get the ith entry form the event tree
                 event_branch->GetEntry(i);
-		
-		h6->Fill(fEvent->GetNumberOfTracks());
+
+		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
+		double w = fEvent->fCrossSection? fEvent->fCrossSection: 1;
+
+		h6->Fill(fEvent->GetNumberOfTracks(),w);
 	}
 
         //Create the canvas and set y axis log scale
