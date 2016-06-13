@@ -777,7 +777,13 @@ QwF1TDContainer::QwF1TDContainer()
   fError2DHist = new TH2F;
   fError2DHist -> SetBins(3,0,3,2,0,2);
 
+  // kCanRebin removed in ROOT 6
+  // Ref: https://root.cern.ch/content/main-histogram-changes-root-6
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
   fError2DHist -> SetBit(TH1::kCanRebin);
+#else
+  fError2DHist -> SetCanExtend(TH1::kAllAxes);
+#endif
   fError2DHist -> SetStats(0);
 
   fNQwF1TDCs = 0;
