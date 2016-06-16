@@ -87,9 +87,9 @@ void LightWeighting (int runnum, bool is100k)
 
 //get the octants for package one and package 2 in region 3
 //read in or figure out?
-	int oct[3]= {0, 0, 0};
-	oct[1] = DetermineOctantRegion3(event_tree, 1); //octant number for package one
-	oct[2] = DetermineOctantRegion3(event_tree, 2); //octant number for package two
+  int oct[3]= {0, 0, 0};
+  oct[1] = DetermineOctantRegion3(event_tree, 1); //octant number for package one
+  oct[2] = DetermineOctantRegion3(event_tree, 2); //octant number for package two
 
   //define the histograms
   //create a vector of vectors of TH1D histogram pointer
@@ -97,7 +97,7 @@ void LightWeighting (int runnum, bool is100k)
   //p = pedestal
   std::vector< TH2D*> h_q2_proj; //q2 projection back to the MD bar
   std::vector< TH2D*> h_lw_proj; //light weighting projection to MD bar
-	std::vector< TH2D*> h_sa_proj; //scatterieng angle  projection back to the MD bar
+  std::vector< TH2D*> h_sa_proj; //scatterieng angle  projection back to the MD bar
   std::vector< TProfile* > h_q2_prof; //profile of q2 projection back to the MD bar
   std::vector< TProfile* > h_lw_prof; //profile of light weighting projection to MD bar
   std::vector< TProfile* > h_sa_prof; //proflie of scatterieng angle  projection back to the MD bar
@@ -381,7 +381,7 @@ int DetermineOctantRegion3(TChain* event_tree, int package)
     }
   } else {
     // The maindet branch is NOT present (simulation)
-    TH1I* h_oct = new TH1I("h_oct","h_oct",9,0,8);
+    TH1D* h_oct = new TH1D("h_oct","h_oct",9,0,9);
     event_tree->Draw("events.fQwHits.fOctant >> h_oct",
                 Form("events.fQwTracks.fPackage==%d && events.fQwHits.fRegion==3",package),"",1000);
     int oct = (h_oct->GetMean() + 0.5);

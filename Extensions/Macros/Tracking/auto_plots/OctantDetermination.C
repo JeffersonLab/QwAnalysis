@@ -57,7 +57,7 @@ void OctantDetermination(int runnum, bool is100k)
         std:: vector < vector < vector<TH1D*> > > h2; //[region][package][octant]
 	h2.resize(4);
 
-        std:: vector < vector<TH1I*> > h3; //[region][package]
+        std:: vector < vector<TH1D*> > h3; //[region][package]
 	h3.resize(4);
 
 	for (size_t k = 0; k < h.size() ;k++)
@@ -97,7 +97,7 @@ void OctantDetermination(int runnum, bool is100k)
 
 			}
 
-			h3[z][q]= new TH1I (Form("h3[%d][%d]",z,q),"passed octant",10,0,9);
+			h3[z][q]= new TH1D (Form("h3[%d][%d]",z,q),"passed octant",10,0,10);
 	                h3[z][q]->GetYaxis()->SetTitle("frequency");
         	        h3[z][q]->GetXaxis()->SetTitle(Form("passed octatn number for region %d and pacakge %d",z,q));
 
