@@ -20,5 +20,6 @@ $QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl -e qwtracking \
    --post-run $QWANALYSIS/Extensions/Tracking/macros/process_run.sh \
    --rootfile-output mss:/mss/hallc/qweak/rootfiles/tracking_pass6 \
    --options "--add-config eventmode_pass6.conf --add-config peiqing_2011.conf" \
+   --time-per-file 750 \
    $@
 
