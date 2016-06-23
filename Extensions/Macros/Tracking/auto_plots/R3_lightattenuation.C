@@ -449,6 +449,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   effmean = dummyvalue / effvalue;
 
+/*
   FILE* mean;
 
   cout << "mean radial position = " << effmean << "   (cm)  " << endl;
@@ -457,9 +458,8 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   fprintf(mean, "%d \t %d \t %d \t %f\n", run_number, package, md_number, effmean);
 
-  
   fclose(mean);
-
+*/
 
 //////////////////////////////////////////////////////////////////////////
 //IT'S HERE///////////////////////////////////////////////////////////////
