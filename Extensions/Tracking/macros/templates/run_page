@@ -203,9 +203,14 @@ Again plane X is red, plane U is blue and plane V is green.
 </p></center>
 
 <div style="width: 1200px; margin: 0 auto;">
-<img src="%%RUNNUM%%_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
+<img src="%%RUNNUM%%_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/>
+<img src="%%RUNNUM%%_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/>
+</div>
 
-<img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/><img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/></div>
+<div style="width: 1200px; margin: 0 auto;">
+<img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_1.png" style="width: 50%; height: 50%;"/>
+<img src="%%RUNNUM%%_trk_fit_drift_distance_and_time_Package_2.png" style="width: 50%; height: 50%;"/>
+</div>
 
 <center><p>
 These plots graph the drift time distribution for all HDC hits (no requirement that the hits be part of valid tracks) for each of the 4 chambers, first on linear and then on log scales. 
@@ -232,13 +237,26 @@ The third plot is the QwHits in each direction: 1 == Direction X,
 2 == Direction Y, 3 == Direction U, 4 == Direction V.
 </p></center>
 
-<p><center><img src="%%RUNNUM%%_QwHitsInfo_Region.png"> <img src="%%RUNNUM%%_QwHitsInfo_Package.png"></center></p>
-<p><center><img src="%%RUNNUM%%_QwHitsInfo_Direction.png"></center></p>
-<center><p>
+<p><center>
+<img src="%%RUNNUM%%_QwHitsInfo_Region.png">
+<img src="%%RUNNUM%%_QwHitsInfo_Package.png">
+</center></p>
+
+<p><center>
+<img src="%%RUNNUM%%_QwHitsInfo_Direction.png">
+</center></p>
+
+<p><center>
 These  plots are the "elements" for the QwHits in each region, where element is the wire # for R2 & R3 and the PMT# for others.
-</p></center>
-<p><center><img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_2.png"> <img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_3.png"></center></p>
-<p><center><img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_4.png"> <img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_5.png"></center></p>
+</center></p>
+<p><center>
+<img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_2.png">
+<img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_3.png">
+</center></p>
+<p><center>
+<img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_4.png">
+<img src="%%RUNNUM%%_QwHitsInfo_Elements_Region_5.png">
+</center></p>
 
 <center><p>
 This is a plot of the log of the number of bridged tracks per event.
@@ -300,7 +318,10 @@ V planes are in the first column and the second are the U planes. <br>
 Vader is red, Yoda is appropriately green, Leia is blue and Han is purple. 
 </p></center> 
 
-<p><center><img src="%%RUNNUM%%_auto_vdc_wires_package1.png"> <img src="%%RUNNUM%%_auto_vdc_wires_package2.png"></center></p>
+<p><center>
+<img src="%%RUNNUM%%_auto_vdc_wires_package1.png">
+<img src="%%RUNNUM%%_auto_vdc_wires_package2.png">
+</center></p>
 
 <center><p>
 The following two plots are the number of ambiguous hits vs. wire number.
@@ -309,7 +330,10 @@ The planes are in columns;
 V planes are in the first column and the second are the U planes. <br>
 Vader and Yoda are green, Leia and  Han are purple.
 </p></center>
-<p><center><img src="%%RUNNUM%%_auto_vdc_wires_ambig_package1.png"> <img src="auto_vdc_wires_ambig_package2.png"></center></p>
+<p><center>
+<img src="%%RUNNUM%%_auto_vdc_wires_ambig_package1.png">
+<img src="%%RUNNUM%%_auto_vdc_wires_ambig_package2.png">
+</center></p>
 
 
 <center><p>
@@ -317,7 +341,10 @@ The following two plots are the number of hits vs. plane on the left
 and number of ambiguous hits vs. plane on the right.
 Package 1 is on the top in blue and Package 2 is on the bottom in green for both of these.
 </p></center>
-<p><center><img src="%%RUNNUM%%_auto_vdc_planes_hits.png"> <img src="%%RUNNUM%%_auto_vdc_planes_hit_ambigious.png"></center></p>
+<p><center>
+<img src="%%RUNNUM%%_auto_vdc_planes_hits.png">
+<img src="%%RUNNUM%%_auto_vdc_planes_hit_ambigious.png">
+</center></p>
 
 
 <center><p>
