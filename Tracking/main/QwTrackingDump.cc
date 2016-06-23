@@ -24,8 +24,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   // Fill list of branches we are interested in
   std::vector< std::pair< TString, TObject* > > branchlist;
-  branchlist.push_back(std::pair< TString, TObject* > ("hits",0));
-  branchlist.push_back(std::pair< TString, TObject* > ("events",0));
+  branchlist.push_back(std::pair< TString, TObject* > ("hits",(TObject*)0));
+  branchlist.push_back(std::pair< TString, TObject* > ("events",(TObject*)0));
 
   // Open the file
   TString name = TString(argv[1]);

@@ -184,7 +184,7 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
         fModuleChannel_Map[std::pair<Int_t,Int_t>(modnum,channum)] = index;
         // Store scaler
         fScaler.push_back(scaler);
-        fNorm.push_back(std::pair<VQwScaler_Channel*,double>(0,1));
+        fNorm.push_back(std::pair<VQwScaler_Channel*,double>((VQwScaler_Channel*)0,1));
         fBufferOffset.push_back(offset);
         // Store current normalization
         norm_channel.push_back(current_norm_channel);
