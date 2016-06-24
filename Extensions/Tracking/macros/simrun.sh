@@ -8,11 +8,12 @@ chmod -f g+w $masterlist $derivedlist
 chown -f $USER:c-qweak $masterlist $derivedlist
 
 # Delete all existing Qweak_number.root files
-rm ${QW_ROOTFILES}/Qweak_[0-9]*.root
+rm -f ${QW_ROOTFILES}/Qweak_[0-9]*.root
 
 # Loop over all files we want to analyze
-for file in /volatile/hallc/qweak/wdconinc/scratch/rootfiles/myTrackingRun_*_tracking.root ; do
-  md5=`echo $file | md5sum | awk '{print$1}' | tr 'abcdef' 'ABCDEF'`
+inputdir=/cache/mss/hallc/qweak/misc/$USER/rootfiles
+for file in $inputdir/myTrackingRun_*_tracking.root ; do
+  md5=`basename $file | md5sum | awk '{print$1}' | tr 'abcdef' 'ABCDEF'`
 
   # Get run number
   run=`grep $md5 $masterlist | awk '{print$1}'`
