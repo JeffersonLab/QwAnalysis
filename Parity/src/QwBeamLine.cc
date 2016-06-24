@@ -14,13 +14,17 @@
 // Qweak headers
 #include "QwLog.h"
 #define MYSQLPP_SSQLS_NO_STATICS
+#ifdef __USE_DATABASE__
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#endif // __USE_DATABASE__
 
 #include "QwPromptSummary.h"
 
 // Forward declarations
+#ifdef __USE_DATABASE__
 class QwParityDB;
+#endif // __USE_DATABASE__
 //class QwDBInterface;
 
 // Register this subsystem with the factory
@@ -2599,6 +2603,7 @@ void  QwBeamLine::CopyTemplatedDataElements(const VQwSubsystem *source)
 }
 
 //*****************************************************************//
+#ifdef __USE_DATABASE__
 void QwBeamLine::FillDB(QwParityDB *db, TString datatype)
 {
 
@@ -2990,7 +2995,7 @@ void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
   db->Disconnect();
   return;
 }
-
+#endif // __USE_DATABASE__
 
 void QwBeamLine::WritePromptSummary(QwPromptSummary *ps, TString type) 
 {

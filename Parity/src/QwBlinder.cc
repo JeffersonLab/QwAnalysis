@@ -17,8 +17,10 @@
 // Qweak headers
 #include "QwLog.h"
 #define MYSQLPP_SSQLS_NO_STATICS
+#ifdef __USE_DATABASE__
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#endif // __USE_DATABASE__
 #include "QwVQWK_Channel.h"
 
 ///  Blinder event counter indices
@@ -135,6 +137,7 @@ void QwBlinder::ProcessOptions(QwOptions& options)
  *
  * @param db Database connection
  */
+#ifdef __USE_DATABASE__
 void QwBlinder::Update(QwParityDB* db)
 {
   //  Update the seed ID then tell us if it has changed.
@@ -149,6 +152,7 @@ void QwBlinder::Update(QwParityDB* db)
     InitTestValues(10);
   }
 }
+#endif // __USE_DATABASE__
 
 /**
  * Update the blinder status with new external information
@@ -270,6 +274,7 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
  *
  *------------------------------------------------------------
  *------------------------------------------------------------*/
+#ifdef __USE_DATABASE__
 Int_t QwBlinder::ReadSeed(QwParityDB* db)
 {
   // Return unchanged if no database specified
@@ -344,7 +349,7 @@ Int_t QwBlinder::ReadSeed(QwParityDB* db)
 
   return fSeedID;
 }
-
+#endif // __USE_DATABASE__
 
 /*!-----------------------------------------------------------
  *------------------------------------------------------------
@@ -357,6 +362,7 @@ Int_t QwBlinder::ReadSeed(QwParityDB* db)
  *
  *------------------------------------------------------------
  *------------------------------------------------------------*/
+#ifdef __USE_DATABASE__
 Int_t QwBlinder::ReadSeed(QwParityDB* db, const UInt_t seed_id)
 {
   // Return unchanged if no database specified
@@ -432,7 +438,7 @@ Int_t QwBlinder::ReadSeed(QwParityDB* db, const UInt_t seed_id)
 
   return fSeedID;
 }
-
+#endif // __USE_DATABASE__
 
 
 /**
@@ -504,7 +510,7 @@ void QwBlinder::InitBlinders(const UInt_t seed_id)
     fChecksum += string(Form("%.2x",fDigest[i]));
 }
 
-
+#ifdef __USE_DATABASE__
 void  QwBlinder::WriteFinalValuesToDB(QwParityDB* db)
 {
   WriteChecksum(db);
@@ -515,7 +521,7 @@ void  QwBlinder::WriteFinalValuesToDB(QwParityDB* db)
   }
   WriteTestValues(db);
 }
-
+#endif // __USE_DATABASE__
 
 
 /**
@@ -722,6 +728,7 @@ Int_t QwBlinder::UseMD5(const TString& barestring)
  *        been filled for the run.
  *------------------------------------------------------------
  *------------------------------------------------------------*/
+#ifdef __USE_DATABASE__
 void QwBlinder::WriteChecksum(QwParityDB* db)
 {
   //----------------------------------------------------------
@@ -795,7 +802,7 @@ void QwBlinder::WriteTestValues(QwParityDB* db)
       db->Disconnect();
     }
 }
-
+#endif // __USE_DATABASE__
 
 /*!--------------------------------------------------------------
  *  This routines checks to see if the stored fBlindTestValues[i]
@@ -934,6 +941,7 @@ void QwBlinder::PrintFinalValues()
  * For each analyzed run the database contains a digest of the blinding parameters
  * and a number of blinded test entries.
  */
+#ifdef __USE_DATABASE__
 void QwBlinder::FillDB(QwParityDB *db, TString datatype)
 {
   QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
@@ -1040,7 +1048,7 @@ void QwBlinder::FillErrDB(QwParityDB *db, TString datatype)
 
   return;
 };
-
+#endif // __USE_DATABASE__
 
 
 void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status)

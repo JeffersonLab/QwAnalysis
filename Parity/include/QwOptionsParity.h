@@ -24,8 +24,10 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwRegression.h"
-#include "QwParityDB.h"
 
+#ifdef __USE_DATABASE__
+#include "QwParityDB.h"
+#endif //__USE_DATABASE__
 void DefineOptionsParity(QwOptions& options)
 {
   /* Define general options */
@@ -38,7 +40,9 @@ void DefineOptionsParity(QwOptions& options)
   QwHelicity::DefineOptions(options);
   QwHelicityPattern::DefineOptions(options);
   QwRegression::DefineOptions(options);
+#ifdef __USE_DATABASE__
   QwParityDB::DefineAdditionalOptions(options);
+#endif //__USE_DATABASE__
 }
 
 #endif // QWOPTIONSPARITY_H

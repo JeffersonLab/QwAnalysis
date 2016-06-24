@@ -25,7 +25,9 @@
 #include "QwRootFile.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
+#ifdef __USE_DATABASE__
 #include "QwParityDB.h"
+#endif //__USE_DATABASE__
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"
@@ -86,10 +88,10 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
-
+#ifdef __USE_DATABASE__
   ///  Create the database connection
   QwParityDB database(gQwOptions);
-
+#endif //__USE_DATABASE__
 
   //  QwPromptSummary promptsummary;
 
@@ -140,8 +142,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Initialize the database connection.
+#ifdef __USE_DATABASE__
     database.SetupOneRun(eventbuffer);
-
+#endif // __USE_DATABASE__
     //  Open the ROOT file (close when scope ends)
     QwRootFile *treerootfile  = NULL;
     QwRootFile *burstrootfile = NULL;
@@ -169,11 +172,11 @@ Int_t main(Int_t argc, Char_t* argv[])
       burstrootfile->WriteParamFileList("mapfiles", detectors);
       historootfile->WriteParamFileList("mapfiles", detectors);
     }
-
+#ifdef __USE_DATABASE__
     if (database.AllowsWriteAccess()) {
       database.FillParameterFiles(detectors);
     }
-
+#endif // __USE_DATABASE__
     //  Construct histograms
     historootfile->ConstructHistograms("mps_histo", ringoutput);
     historootfile->ConstructHistograms("hel_histo", helicitypattern);
@@ -201,8 +204,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Load the blinder seed from the database for this runlet.
+#ifdef __USE_DATABASE__
     helicitypattern.UpdateBlinder(&database);
-
+#endif // __USE_DATABASE__
     //  Find the first EPICS event and try to initialize
     //  the blinder.
     QwMessage << "Finding first EPICS event" << QwLog::endl;
@@ -401,6 +405,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       promptsummary.PrintCSV();
     }
     //  Read from the database
+#ifdef __USE_DATABASE__
     database.SetupOneRun(eventbuffer);
 
     // Each subsystem has its own Connect() and Disconnect() functions.
@@ -411,7 +416,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       running_regression.FillDB(&database,"asymmetry");
       ringoutput.FillDB_MPS(&database, "optics");
     }
-    
+#endif // __USE_DATABASE__    
   
     //epicsevent.WriteEPICSStringValues();
 

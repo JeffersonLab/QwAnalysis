@@ -812,7 +812,7 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-
+#ifdef __USE_DATABASE__
 void QwHelicityPattern::FillDB(QwParityDB *db)
 {
   fBlinder.FillDB(db,"");
@@ -835,7 +835,7 @@ void QwHelicityPattern::FillErrDB(QwParityDB *db)
   fAsymmetry.FillErrDB(db, "");
   return;
 };
-
+#endif // __USE_DATABASE__
 
 void QwHelicityPattern::WritePromptSummary(QwPromptSummary *ps)
 {

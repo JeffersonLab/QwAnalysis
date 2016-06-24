@@ -14,8 +14,10 @@
 // Qweak headers
 #include "QwSubsystemArray.h"
 //#define MYSQLPP_SSQLS_NO_STATICS
+#ifdef __USE_DATABASE__
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#endif // __USE_DATABASE__
 #include "QwPromptSummary.h"
 
 // Register this subsystem with the factory
@@ -1240,6 +1242,7 @@ void QwLumi::DoNormalization(Double_t factor)
 
 
 //*****************************************************************
+#ifdef __USE_DATABASE__
 void QwLumi::FillDB(QwParityDB *db, TString datatype)
 {
 
@@ -1383,7 +1386,7 @@ void QwLumi::FillErrDB(QwParityDB *db, TString datatype)
 
   return;
 };
-
+#endif // __USE_DATABASE__
 
 
 void QwLumi::WritePromptSummary(QwPromptSummary *ps, TString type)

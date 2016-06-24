@@ -436,46 +436,77 @@ ifndef MYSQL_INC_DIR
     $(warning See the Qweak Wiki for installation and compilation instructions.)
     $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
     $(warning )
-    $(error   Error: Could not find the MySQL library)
+    $(warning Could not find the MySQL library)
   else
     $(info Setting MYSQL_INC_DIR to /usr/include/mysql)
     MYSQL_INC_DIR = /usr/include/mysql
     MYSQL_LIB_DIR = /usr/lib/mysql
   endif
 endif
-
+ifdef MYSQL_LIB_DIR
+  ifndef MYSQLPP_INC_DIR
+    ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql++)),/usr/include/mysql++)
+      ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/usr/local/include/mysql++)
+        $(warning Install the MySQL++ library on your system, or set the environment)
+        $(warning variables MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR to the directory with)
+        $(warning the MySQL++ headers and libraries, respectively.)
+        $(warning See the Qweak Wiki for installation and compilation instructions.)
+        $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+        $(warning )
+        $(warning Could not find the MySQL++ library)
+      else
+        $(warning Setting MYSQLPP_INC_DIR to /usr/local/include/mysql++)
+        MYSQLPP_INC_DIR = /usr/local/include/mysql++
+        MYSQLPP_LIB_DIR = /usr/local/lib
+      endif
+    else
+      $(info Setting MYSQLPP_INC_DIR to /usr/include/mysql++)
+      MYSQLPP_INC_DIR = /usr/include/mysql++
+      MYSQLPP_LIB_DIR = /usr/lib
+    endif
+  endif
+endif
+ifdef MYSQLPP_LIB_DIR
 MYSQL_INC  = -I${MYSQL_INC_DIR}
 MYSQL_LIBS = -L${MYSQL_LIB_DIR} -lmysqlclient
+MYSQLPP_INC  = -I${MYSQLPP_INC_DIR}
+MYSQLPP_LIBS = -L${MYSQLPP_LIB_DIR} -lmysqlpp
+DEFAULTADD += -D__USEDATABASE__
+else
+MYSQL_INC  =
+MYSQL_LIBS =
+MYSQLPP_INC  =
+MYSQLPP_LIBS =
+endif
 
 ############################
 ############################
 # Some set-up for the MySQL++ library
 ############################
 ############################
-ifndef MYSQLPP_INC_DIR
-  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql++)),/usr/include/mysql++)
-    ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/usr/local/include/mysql++)
-      $(warning Install the MySQL++ library on your system, or set the environment)
-      $(warning variables MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR to the directory with)
-      $(warning the MySQL++ headers and libraries, respectively.)
-      $(warning See the Qweak Wiki for installation and compilation instructions.)
-      $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
-      $(warning )
-      $(error   Error: Could not find the MySQL++ library)
-    else
-      $(warning Setting MYSQLPP_INC_DIR to /usr/local/include/mysql++)
-      MYSQLPP_INC_DIR = /usr/local/include/mysql++
-      MYSQLPP_LIB_DIR = /usr/local/lib
-    endif
-  else
-    $(info Setting MYSQLPP_INC_DIR to /usr/include/mysql++)
-    MYSQLPP_INC_DIR = /usr/include/mysql++
-    MYSQLPP_LIB_DIR = /usr/lib
-  endif
-endif
+#ifndef MYSQLPP_INC_DIR
+#  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql++)),/usr/include/mysql++)
+#    ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/usr/local/include/mysql++)
+#      $(warning Install the MySQL++ library on your system, or set the environment)
+#      $(warning variables MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR to the directory with)
+#      $(warning the MySQL++ headers and libraries, respectively.)
+#      $(warning See the Qweak Wiki for installation and compilation instructions.)
+#      $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+#      $(warning )
+#      $(warning Could not find the MySQL++ library)
+#    else
+#      $(warning Setting MYSQLPP_INC_DIR to /usr/local/include/mysql++)
+#      MYSQLPP_INC_DIR = /usr/local/include/mysql++
+#      MYSQLPP_LIB_DIR = /usr/local/lib
+#    endif
+#  else
+#    $(info Setting MYSQLPP_INC_DIR to /usr/include/mysql++)
+#    MYSQLPP_INC_DIR = /usr/include/mysql++
+#    MYSQLPP_LIB_DIR = /usr/lib
+#  endif
+#endif
 
-MYSQLPP_INC  = -I${MYSQLPP_INC_DIR}
-MYSQLPP_LIBS = -L${MYSQLPP_LIB_DIR} -lmysqlpp
+
 
 ############################
 ############################

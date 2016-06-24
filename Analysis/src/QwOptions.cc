@@ -34,7 +34,9 @@ QwOptions gQwOptions;
 #include "QwSubsystemArray.h"
 #include "QwEventBuffer.h"
 #include "QwEPICSEvent.h"
+#ifdef __USE_DATABASE__
 #include "QwDatabase.h"
+#endif
 #include "QwRootFile.h"
 #include "QwHistogramHelper.h"
 
@@ -72,8 +74,10 @@ void QwOptions::DefineOptions(QwOptions& options)
 
   // Define execution options
   QwEventBuffer::DefineOptions(options);
+#ifdef __USE_DATABASE__
   // Define database options
   QwDatabase::DefineOptions(options);
+#endif //__USE_DATABASE__
   // Define ROOT file options
   QwRootFile::DefineOptions(options);
   // Define EPICS event options

@@ -10,8 +10,10 @@
 
 // Qweak headers
 //#define MYSQLPP_SSQLS_NO_STATICS
+#ifdef __USE_DATABASE__
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#endif // __USE_DATABASE__
 
 std::map<TString, TString> QwDBInterface::fPrefix;
 
@@ -45,7 +47,7 @@ TString QwDBInterface::DetermineMeasurementTypeID(TString type, TString suffix,
   return measurement_type;
 }
 
-
+#ifdef __USE_DATABASE__
 void QwDBInterface::SetMonitorID(QwParityDB *db)
 {
   fDeviceId = db->GetMonitorID(fDeviceName.Data());
@@ -71,6 +73,7 @@ QwDBInterface::EQwDBIDataTableType QwDBInterface::SetDetectorID(QwParityDB *db)
   if (fDeviceId!=0) return kQwDBI_LumiTable;
   return kQwDBI_OtherTable;
 }
+#endif // __USE_DATABASE__
 
 template <class T>
 T QwDBInterface::TypedDBClone()
@@ -80,7 +83,7 @@ T QwDBInterface::TypedDBClone()
 }
 
 
-
+#ifdef __USE_DATABASE__
 /// Specifications of the templated function
 /// template \verbatim<class T>\endverbatim inline T QwDBInterface::TypedDBClone();
 template<> QwParitySSQLS::md_data
@@ -119,14 +122,14 @@ QwDBInterface::TypedDBClone<QwParitySSQLS::beam>() {
   row.error               = fError;
   return row;
 }
-
+#endif // __USE_DATABASE__
 
 
 
 
 // QwErrDBInterface 
 
-
+#ifdef __USE_DATABASE__
 void QwErrDBInterface::SetMonitorID(QwParityDB *db)
 {
   fDeviceId = db->GetMonitorID(fDeviceName.Data());
@@ -141,14 +144,14 @@ void QwErrDBInterface::SetLumiDetectorID(QwParityDB *db)
 {
   fDeviceId = db->GetLumiDetectorID(fDeviceName.Data());
 }
-
+#endif // __USE_DATABASE__
 template <class T>
 T QwErrDBInterface::TypedDBClone()
 {
   T row(0);
   return row;
 }
-
+#ifdef __USE_DATABASE__
 template<> QwParitySSQLS::md_errors
 QwErrDBInterface::TypedDBClone<QwParitySSQLS::md_errors>() {
   QwParitySSQLS::md_errors row(0);
@@ -192,6 +195,6 @@ QwErrDBInterface::TypedDBClone<QwParitySSQLS::general_errors>() {
   row.n                   = fN;
   return row;
 };
-
+#endif // __USE_DATABASE__
 
 

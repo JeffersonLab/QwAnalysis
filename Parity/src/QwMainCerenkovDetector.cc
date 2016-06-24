@@ -14,8 +14,10 @@
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
 #define MYSQLPP_SSQLS_NO_STATICS
+#ifdef __USE_DATABASE__
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#endif //__USE_DATABASE__
 #include "QwPromptSummary.h"
 
 // Register this subsystem with the factory
@@ -1323,7 +1325,7 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
         }
     }
 }
-
+#ifdef __USE_DATABASE__
 void  QwMainCerenkovDetector::FillDB(QwParityDB *db, TString datatype)
 {
   Bool_t local_print_flag = false;
@@ -1335,7 +1337,9 @@ void  QwMainCerenkovDetector::FillDB(QwParityDB *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
+#ifdef __USE_DATABASE__
   std::vector<QwParitySSQLS::md_data> entrylist;
+#endif // __USE_DATABASE__
 
   UInt_t analysis_id = db->GetAnalysisID();
 
@@ -1391,6 +1395,7 @@ void  QwMainCerenkovDetector::FillDB(QwParityDB *db, TString datatype)
   db->Disconnect();
   return;
 }
+#endif //__USE_DATABASE__
 
 void  QwMainCerenkovDetector::PrintValue() const
 {
@@ -1429,7 +1434,7 @@ void  QwMainCerenkovDetector::PrintDetectorID() const
 
 
 
-
+#ifdef __USE_DATABASE__
 void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
 {
 
@@ -1442,7 +1447,9 @@ void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
 
 
   std::vector<QwErrDBInterface> interface;
+#ifdef __USE_DATABASE__
   std::vector<QwParitySSQLS::md_errors> entrylist;
+#endif // __USE_DATABASE__
 
   UInt_t analysis_id = db->GetAnalysisID();
 
@@ -1494,7 +1501,7 @@ void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
 
   return;
 };
-
+#endif //__USE_DATABASE__
 
 
 void QwMainCerenkovDetector::WritePromptSummary(QwPromptSummary *ps, TString type)

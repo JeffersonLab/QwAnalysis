@@ -16,8 +16,10 @@
 // Qweak headers
 #include "QwHistogramHelper.h"
 #define MYSQLPP_SSQLS_NO_STATICS
+#ifdef __USE_DATABASE__
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#endif // __USE_DATABASE__
 #include "QwLog.h"
 
 extern QwHistogramHelper gQwHists;
@@ -1450,7 +1452,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
 
   return;
 }
-
+#ifdef __USE_DATABASE__
 void  QwHelicity::FillDB(QwParityDB *db, TString type)
 {
   if (type=="yield" || type=="asymmetry")
@@ -1468,7 +1470,7 @@ void  QwHelicity::FillErrDB(QwParityDB *db, TString type)
 {
   return;
 }
-
+#endif // __USE_DATABASE__
 
 UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
   Bool_t status = false;

@@ -99,6 +99,7 @@ function report_status() {
 }
 
 ###  Try to find MYSQL_INC_DIR and MYSQL_LIB_DIR
+if [[ -n $__USE_DATABASE__ ]]; then
 
 search=(
     /usr/include/mysql
@@ -171,6 +172,7 @@ if [[ -z ${MYSQLPP_LIB_DIR} || -z ${MYSQLPP_INC_DIR} ]]; then
   echo "        environment variables, and re-run this program."
   exit 1
 fi
+fi  ## End test on $__USE_DATABASE__
 
 ###  Try to find boost headers
 libname=boost/version.hpp
@@ -189,6 +191,16 @@ search=(
     /opt/local/${lib}
     )
 export BOOST_LIB_DIR=$(first_path_with_file $libname "${search[@]}" "${BOOST_LIB_DIR}")
+if [[ -z ${BOOST_LIB_DIR} ]]; then
+libname=libboost_filesystem.so
+search=(
+    /usr/${lib}
+    /usr/${lib}/x86_64-linux-gnu
+    /usr/local/${lib}
+    /opt/local/${lib}
+    )
+export BOOST_LIB_DIR=$(first_path_with_file $libname "${search[@]}" "${BOOST_LIB_DIR}")
+fi
 
 report_status BOOST_INC_DIR ${BOOST_INC_DIR}
 report_status BOOST_LIB_DIR ${BOOST_LIB_DIR}

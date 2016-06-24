@@ -12,8 +12,10 @@
 #include "QwVQWK_Channel.h"
 #include "QwParameterFile.h"
 #define MYSQLPP_SSQLS_NO_STATICS
+#ifdef __USE_DATABASE__
 #include "QwParitySSQLS.h"
 #include "QwParityDB.h"
+#endif // __USE_DATABASE__
 
 
 /** Constructor with single event and helicity pattern
@@ -636,7 +638,7 @@ void QwRegression::PrintValue() const
     fDependentVar[i].second->PrintValue();
   }
 }
-
+#ifdef __USE_DATABASE__
 void QwRegression::FillDB(QwParityDB *db, TString datatype)
 {
   if (! fEnableRegression){
@@ -716,5 +718,5 @@ void QwRegression::FillDB(QwParityDB *db, TString datatype)
   db->Disconnect();
   return;
 }
-
+#endif // __USE_DATABASE__
 
