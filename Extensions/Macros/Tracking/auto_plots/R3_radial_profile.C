@@ -40,14 +40,57 @@
 #include <string>
 #include <cstdio>
 #include <cstdlib>
+using std::string;
+using std::cout;
+using std::cerr;
+using std::endl;
 
 #include <TF1.h>
+#include <TH1F.h>
+#include <TH1D.h>
+#include <TH2F.h>
+#include <TProfile.h>
+#include <TProfile2D.h>
+#include <TMath.h>
+#include <TCanvas.h>
+#include <TChain.h>
+#include <TLeaf.h>
+#include <TGraph.h>
+#include <TSystem.h>
+#include <TStyle.h>
+#include <TFile.h>
+#include <TPaveStats.h>
+#include <TPaveText.h>
+
+#include "QwEvent.h"
+#include "QwTrack.h"
+#include "QwPartialTrack.h"
+#include "QwTreeLine.h"
+
 
 const double pe_convert[]={14.0141,16.6726,21.9799,38.5315,20.4254,20.3896,22.1042,22.3945,22.7986,30.0517,28.7274,25.3396,24.6273,16.0718,27.8305,12.3251};
 
 TCanvas *c;
 
 TString PREFIX;
+
+int getOctNumber(TChain* event_tree)
+{
+  //get a histogram (called h) of the octant cutting on region 3 and pacakge 2 - only one octant will be return - the one we want
+
+  TH1F* h = new TH1F("h","Region 3, Package 2 Octant number",9,-0.5,8.5);
+
+  event_tree->Draw("events.fQwPartialTracks.fOctant>>h","events.fQwPartialTracks.fRegion==3&&events.fQwPartialTracks.fPackage==2","GOFF",100000);
+
+  //get the mean of histgram h made above, this returns a double value that is the trunkated to interger which is the region 3 pacakge 2 octant number
+
+  int j = int (h->GetMean());
+
+  delete h;
+
+  return (j);
+}
+
 
 void project_root(int package=1,int md_number=1,int run_number=6327,int max_events=-1,TString file_suffix="Qweak_",string command="")
 {
@@ -62,12 +105,6 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   int ped_mdm = 270;
   int ped_mdp = 250;
 
-  string command = "MD_";
-
-  PREFIX = Form(
-         TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
-         runnum, runnum);
-
   TString outputPrefix(Form("Radial_MD%d_",run_number,md_number));
 
   TString file_name = "";
@@ -81,7 +118,6 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
   QwEvent* fEvent=0;
-  QwPartialTrack* pt=0;
   QwTreeLine* tl=0;
   //  QwTrackingTreeLine* tl=0;
   //  QwHit* hit=0;
@@ -125,7 +161,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
     mode=4;
   else if (found=command.find_first_of("p")!=string::npos)
     {
-      if (command.at(++found)!="r" || command.at(++found)!="e")
+      if (command.at(++found)!='r' || command.at(++found)!='e')
 	mode=1;
     }
   else if (command.find("m")!=string::npos)
@@ -143,9 +179,9 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   TH2F* h_2d;
   TProfile2D* hp_2d;
   if (IsProfile==false)
-    h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",240,0,0,480,0,0);
+    h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",240,0.0,0.0,480,0.0,0.0);
   else
-    hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",240,0,0,480,0,0);
+    hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",240,0.0,0.0,480,0.0,0.0);
 
   TH1D* h_1f=new TH1D("project run","project run",240,280,400);
   TH1D* md_adc = new TH1D("md_adc", Form("Run %d Summed MD%d ADC (pedestal subtracted)",run_number, md_number),1000, 0, 6000);
@@ -286,6 +322,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	  branch_event->GetEntry(i);
 	  branch->GetEntry(i);
 
+          Double_t pdataplus = mdp_t->GetValue();
+	  Double_t pdataminus = mdm_t->GetValue();
+	  Double_t padcp = mdp->GetValue();
+	  Double_t padcm = mdm->GetValue();
+
 	  Double_t xoffset, yoffset, xslope, yslope, x, y;
 	  //    weight = 0;
 
@@ -295,7 +336,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	  int early_hit=0;
 	  int nhits=fEvent->GetNumberOfHits();
 	  for(int j=0;j<nhits;++j){
-	    hit_d=fEvent->GetHit(j);
+	    const QwHit* hit_d=fEvent->GetHit(j);
   // look for Main Detector hits:  MainDetector data is "Region=5"
   // recall that in QwHits the "plane" for MD hits is the octant number, and element = 1 for PMT_positive, =2 for PMT_negative
   //   enumerate prompt MD TDC hits and events with prompt TS hit in same package
@@ -316,7 +357,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
 	 for (int num_p=0; num_p< fEvent->GetNumberOfPartialTracks();num_p++)
 	    {
-	      pt=fEvent->GetPartialTrack(num_p);
+	      const QwPartialTrack* pt=fEvent->GetPartialTrack(num_p);
               if (pt->GetRegion()==3 && pt->GetPackage()==package)
 		{
 	      r3_events++;
@@ -376,7 +417,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 		  else
 		    hp_2d->Fill(x,y,weight);
                 }
-     
+
 	      if (prompt_ts>0 && early_hit==0){
 		alltracks->Fill(y,x);
 		radial_all->Fill(x);
@@ -578,7 +619,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   */
 
-  pedestals = new TCanvas("pedestals", "Pedestal Data", 10, 10, 800, 800);
+  TCanvas* pedestals = new TCanvas("pedestals", "Pedestal Data", 10, 10, 800, 800);
   pedestals->Divide(1,2);
 
   pedestals->cd(1);
@@ -590,7 +631,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   pedestals->SaveAs(PREFIX+outputPrefix+"pedestals.png");
   pedestals->SaveAs(PREFIX+outputPrefix+"pedestals.C");
 
-  thresholds = new TCanvas("thresholds", "Discrim. thresholds", 10, 10, 800, 800);
+  TCanvas* thresholds = new TCanvas("thresholds", "Discrim. thresholds", 10, 10, 800, 800);
   thresholds->Divide(2,2);
 
   thresholds->cd(1);
@@ -608,7 +649,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   thresholds->SaveAs(PREFIX+outputPrefix+"thresholds.png");
   thresholds->SaveAs(PREFIX+outputPrefix+"thresholds.C");
 
-  quad = new TCanvas("quad", "ADC and TDC data", 10, 10, 800, 800);
+  TCanvas* quad = new TCanvas("quad", "ADC and TDC data", 10, 10, 800, 800);
   quad->Divide(2,2);
 
   quad->cd(1);
@@ -626,7 +667,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   quad->SaveAs(PREFIX+outputPrefix+"adc_tdc.png");
   quad->SaveAs(PREFIX+outputPrefix+"adc_tdc.C");
 
-  mdadc =  new TCanvas("mdadc", "MD ADC (summed)", 10, 10, 800, 800);
+  TCanvas* mdadc =  new TCanvas("mdadc", "MD ADC (summed)", 10, 10, 800, 800);
 
   mdadc->Divide(2,2);
 
@@ -642,7 +683,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   mdadc->SaveAs(PREFIX+outputPrefix+"md_adc.png");
   mdadc->SaveAs(PREFIX+outputPrefix+"md_adc.C");
 
-  hitandmiss = new TCanvas("hitandmiss", "Hit and Miss Charts", 10, 10, 800, 800);
+  TCanvas* hitandmiss = new TCanvas("hitandmiss", "Hit and Miss Charts", 10, 10, 800, 800);
   hitandmiss->Divide(1,3);
 
   hitandmiss->cd(1);
@@ -659,7 +700,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   hitandmiss->SaveAs(PREFIX+outputPrefix+"hit_and_miss.png");
   hitandmiss->SaveAs(PREFIX+outputPrefix+"hit_and_miss.C");
 
-  mdmiss = new TCanvas("mdmiss", "Single Tube hit Charts", 10, 10, 800, 800);
+  TCanvas* mdmiss = new TCanvas("mdmiss", "Single Tube hit Charts", 10, 10, 800, 800);
   mdmiss->Divide(1,3);
 
   mdmiss->cd(1);
@@ -674,7 +715,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   mdmiss->SaveAs(PREFIX+outputPrefix+"singleTubeHits.png");
   mdmiss->SaveAs(PREFIX+outputPrefix+"singleTubeHits.C");
 
-  radial = new TCanvas("radial", "Radial Distributions", 10, 10, 800, 800);
+  TCanvas* radial = new TCanvas("radial", "Radial Distributions", 10, 10, 800, 800);
   radial->Divide(2,2);
 
   radial->cd(1);
@@ -692,7 +733,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   radial->SaveAs(PREFIX+outputPrefix+"Radial_Hists.png");
   radial->SaveAs(PREFIX+outputPrefix+"Radial_Hists.C");
 
-  azimuth = new TCanvas("azimuth", "Azimuth Distributions", 10, 10, 800, 800);
+  TCanvas* azimuth = new TCanvas("azimuth", "Azimuth Distributions", 10, 10, 800, 800);
   azimuth->Divide(2,2);
 
   azimuth->cd(1);
@@ -872,7 +913,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   */
 
 
-  EFF = new TCanvas("EFF", "Efficiency Plot", 10, 10, 600, 600);
+  TCanvas* EFF = new TCanvas("EFF", "Efficiency Plot", 10, 10, 600, 600);
   effplot = new TGraph(size, xpos, efficiency);
   effplot->SetMarkerStyle(20);
   effplot->SetMarkerColor(4);
@@ -883,13 +924,13 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   myText->SetTextSize(0.025); 
   myText->SetFillColor(0);
   myText->SetTextAlign(12);
-  myTextEntry = myText->AddText(Form("Mean Location = %0.2f  cm",effmean));
+  myText->AddText(Form("Mean Location = %0.2f  cm",effmean));
   myText->Draw();
   TPaveText *RunNumText= new TPaveText(0.30,0.28,0.52,0.33, "NDC");
   RunNumText->SetTextSize(0.025); 
   RunNumText->SetFillColor(42);
   RunNumText->SetTextAlign(12);
-  RunNumTextEntry = RunNumText->AddText(Form("Run Number %d",run_number));
+  RunNumText->AddText(Form("Run Number %d",run_number));
   RunNumText->Draw();
 
   EFF->SaveAs(PREFIX+outputPrefix+"detector_image.png");
@@ -1007,3 +1048,28 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   */
   return;
 }
+
+
+void R3_radial_profile (int runnum, bool is100k)
+{
+  // Output prefix
+  //PREFIX = Form(TString(gSystem->Getenv("QWSCRATCH"))+"/tracking/www/run_%d/%d_",runnum,runnum);
+
+  PREFIX = Form(
+         TString(gSystem->Getenv("WEBDIR")) + "/run_%d/%d_",
+         runnum, runnum);
+
+  // Create and load the chain
+  TChain *event_tree = new TChain("event_tree");
+  event_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
+
+  // Try to get the octant number from the run number
+  int oct_pkg2 = getOctNumber(event_tree);
+  int oct_pkg1 = (oct_pkg2 + 3) % 8 + 1;
+
+  // package 1
+  project_root(1,oct_pkg1,runnum,-1,"Qweak_","MD_");
+  // package 2
+  project_root(2,oct_pkg2,runnum,-1,"Qweak_","MD_");
+}
+

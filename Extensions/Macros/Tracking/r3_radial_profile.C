@@ -279,6 +279,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	  branch_event->GetEntry(i);
 	  branch->GetEntry(i);
 
+          Double_t pdataplus = mdp_t->GetValue();
+	  Double_t pdataminus = mdm_t->GetValue();
+	  Double_t padcp = mdp->GetValue();
+	  Double_t padcm = mdm->GetValue();
+
 	  Double_t xoffset, yoffset, xslope, yslope, x, y;
 	  //    weight = 0;
 
