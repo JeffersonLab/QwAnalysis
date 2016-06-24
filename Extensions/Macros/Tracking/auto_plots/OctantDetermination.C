@@ -86,7 +86,7 @@ void OctantDetermination(int runnum, bool is100k)
         	        h[z][y]->GetXaxis()->SetTitle(Form("Trigger scintillator %d signal",y));
 
 		}
-	
+
 		for (int q = 0; q < 3; q++)
 		{
 			for (int k = 0;k < 9;k++)
@@ -97,13 +97,13 @@ void OctantDetermination(int runnum, bool is100k)
 
 			}
 
-			h3[z][q]= new TH1D (Form("h3[%d][%d]",z,q),"passed octant",10,0,10);
+			h3[z][q]= new TH1D (Form("h3[%d][%d]",z,q),"passed octant",10,-0.5,9.5);
 	                h3[z][q]->GetYaxis()->SetTitle("frequency");
         	        h3[z][q]->GetXaxis()->SetTitle(Form("passed octatn number for region %d and pacakge %d",z,q));
 
 		}
 	}
-	
+
 
 //start with looping over all the events and putting them in the correct histogram 
 

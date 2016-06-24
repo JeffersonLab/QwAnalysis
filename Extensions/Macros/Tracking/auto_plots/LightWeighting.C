@@ -120,12 +120,12 @@ void LightWeighting (int runnum, bool is100k)
   h_q2_lw.resize(3);
   h_q2_lw_p.resize(3);
 
-	//Let's define these histograms
-	for (size_t i = 0; i < h_q2.size() ; i ++)
-	{
-		h_q2_proj[i]= new TH2D (Form("h_q2_proj[%d]",i),Form("Q2 vs. position on bar for Octant %d, Package %d",oct[i],i),bin_size, -bar_length, bar_length, 100, 0.0, Q2_cut_off);
-		h_q2_proj[i]->GetYaxis()->SetTitle("Q2 (GeV^2)");
-		h_q2_proj[i]->GetXaxis()->SetTitle("position on the bar (cm)");
+  //Let's define these histograms
+  for (size_t i = 0; i < h_q2.size() ; i ++)
+  {
+    h_q2_proj[i]= new TH2D (Form("h_q2_proj[%d]",i),Form("Q2 vs. position on bar for Octant %d, Package %d",oct[i],i),bin_size, -bar_length, bar_length, 100, 0.0, Q2_cut_off);
+    h_q2_proj[i]->GetYaxis()->SetTitle("Q2 (GeV^2)");
+    h_q2_proj[i]->GetXaxis()->SetTitle("position on the bar (cm)");
 
     h_lw_proj[i]= new TH2D (Form("h_lw_proj[%d]",i),Form("Light Yield vs. position on bar for Octant %d, Package %d",oct[i],i),bin_size, -bar_length, bar_length , 100, 0.0, Max_light_yield);
     h_lw_proj[i]->GetYaxis()->SetTitle("Light yield (a.u.)");
@@ -136,22 +136,22 @@ void LightWeighting (int runnum, bool is100k)
     h_sa_proj[i]->GetXaxis()->SetTitle("position on the bar (cm)");
 
     h_x[i]= new TH1D (Form("h_x[%d]",i),Form("Position on bar for Octant %d, Package %d",oct[i],i),bin_size, -bar_length, bar_length);
-		h_x[i]->GetYaxis()->SetTitle("Frequency");
+    h_x[i]->GetYaxis()->SetTitle("Frequency");
     h_x[i]->GetXaxis()->SetTitle("position on the bar (cm)");
 
     h_q2[i]= new TH1D (Form("h_q2[%d]",i),Form("Q2 - unweighted for Octant %d, Package %d",oct[i],i),100,0,0.12);
-		h_q2[i]->GetYaxis()->SetTitle("Frequency");
+    h_q2[i]->GetYaxis()->SetTitle("Frequency");
     h_q2[i]->GetXaxis()->SetTitle("Q2 (GeV^2)");
 
     h_q2_lw[i]= new TH1D (Form("h_q2_lw[%d]",i),Form("Q2 - light weighted no pedestal for Octant %d, Package %d",oct[i],i),100,0,0.12);
-		h_q2_lw[i]->GetYaxis()->SetTitle("Frequency");
+    h_q2_lw[i]->GetYaxis()->SetTitle("Frequency");
     h_q2_lw[i]->GetXaxis()->SetTitle("Q2 (GeV^2)");
 
     h_q2_lw_p[i]= new TH1D (Form("h_q2_lw_p[%d]",i),Form("Q2 - light weighted with pedestal for Octant %d, Package %d",oct[i],i),100,0,0.12);
-  	h_q2_lw_p[i]->GetYaxis()->SetTitle("Frequency");
- 		h_q2_lw_p[i]->GetXaxis()->SetTitle("Q2 (GeV^2)");
+    h_q2_lw_p[i]->GetYaxis()->SetTitle("Frequency");
+    h_q2_lw_p[i]->GetXaxis()->SetTitle("Q2 (GeV^2)");
 
-	}
+  }
 
 	//figure out how many evernts are in the rootfile so I know how long to have my loop go for
   Int_t nevents=event_tree->GetEntries();
@@ -234,16 +234,16 @@ void LightWeighting (int runnum, bool is100k)
 
   // create profile histogram from 2d histograms
   for (size_t pkg =1; pkg < h_q2.size(); pkg ++)
-	{
-	  h_q2_prof[pkg] = h_q2_proj[pkg]->ProfileX(Form("h_q2_prof[%d]",pkg));
-  	h_lw_prof[pkg] = h_lw_proj[pkg]->ProfileX(Form("h_lw_prof[%d]",pkg));
-  	h_sa_prof[pkg] = h_sa_proj[pkg]->ProfileX(Form("h_sa_prof[%d]",pkg));
-	}
+  {
+    h_q2_prof[pkg] = h_q2_proj[pkg]->ProfileX(Form("h_q2_prof[%d]",pkg));
+    h_lw_prof[pkg] = h_lw_proj[pkg]->ProfileX(Form("h_lw_prof[%d]",pkg));
+    h_sa_prof[pkg] = h_sa_proj[pkg]->ProfileX(Form("h_sa_prof[%d]",pkg));
+  }
 
-	//define canvases and draw the histograms and profiles
-	//create a vector of vectors of TH1D histogram pointer
-	//lw = light weighting
-	//p = pedestal
+  //define canvases and draw the histograms and profiles
+  //create a vector of vectors of TH1D histogram pointer
+  //lw = light weighting
+  //p = pedestal
   TCanvas* c_q2_proj = new TCanvas ("c_q2_proj","Q2 vs. position on bar", 700,800);
   TCanvas* c_lw_proj = new TCanvas ("c_lw_proj","Light yield vs. position on bar", 700,800);
   TCanvas* c_sa_proj = new TCanvas ("c_sa_proj","Scattering Angle vs. position on bar", 700,800);
@@ -251,64 +251,63 @@ void LightWeighting (int runnum, bool is100k)
   TCanvas* c_q2 = new TCanvas ("c_q2", "Q2", 700,800);
   TCanvas* c_q2_lw_p = new TCanvas ("c_q2_lw_p","Q2 value with light wieghting and pedestal", 700,800);
 
-	//divide all the canvases so that pkg one and two are next to each other
-	c_q2_proj->Divide(0,2);
-	c_lw_proj->Divide(0,2);
-	c_sa_proj->Divide(0,2);
-	c_q2_lw->Divide(2,0);
-	c_q2->Divide(2,0);
-	c_q2_lw_p->Divide(2,0);
+  //divide all the canvases so that pkg one and two are next to each other
+  c_q2_proj->Divide(0,2);
+  c_lw_proj->Divide(0,2);
+  c_sa_proj->Divide(0,2);
+  c_q2_lw->Divide(2,0);
+  c_q2->Divide(2,0);
+  c_q2_lw_p->Divide(2,0);
 
-	for (size_t pkg =1; pkg < h_q2.size(); pkg ++)
-	{
-		c_q2_proj->cd(pkg);
-		h_q2_proj[pkg]->Draw();
+  for (size_t pkg =1; pkg < h_q2.size(); pkg ++)
+  {
+    c_q2_proj->cd(pkg);
+    h_q2_proj[pkg]->Draw();
     h_q2_prof[pkg]->SetLineColor(kRed);
-		h_q2_prof[pkg]->Draw("same");
+    h_q2_prof[pkg]->Draw("same");
 
-		c_lw_proj->cd(pkg);
-		h_lw_proj[pkg]->Draw();
+    c_lw_proj->cd(pkg);
+    h_lw_proj[pkg]->Draw();
     h_lw_prof[pkg]->SetLineColor(kRed);
-		h_lw_prof[pkg]->Draw("same");
+    h_lw_prof[pkg]->Draw("same");
 
-		c_sa_proj->cd(pkg);
-		h_sa_proj[pkg]->Draw();
+    c_sa_proj->cd(pkg);
+    h_sa_proj[pkg]->Draw();
     h_sa_prof[pkg]->SetLineColor(kRed);
-		h_sa_prof[pkg]->Draw("same");
+    h_sa_prof[pkg]->Draw("same");
 
-		c_q2_lw->cd(pkg);
-		h_q2_lw[pkg]->Draw();
+    c_q2_lw->cd(pkg);
+    h_q2_lw[pkg]->Draw();
 
-		c_q2->cd(pkg);
-		h_q2[pkg]->Draw();
+    c_q2->cd(pkg);
+    h_q2[pkg]->Draw();
 
-		c_q2_lw_p->cd(pkg);
-		h_q2_lw_p[pkg]->Draw();
+    c_q2_lw_p->cd(pkg);
+    h_q2_lw_p[pkg]->Draw();
+  }
 
-	}
-	
-	//save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
-	c_q2_proj->SaveAs(Prefix+"Q2_vs_position_on_bar.png");
-	c_q2_proj->SaveAs(Prefix+"Q2_vs_position_on_bar.C");
-	c_lw_proj->SaveAs(Prefix+"Light_yield_vs_position_on_bar.png");
-	c_lw_proj->SaveAs(Prefix+"Light_yield_vs_position_on_bar.C");
-	c_sa_proj->SaveAs(Prefix+"Scattering_angle_vs_position_on_bar.png");
-	c_sa_proj->SaveAs(Prefix+"Scattering_angle_vs_position_on_bar.C");
-	c_q2_lw->SaveAs(Prefix+"Q2_with_light_wieghting_and_NO_pedestal.png");
-	c_q2_lw->SaveAs(Prefix+"Q2_with_light_wieghting_and_NO_pedestal.C");
-	c_q2->SaveAs(Prefix+"Q2.png");
-	c_q2->SaveAs(Prefix+"Q2.C");
-	c_q2_lw_p->SaveAs(Prefix+"Q2_light_wieghting_and_pedestal.png");
-	c_q2_lw_p->SaveAs(Prefix+"Q2_light_wieghting_and_pedestal.C");
+  //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
+  c_q2_proj->SaveAs(Prefix+"Q2_vs_position_on_bar.png");
+  c_q2_proj->SaveAs(Prefix+"Q2_vs_position_on_bar.C");
+  c_lw_proj->SaveAs(Prefix+"Light_yield_vs_position_on_bar.png");
+  c_lw_proj->SaveAs(Prefix+"Light_yield_vs_position_on_bar.C");
+  c_sa_proj->SaveAs(Prefix+"Scattering_angle_vs_position_on_bar.png");
+  c_sa_proj->SaveAs(Prefix+"Scattering_angle_vs_position_on_bar.C");
+  c_q2_lw->SaveAs(Prefix+"Q2_with_light_weighting_and_NO_pedestal.png");
+  c_q2_lw->SaveAs(Prefix+"Q2_with_light_weighting_and_NO_pedestal.C");
+  c_q2->SaveAs(Prefix+"Q2.png");
+  c_q2->SaveAs(Prefix+"Q2.C");
+  c_q2_lw_p->SaveAs(Prefix+"Q2_light_weighting_and_pedestal.png");
+  c_q2_lw_p->SaveAs(Prefix+"Q2_light_weighting_and_pedestal.C");
 
 
-//need to get a table of the values form the profile for bot Q2 and light weight vs. bar poition.....	
+  //need to get a table of the values form the profile for bot Q2 and light weight vs. bar poition.....
 
-	//print to file 
+  //print to file
   //this file and evrything related to it is fout
   std::ofstream fout;
-	std::ofstream fout2;
-    
+  std::ofstream fout2;
+
   //open file
   // open file with outputPrefix+q2.txt which will store the output of the vlaues to a file in a easy way that should be able to be read back into a program if needed
   fout.open(Prefix+"Everything_vs_position_on_bar.txt");
@@ -381,10 +380,10 @@ int DetermineOctantRegion3(TChain* event_tree, int package)
     }
   } else {
     // The maindet branch is NOT present (simulation)
-    TH1D* h_oct = new TH1D("h_oct","h_oct",9,0,9);
+    TH1D* h_oct = new TH1D("h_oct","h_oct",10,-0.5,9.5);
     event_tree->Draw("events.fQwHits.fOctant >> h_oct",
                 Form("events.fQwTracks.fPackage==%d && events.fQwHits.fRegion==3",package),"",1000);
-    int oct = (h_oct->GetMean() + 0.5);
+    int oct = (h_oct->GetMean());
     delete h_oct;
     return oct;
   }

@@ -191,17 +191,17 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   TGraph* effplot;
 
-  TBranch* branch_event=event_tree->GetBranch("events");
-  TBranch* branch     = event_tree->GetBranch("maindet");
-
+  TBranch* branch_event   = event_tree->GetBranch("events");
   branch_event->SetAddress(&fEvent);
 
-  TLeaf* mdp=branch->GetLeaf(Form("md%dp_adc",md_number));
-  TLeaf* mdm=branch->GetLeaf(Form("md%dm_adc",md_number));
+  TBranch* branch_maindet = event_tree->GetBranch("maindet");
+  if (branch_maindet) {
+    TLeaf* mdp = branch_maindet->GetLeaf(Form("md%dp_adc",md_number));
+    TLeaf* mdm = branch_maindet->GetLeaf(Form("md%dm_adc",md_number));
 
-  TLeaf* mdp_t=branch->GetLeaf(Form("md%dp_f1",md_number));
-  TLeaf* mdm_t=branch->GetLeaf(Form("md%dm_f1",md_number));
-
+    TLeaf* mdp_t = branch_maindet->GetLeaf(Form("md%dp_f1",md_number));
+    TLeaf* mdm_t = branch_maindet->GetLeaf(Form("md%dm_f1",md_number));
+  }
 
   Int_t nevents=event_tree->GetEntries();
   Int_t r3_events =0;
@@ -224,8 +224,13 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   for (int i=0;i<10000;i++)
     {
 
-      branch_event->GetEntry(i);
-      branch->GetEntry(i);
+      if (branch_event)
+        branch_event->GetEntry(i);
+      else continue;
+
+      if (branch_maindet)
+        branch_maindet->GetEntry(i);
+      else continue;
 
       for(int num_p=0; num_p < fEvent->GetNumberOfPartialTracks(); num_p++)
 	{
@@ -259,14 +264,19 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       trial[j] = 0;
     }
 
-  Double_t adcpmean = adcpped->GetMean();
-  Double_t adcmmean = adcmped->GetMean();
+  if (branch_maindet) {
+    Double_t adcpmean = adcpped->GetMean();
+    Double_t adcmmean = adcmped->GetMean();
+  }
 
   for(int i = 0; i < max_events; i++)
 	{
 	  if(i % 1000 == 0) cout <<"events processed so far:" << i << endl;
-	  branch_event->GetEntry(i);
-	  branch->GetEntry(i);
+
+	  if (branch_event)
+            branch_event->GetEntry(i);
+          if (branch_maindet)
+	    branch_maindet->GetEntry(i);
 
 	  Double_t xoffset, yoffset, xslope, yslope, x, y;
 	  //    weight = 0;

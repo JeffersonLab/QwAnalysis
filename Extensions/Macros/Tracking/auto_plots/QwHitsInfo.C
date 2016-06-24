@@ -83,7 +83,7 @@ void QwHits_Region (TChain * event_tree)
 	TCanvas c1("c1", "QwHits by Region - regardless of package", 400,400);
 
 	//define the histogram
-	TH1D* h = new TH1D ("h","QwHits - Region",7,0,7);
+	TH1D* h = new TH1D ("h","QwHits - Region",7,-0.5,6.5);
 
 /* edit if want to sperate into packages form region the skeleton is here
 	c1.Divide(2,0);
@@ -97,7 +97,7 @@ void QwHits_Region (TChain * event_tree)
 	{
 
 		//define the histograms 1 through 2 - one for each package
-		h[j - 1]= new TH1D (Form("h[%d]",j -1 ),Form("QwHits - Region %d",j+2),2,0,2);
+		h[j - 1]= new TH1D (Form("h[%d]",j -1 ),Form("QwHits - Region %d",j+2),3,-0.5,2.5);
 	
 		c1.cd(j);
 
@@ -183,7 +183,7 @@ void QwHits_Package (TChain * event_tree)
 	TCanvas c2("c2", "QwHits by Package - regardless of region", 400,400);
 
 	//define the histogram
-	TH1D* h2 = new TH1D ("h2","QwHits - Package",3,0,3);
+	TH1D* h2 = new TH1D ("h2","QwHits - Package",3,-0.5,2.5);
 
 /*edit if want to sperate into packages form region the skeleton is here
 	c2.Divide(2,0);
@@ -197,7 +197,7 @@ void QwHits_Package (TChain * event_tree)
 	{
 
         	//define the histograms 1 through 2 - one for each package
-        	h[j - 1]= new TH1D (Form("h[%d]",j-1 ),Form("QwHits - Package %d",j),2,0,2);
+        	h[j - 1]= new TH1D (Form("h[%d]",j-1 ),Form("QwHits - Package %d",j),3,-0.5,2.5);
 
         	c.cd(j);
 
@@ -287,7 +287,7 @@ void QwHits_Direction (TChain * event_tree)
 	TCanvas c3("c3", "QwHits by Direction - in Region 2", 400,400);
 
 	//define the histogram
-	TH1D* h3 = new TH1D ("h3","QwHits - Direction",6,0,6);
+	TH1D* h3 = new TH1D ("h3","QwHits - Direction",6,-0.5,5.5);
 
 /*edit if want to sperate into packages form region the skeleton is here
 
@@ -302,7 +302,7 @@ void QwHits_Direction (TChain * event_tree)
 	{
 
         	//define the histograms 1 through 4 - one for each plain and on for the all of them
-        	h[j - 1]= new TH1D (Form("h[%d]",j -1 ),Form("QwHits - Diection %d",j),2,0,2);
+        	h[j - 1]= new TH1D (Form("h[%d]",j -1 ),Form("QwHits - Diection %d",j),3,-0.5,2/5);
 
         	c.cd(j);
 
@@ -394,7 +394,7 @@ void QwHits_Element (TChain * event_tree)
 		for (int w = 0 ; w < 3; w++)
 		{
 	        	//define the histograms 1 through 4 - one for each plain and on for the all of them
-       		 	h4[q][w]= new TH1D (Form("h4[%d][%d]",q,w),Form("QwHits - Element for Region %d, Package %d",q,w),33,0,33);
+       		 	h4[q][w]= new TH1D (Form("h4[%d][%d]",q,w),Form("QwHits - Element for Region %d, Package %d",q,w),33,-0.5,32.5);
 			//h4[region][package]
 		}
 	}
@@ -406,7 +406,7 @@ void QwHits_Element (TChain * event_tree)
 	for(int e = 0 ; e < 2 ; e++)
 	{
         	//define the histograms 1 through 4 - one for each plain and on for the all of them
-        	h5[e]= new TH1D (Form("h5[%d]",e ),Form("QwHits - Element for Region %d",e + 4),8,0,8);
+        	h5[e]= new TH1D (Form("h5[%d]",e ),Form("QwHits - Element for Region %d",e + 4),8,-0.5,7.5);
 	}
 
 //start with looping over all the events and putting them in the correct histogram 
@@ -532,7 +532,7 @@ void NQwTracks (TChain * event_tree)
 {
 
 	//define the histogram
-	TH1D* h6 = new TH1D ("h6","NQwTracks",11,0,11);
+	TH1D* h6 = new TH1D ("h6","NQwTracks",11,-0.5,10.5);
 
 	//start with looping over all the events and putting them in the correct histogram 
 
