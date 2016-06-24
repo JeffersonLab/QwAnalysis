@@ -142,15 +142,22 @@ set_property(
   APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/QwSVNVersion.h
   )
 
+# Qweak configure script
+set(QWANALYSIS ${CMAKE_SOURCE_DIR})
+set(QW_BIN ${CMAKE_SOURCE_DIR}/bin)
+set(QW_LIB ${CMAKE_SOURCE_DIR}/lib)
+configure_file(${CMAKE_SOURCE_DIR}/qweak-config.in qweak-config @ONLY)
+
 # Link the evio library
 add_library(evio SHARED ${my_evio_sources})
 target_link_libraries(evio)
+install(TARGETS evio DESTINATION ${CMAKE_SOURCE_DIR}/lib)
 
 # Link the ROOT libraries
 add_library(QwAnalysis SHARED ${CMAKE_CURRENT_BINARY_DIR}/include/QwSVNVersion.h ${my_project_sources} ${my_project_headers})
 target_link_libraries(QwAnalysis
   evio ${ROOT_LIBRARIES} ${MYSQLPP_LIBRARIES} ${Boost_LIBRARIES})
-
+install(TARGETS QwAnalysis DESTINATION ${CMAKE_SOURCE_DIR}/lib)
 
 # Add the target executables
 file(GLOB exefiles
@@ -166,5 +173,6 @@ foreach(file ${exefiles})
     ${filelower}
     ${ROOT_LIBRARIES} ${MYSQLPP_LIBRARIES} ${Boost_LIBRARIES} QwAnalysis evio
     )
+  install(TARGETS ${filelower} DESTINATION ${CMAKE_SOURCE_DIR}/bin)
 endforeach()
 
