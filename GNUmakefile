@@ -467,11 +467,12 @@ ifdef MYSQL_LIB_DIR
   endif
 endif
 ifdef MYSQLPP_LIB_DIR
+$(info Found the mysql libraries)
 MYSQL_INC  = -I${MYSQL_INC_DIR}
 MYSQL_LIBS = -L${MYSQL_LIB_DIR} -lmysqlclient
 MYSQLPP_INC  = -I${MYSQLPP_INC_DIR}
 MYSQLPP_LIBS = -L${MYSQLPP_LIB_DIR} -lmysqlpp
-DEFAULTADD += -D__USEDATABASE__
+DEFAULTADD += -D__USE_DATABASE__
 else
 MYSQL_INC  =
 MYSQL_LIBS =
