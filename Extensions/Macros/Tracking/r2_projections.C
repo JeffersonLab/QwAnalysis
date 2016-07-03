@@ -5,6 +5,8 @@
 // Description: This file is used project the Region 2 partial tracks
 //    back to three Z-locations: that of Collimator 1, Collimator 2 and the
 //    nominal center of the lH2 target, for both packages.
+//   
+//   Requires good, bridged full tracks; cuts on MD being hit, and the matching cuts.
 //
 //  Based on r2_projection.C, originally written by Siyuan Yang
 //
@@ -91,6 +93,12 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
    int md_2 = DetermineOctantRegion3(event_tree, 2); //octant number for package two
    cout << "octant for package 1 = " << md_1 << "  octant for package 2 = " << md_2 << endl; 
 
+   if (md_1==0 && md_2==0){
+     md_1=5;
+     md_2=1;
+     cout << "Warning: octant identification failed, default to 5,1" << endl;
+   }
+
     // DSA kludge
     int oct=md_2;
 
@@ -124,7 +132,7 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
     int pkg=1;
     for(int i=start;i<end;++i){
 
-      if(i%1000==0) cout << "package 1 events processed so far: " << i << endl;
+      if(i%10000==0) cout << "package 1 events processed so far: " << i << endl;
       
       event_branch->GetEntry(i);
       maindet_branch->GetEntry(i);
@@ -145,8 +153,7 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
    // test if the MD is hit - using TDC hits
    // only looks at first hit in MD's multihit TDCs - not ideal logic
 	
-      if(mdm_value_1 <-210 || mdm_value_1 > -150 || mdp_value_1 < -210 || mdp_value_1 > -150)
-	  continue;  // jump out of this event in for loop if not a prompt MD hit
+      if(mdm_value_1 <-210 || mdm_value_1 > -150 || mdp_value_1 < -210 || mdp_value_1 > -150)   continue;  // jump out of this event in for loop if not a prompt MD hit
 	
       if(valid_hits>=multitracks) continue;     // jump out of this event in for loop if too many R2 hits
 
@@ -175,7 +182,8 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 	p1_Chi_histo->Fill(pt->fChi);
 
 	double vertex_z=fEvent->GetScatteringVertexZ();
-	p1_vertex->Fill(vertex_z);
+
+	double vertex_z_test=pt->GetVertexZ();
 
 	// project partial tracks to three different z-locations
 	double x = pt->fOffsetX+z_coll1*pt->fSlopeX;
@@ -204,7 +212,7 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
     pkg=2;
     for(int i=start;i<end;++i){
 
-      if(i%1000==0) cout << "package 2 events processed so far: " << i << endl;
+      if(i%10000==0) cout << "package 2 events processed so far: " << i << endl;
       //      cout << "events processed so far: " << i << endl;
       
       event_branch->GetEntry(i);
@@ -313,6 +321,9 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
     spad3->cd();
   
     gStyle->SetPalette(1);
+
+    gStyle->SetStatW(0.2);
+
     p1_projection_coll1->GetXaxis()->SetTitle("hit global x [cm]");
     p1_projection_coll1->GetYaxis()->SetTitle("hit global y [cm]");
     p1_projection_coll1->Draw("colz");
@@ -630,7 +641,7 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
    std::ofstream fout;
    //   fout.open(outputPrefix+"r2_projections.txt");
-   fout.open("r2_projections.txt");
+   fout.open(Form("r2_projections_%d.txt",run));
 
    fout << "Run \t pkg \twhere\t (x,y) \t Value \t\t RMS" <<endl; 
 
@@ -646,6 +657,7 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
    fout << run << "\t 1 \tlH2\t   y \t" << p1_projection_lh2->ProjectionY()->GetMean() << "\t" << p1_projection_lh2->ProjectionY()->GetRMS() << endl;
 
+   fout << run << "\t 1 \tlH2\t   z \t" << p1_vertex->GetMean() << "\t" << p1_vertex->GetRMS() << endl;
 
 
    fout << run << "\t 2 \tcoll 1\t   x\t" << p2_projection_coll1->ProjectionX()->GetMean() << "\t" << p2_projection_coll1->ProjectionX()->GetRMS() << endl;
@@ -660,6 +672,7 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 
    fout << run << "\t 2 \tlH2\t   y \t" << p2_projection_lh2->ProjectionY()->GetMean() << "\t" << p2_projection_lh2->ProjectionY()->GetRMS() << endl;
 
+   fout << run << "\t 2 \tlH2\t   z \t" << p2_vertex->GetMean() << "\t" << p1_vertex->GetRMS() << endl;
 
    return;
 }
