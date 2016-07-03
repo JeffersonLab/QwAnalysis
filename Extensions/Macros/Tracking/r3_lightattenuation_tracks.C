@@ -48,6 +48,12 @@
 //         CleanTrack(package, octant, run, events);
 //       (for studying how many Region3 partial tracks have pulses in
 //        main detector)
+
+//   May 24 2016 DSA
+//      - add ratio output; ration = gjap/gjam
+//      - make binning adcp1, adp2 etc. same as on full profiles
+//      - cosmetics on many plots
+
 #include<iostream>
 #include<fstream>
 #include <string>
@@ -65,7 +71,6 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   Double_t md_zpos[9] = {0.0, 576.665,  576.705, 577.020, 577.425, 577.515,  577.955, 577.885, 577.060};
 
   QwTrack* track      = 0;
-
   TString outputPrefix(Form("LightAttenTracks_run%d_MD%d_",run_number,md_number));
   TString file_name = "";
 
@@ -104,7 +109,6 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       type.assign(command,0,type_found);
     }
 
-
   bool pe=false;
   if (command.find("photon")==string::npos)
     pe=false;
@@ -134,11 +138,10 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
     w_title="Weighted";
 
 
-
   //This is where most of the graphs in the script are initialized/created
 
   TProfile2D* hp_2d;
-  hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"hp_2d ",50,320,345,220,-110,110);
+  hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),Form("Run %d Octant %d 2D profile", run_number, md_number),60,320,350,220,-110,110);
   TH2F* hrate_2d;
   TProfile2D* hL_2d;
   TProfile2D* hQ2_2d;
@@ -150,18 +153,18 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   hrate_2d=new TH2F(Form("hrate %s ",w_title.c_str()),"hrate_2d ",110,-110,110,40,320,360);
 
   TH1D* h_1f=new TH1D("project run","project run",240,280,400);
-  TH1D* adcph = new TH1D("ADCP", "ADCP data", 400, 0, 4000); //positive PMT ADChistogram
-  TH1D* adcmh = new TH1D("ADCM", "ADCM data", 400, 0, 4000); //minus PMT ADC histogram
-  TH1D* tdcph = new TH1D("TDCP", "TDCP data", 1650, 0, 0);
-  TH1D* tdcmh = new TH1D("TDCM", "TDCM data", 1650, 0, 0);
-  TH1D* adcpped = new TH1D("ADCPPED", "ADCP pedestal", 50, 0, 400); //positive PMT ADC pedestal graph
-  TH1D* adcmped = new TH1D("ADCMPED", "ADCM pedestal", 50, 0, 400); //negative PMT ADC pedestal graph
+  TH1D* adcph = new TH1D("ADCP", Form(" Run %d Octant %d positive PMT ADC", run_number, md_number), 400, 0, 4000); //positive PMT ADC histogram
+  TH1D* adcmh = new TH1D("ADCM", Form(" Run %d Octant %d negative PMT ADC", run_number, md_number), 400, 0, 4000); //minus PMT ADC histogram
+  TH1D* tdcph = new TH1D("TDCP", Form(" Run %d Octant %d positive PMT TDC", run_number, md_number), 400, -500, -100);
+  TH1D* tdcmh = new TH1D("TDCM", Form(" Run %d Octant %d positive PMT TDC", run_number, md_number), 400, -500, -100);
+  TH1D* adcpped = new TH1D("ADCPPED", Form(" Run %d Octant %d positive PMT ADC pedestal", run_number, md_number), 50, 0, 400); //positive PMT ADC pedestal graph
+  TH1D* adcmped = new TH1D("ADCMPED", Form(" Run %d Octant %d positive PMT ADC pedestal", run_number, md_number), 50, 0, 400); //negative PMT ADC pedestal graph
 
-  TH1D* adc_sum = new TH1D("adc_sum", "summed ADC spectrum", 500, 0, 5000);
+  TH1D* adc_sum = new TH1D("adc_sum", Form(" Run %d Octant %d summed ADC", run_number, md_number), 500, 0, 5000);
   TH1D* adc_sum_tight = new TH1D("adc_sum_tight", "summed ADC spectrum, y= 10-20cm", 500, 0, 5000);
 
-  TH1D* h_Q2=new TH1D("Q2 ","h_Q2",120,0,120.);
-  TH1D* h_Q2w=new TH1D("Q2 weighted","h_Q2w",120,0,120.);
+  TH1D* h_Q2=new TH1D("Q2 ",Form(" Run %d Octant %d Q^{2}", run_number, md_number),120,0,120.);
+  TH1D* h_Q2w=new TH1D("Q2 weighted",Form(" Run %d Octant %d Q^{2} (light-weighted)", run_number, md_number),120,0,120.);
 
   //ADC profile plots
   TProfile* adcpp1;
@@ -183,12 +186,12 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
 
   //creating above declarations
-  adcpp1 = new TProfile("ADCPP1", "ADCP1 profile", 50, -100, 0);
-  adcpp2 = new TProfile("ADCPP2", "ADCP2 profile", 50, 0, 100);
-  adcmp1 = new TProfile("ADCMP1", "ADCM1 profile", 50, -100, 0);
-  adcmp2 = new TProfile("ADCMP2", "ADCM2 profile", 50, 0, 100);
-  fulladcpp = new TProfile("FULLADCPP", Form("Linear Fit Run %d Octant %d positive PMT", run_number, md_number), 150, -105, 105);
-  fulladcmp = new TProfile("FULLADCMP", Form("Linear Fit Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
+  adcpp1 = new TProfile("ADCPP1",  Form("Linear Fit Run %d Octant %d positive PMT", run_number, md_number), 105, -105, 0);
+  adcpp2 = new TProfile("ADCPP2", Form("Linear Fit Run %d Octant %d positive PMT", run_number, md_number), 105, 0, 105);
+  adcmp1 = new TProfile("ADCMP1", Form("Linear Fit Run %d Octant %d negative PMT", run_number, md_number), 105, -105, 0);
+  adcmp2 = new TProfile("ADCMP2", Form("Linear Fit Run %d Octant %d negative PMT", run_number, md_number), 105, 0, 105);
+  fulladcpp = new TProfile("FULLADCPP", Form("Linear Fit Run %d Octant %d positive PMT", run_number, md_number), 210, -105, 105);
+  fulladcmp = new TProfile("FULLADCMP", Form("Linear Fit Run %d Octant %d minus PMT", run_number, md_number), 210, -105, 105);
 
   x1adcpp = new TProfile("X1P", "X1 ADCP profile", 200, -110, 110);
   x1adcmp = new TProfile("X1M", "X1 ADCM profile", 200, -110, 110);
@@ -324,6 +327,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 		m = m/pe_convert[2*(md_number-1)];
 	      }
 	      */
+
 	      
 	      switch (mode)
                 {
@@ -488,13 +492,13 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   cq = new TCanvas("cq","Weighted Projections",10, 10, 600,1000);
   cq->Divide(1,3);
   cq->cd(1);
-  string titler="Rate distribution on Main Detector";
+  string titler=Form(" Run %d Rate Distribution on MD %d", run_number, md_number);
   hrate_2d->GetXaxis()->SetTitle("position y:cm");
   hrate_2d->GetYaxis()->SetTitle("position x:cm");
   hrate_2d->SetTitle(titler.c_str());
   hrate_2d->Draw("colz");
   cq->cd(2);
-  string titleq="Q2 distribution on Main Detector (mGeV^2)";
+  string titleq="Q^{2} distribution on Main Detector (mGeV^{2})";
   hQ2_2d->GetXaxis()->SetTitle("position y:cm");
   hQ2_2d->GetYaxis()->SetTitle("position x:cm");
   hQ2_2d->SetTitle(titleq.c_str());
@@ -508,11 +512,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   cq->SaveAs(outputPrefix+"weighted.pdf");
 
-  cq2 = new TCanvas("cq2","Q2 histograms",10, 10, 800,800);
+  cq2 = new TCanvas("cq2","Q^{2} histograms",10, 10, 800,800);
   gStyle->SetStatFormat("6.6g");
   cq2->Divide(1,2);
   cq2->cd(1);
-  string titleq2="Q2 (mGeV^2)";
+  string titleq2=Form(" Run %d Octant %d Q^{2} (mGeV^{2})", run_number, md_number);
   //  h_Q2->GetXaxis()->SetTitle("position y:cm");
   //  h_Q2->GetYaxis()->SetTitle("position x:cm");
   h_Q2->SetTitle(titleq2.c_str());
@@ -599,8 +603,6 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   hitandmiss->SaveAs(outputPrefix+"HitsMisses.pdf");
 
-
-
   //fits for profile plots
 
   TF1* fit1 = new TF1("FIT1", "pol1", -95, -5);
@@ -638,6 +640,8 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   adcmp2->Fit(fit2, "R");
   adcmp2->GetXaxis()->SetTitle("Position on MD (cm)");
 
+  profiles->SaveAs(outputPrefix+"Profiles.pdf");
+  profiles->SaveAs(outputPrefix+"Profiles.C");
 
 
   //x-direction cross section profile plots
@@ -859,9 +863,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   FILE *pedestal_mean; //pedestal values and mean MD value
   FILE *nslope_gja;  //glue joint factors and normalized slopes
+  FILE *q2_lw;  //mean Q2 values unweighted and lightweighted and ratios
 
   pedestal_mean = fopen("pedestal_mean_tracks.txt", "a");
   nslope_gja = fopen("nslope_gja_tracks.txt", "a");
+  q2_lw = fopen("Q2_lw_ratio_tracks.txt", "a");
 
   if (pedestal_mean == NULL)
     {
@@ -873,11 +879,24 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
       cout << "nslope_gja did not open" << endl;
     }
 
-    fprintf(pedestal_mean, "%d \t %d \t %d \t %f \t %f \t %f \t %d\n", run_number, package, md_number, adcpmean, adcmmean, effmean, trial_total);
-  
-    fprintf(nslope_gja, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f \t %d\n",run_number, package, md_number, gjap, gjam, nslopep1, nslopep2, nslopem1, nslopem2, trial_total);
+  if (q2_lw == NULL)
+    {
+      cout << "Q2_lw_ratio_tracks did not open" << endl;
+    }
 
-  
+    fprintf(pedestal_mean, "%d \t %d \t %d \t %f \t %f \t %f \t %d\n", run_number, package, md_number, adcpmean, adcmmean, effmean, trial_total);
+
+    double ratio = gjap/gjam; 
+
+    fprintf(nslope_gja, "%d \t %d \t %d \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %d\n",run_number, package, md_number, gjap, gjam, ratio, nslopep1, nslopep2, nslopem1, nslopem2, trial_total);
+
+    Double_t q2_mean = h_Q2->GetMean();
+    Double_t q2_lw_mean = h_Q2w->GetMean();
+    Double_t lw_factor = q2_lw_mean/q2_mean; 
+
+    fprintf(q2_lw, "%d \t %d \t %d \t %f \t %f \t %f \t %d\n",run_number, package, md_number, q2_mean, q2_lw_mean, lw_factor, trial_total);
+
+ 
 
   cout << "  Mean radial position of octant " << md_number << " = " << effmean << "   (cm)  " << endl;
 
@@ -885,10 +904,12 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   fclose(pedestal_mean);
   fclose(nslope_gja);
+  fclose(q2_lw);
 
 
   return;
 };
+
 
 
 // default: md,p+m mode
@@ -1023,4 +1044,4 @@ void Angle(int package=1, int md_number=5,int run=6327, int max_events=-1)
     c->cd(3);
     h_2f->SetTitle("MD pulseheightsum vs. Region 3 PartialTrack slope X,Y");
     h_2f->Draw("colz");
-  }
+}
