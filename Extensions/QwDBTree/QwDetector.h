@@ -8,8 +8,8 @@
 /* QwDetector class, from which specific detectors inherit. */
 class QwDetector {
     public:
-        QwDetector(TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t, Bool_t, Bool_t);
-        void branch(TTree*, vector<QwData>&, Int_t);
+        QwDetector(TString, TString, TString, std::vector<Int_t>, TSQLServer*, Bool_t, Bool_t, Bool_t);
+        void branch(TTree*, std::vector<QwData>&, Int_t);
         void fill(void);
         void get_data_for_runlet(Int_t runlet, QwData&);
 
@@ -30,12 +30,12 @@ class QwDetector {
         Bool_t wienavg;
 
         /* runlets for this detector, mapped to number of runlet in tree */
-        map<Int_t, Int_t> runlet_id;
+        std::map<Int_t, Int_t> runlet_id;
         /* number of runlets for this detector */
-        vector<Int_t> good_runlets;
+        std::vector<Int_t> good_runlets;
 
         /* QwData vector for this detector. This fills the tree. */
-        vector<QwData> data;
+        std::vector<QwData> data;
 
         /*
          * Virtual method to query db.

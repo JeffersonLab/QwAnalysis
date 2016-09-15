@@ -7,7 +7,7 @@
 #include "string.h"
 
 /* Constructor for QwDetector. */
-QwDetector::QwDetector(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg) {
+QwDetector::QwDetector(TString name, TString id, TString type, std::vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg) {
     detector_name = name;
     measurement_id = id;
     reg_type = type;
@@ -21,16 +21,16 @@ QwDetector::QwDetector(TString name, TString id, TString type, vector<Int_t> run
 /*
  * Method to branch 
  */
-void QwDetector::branch(TTree* tree, vector<QwData> &values, Int_t i) {
+void QwDetector::branch(TTree* tree, std::vector<QwData> &values, Int_t i) {
     TString name;
-    string type;
-    string detector_str = detector_name.Data();
+    std::string type;
+    std::string detector_str = detector_name.Data();
     UInt_t pos;
 
     pos = detector_str.find("qwk_");
 
     /* See FIXME below. This is to be removed due to confusion. Sorry Manolis! */
-    if (pos !=string::npos) {
+    if (pos !=std::string::npos) {
         pos += 4;
         //name = detector_str.substr(pos);
         name = detector_name;
@@ -68,7 +68,7 @@ void QwDetector::branch(TTree* tree, vector<QwData> &values, Int_t i) {
  * query, then fills the object. 
  */
 void QwDetector::fill(void) {
-    cout << "querying " + detector_name << endl;
+    std::cout << "querying " + detector_name << std::endl;
     TString sql_query = query();
     TSQLStatement* stmt = db->Statement(sql_query, 100);
 

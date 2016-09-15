@@ -5,7 +5,7 @@
 #include "QwDetectorSlope.h"
 
 /* Constructor for QwMainDet. */
-QwMainDetSlope::QwMainDetSlope(TString name, TString id, TString type, TString wrt, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg):
+QwMainDetSlope::QwMainDetSlope(TString name, TString id, TString type, TString wrt, std::vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg):
     QwDetectorSlope(name, id, type, wrt, runlets, db_pointer, ravg, savg, wavg) {}
 
 /*

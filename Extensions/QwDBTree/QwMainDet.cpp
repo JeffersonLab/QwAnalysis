@@ -5,7 +5,7 @@
 #include "QwMainDet.h"
 
 /* Constructor for QwMainDet. */
-QwMainDet::QwMainDet(TString name, TString id, TString type, vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg):
+QwMainDet::QwMainDet(TString name, TString id, TString type, std::vector<Int_t> runlets, TSQLServer* db_pointer, Bool_t ravg, Bool_t savg, Bool_t wavg):
     QwDetector(name, id, type, runlets, db_pointer, ravg, savg, wavg) {}
 
 /*

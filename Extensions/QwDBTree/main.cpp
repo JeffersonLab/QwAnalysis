@@ -54,23 +54,23 @@ int main(Int_t argc, Char_t* argv[]) {
     }
 
     /* print all settings */
-    cout << "host = " << host << endl;
-    cout << "mapdir = " << mapdir << endl;
-    cout << "outdir = " << outdir << endl;
-    cout << "db = " << db_name << endl;
-    cout << "runlist = " << runlist << endl;
-    cout << "target = " << target << endl;
-    cout << "run quality = " << run_quality << endl;
-    if(runavg) cout << "runavg : enabled" << endl;
-    else cout << "runavg : disabled" << endl;
-    if(slugavg) cout << "slugavg : enabled" << endl;
-    else cout << "slugavg : disabled" << endl;
-    if(wienavg) cout << "wienavg : enabled" << endl;
-    else cout << "wienavg : disabled" << endl;
-    if(ignore_quality) cout << "ignore data quality : enabled" << endl;
-    else cout << "ignore data quality: disabled" << endl;
-    if(slopes == "") cout << "slopes : disabled" << endl;
-    else cout << "slopes: " << slopes << endl;
+    std::cout << "host = " << host << std::endl;
+    std::cout << "mapdir = " << mapdir << std::endl;
+    std::cout << "outdir = " << outdir << std::endl;
+    std::cout << "db = " << db_name << std::endl;
+    std::cout << "runlist = " << runlist << std::endl;
+    std::cout << "target = " << target << std::endl;
+    std::cout << "run quality = " << run_quality << std::endl;
+    if(runavg) std::cout << "runavg : enabled" << std::endl;
+    else std::cout << "runavg : disabled" << std::endl;
+    if(slugavg) std::cout << "slugavg : enabled" << std::endl;
+    else std::cout << "slugavg : disabled" << std::endl;
+    if(wienavg) std::cout << "wienavg : enabled" << std::endl;
+    else std::cout << "wienavg : disabled" << std::endl;
+    if(ignore_quality) std::cout << "ignore data quality : enabled" << std::endl;
+    else std::cout << "ignore data quality: disabled" << std::endl;
+    if(slopes == "") std::cout << "slopes : disabled" << std::endl;
+    else std::cout << "slopes: " << slopes << std::endl;
 
     /* Open connection to specified database with qweak credentials. */
     TSQLServer *db;

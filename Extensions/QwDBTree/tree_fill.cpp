@@ -9,7 +9,7 @@
  * saved to a ROOT file for access later.
  *
  * TODO:
- * - Populate the yield vectors
+ * - Populate the yield std::vectors
  * - read in list of variables from map file (in progress)
  *
  * This project is currently under heavy development. If you wish to make
@@ -78,7 +78,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
      * If this run averaging is enabled, get a list of good runs instead.
      * FIXME: change good_runlets to good_events.
      */
-    vector<Int_t> good_runlets;
+    std::vector<Int_t> good_runlets;
     /*
      * runs may or may not be needed, it is used to get the number of runs in
      * run average mode
@@ -95,22 +95,22 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
     }
 
     /*
-     * Create a temporary detector object and push it onto a vector of detector
+     * Create a temporary detector object and push it onto a std::vector of detector
      * objects. This will be the basis for filling the tree. Start with main
      * detectors. 
      */
     
-    vector<QwMainDetSlope> main_detector_slopes;
-    vector<QwLumiDetSlope> lumi_detector_slopes;
-    vector<QwMainDet> main_detectors;
-    vector<QwLumiDet> lumi_detectors;
-    vector<QwBeamDet> beam_detectors;
+    std::vector<QwMainDetSlope> main_detector_slopes;
+    std::vector<QwLumiDetSlope> lumi_detector_slopes;
+    std::vector<QwMainDet> main_detectors;
+    std::vector<QwLumiDet> lumi_detectors;
+    std::vector<QwBeamDet> beam_detectors;
 
     if(slopes != "") {
-        /* Create a vector of slopes for wrt_qwk_charge only for each MD. Only do
+        /* Create a std::vector of slopes for wrt_qwk_charge only for each MD. Only do
          * this if reg_type = "on_5+1". 
          *
-         * Fill main detector slope object vector
+         * Fill main detector slope object std::vector
          */
         if(reg_type == "on_5+1" || reg_type == "on" || reg_type == "on_set10" || reg_type == "on_set11" || reg_type == "on_set13") {
             for(Int_t i = 0; i < num_mds; i++) {
@@ -130,7 +130,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
     }
     else {
         /*
-         * Fill main detector object vector.
+         * Fill main detector object std::vector.
          */
         for(Int_t i = 0; i < num_mds; i++) {
             QwMainDet temp_detector(mds.detector(i), mds.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
@@ -139,7 +139,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
         }
 
         /*
-         * Fill lumi object vector.
+         * Fill lumi object std::vector.
          */
         for(Int_t i = 0; i < num_lumis; i++) {
             QwLumiDet temp_detector(lumis.detector(i), lumis.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
@@ -148,7 +148,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
         }
 
         /*
-         * Fill beam object vector.
+         * Fill beam object std::vector.
          */
         for(Int_t i = 0; i < num_beams; i++) {
             QwBeamDet temp_detector(beams.detector(i), beams.id_type(i), reg_type, good_runlets, db, runavg, slugavg, wienavg);
@@ -159,35 +159,35 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
 
     /*
      * Create objects that will hold the data and be used to fill the tree.
-     * Tree filling requires that each data point have a vector of what will go
+     * Tree filling requires that each data point have a std::vector of what will go
      * into it. See QwDetector::branch() for details.
      *
      * Reserve is used here so that the memory is address when branch is
      * called. When tree->Fill() is run, it will look in the address it was
      * assigned when it is branched.
      *
-     * Vectors are created for all detectors and runlet data; basically
+     * std::vectors are created for all detectors and runlet data; basically
      * anything that will end up in the tree.
      */
     QwValues runlet_data;
     runlet_data.runlet_properties.reserve(9);
 
     /*
-     * Vectors to store normal data.
+     * std::vectors to store normal data.
      */
-    vector<QwData> main_data;
+    std::vector<QwData> main_data;
     main_data.reserve(num_mds);
-    vector<QwData> lumi_data;
+    std::vector<QwData> lumi_data;
     lumi_data.reserve(num_lumis);
-    vector<QwData> beam_data;
+    std::vector<QwData> beam_data;
     beam_data.reserve(num_beams);
 
     /*
-     * Vectors to store slope data.
+     * std::vectors to store slope data.
      */
-    vector<QwData> main_slope_data;
+    std::vector<QwData> main_slope_data;
     main_slope_data.reserve(num_mds);
-    vector<QwData> lumi_slope_data;
+    std::vector<QwData> lumi_slope_data;
     lumi_slope_data.reserve(num_mds);
 
     /* Branch the tree. See QwDetector::branch() for details. */
@@ -195,7 +195,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
 
     if(slopes != "") {
         for(Int_t i = 0; i < num_mds; i++) {
-            // pass in the vector like main_data[i]
+            // pass in the std::vector like main_data[i]
             main_detector_slopes[i].branch(tree, main_slope_data, i);
         }
         for(Int_t i = 0; i < num_lumis; i++) {
@@ -214,7 +214,7 @@ int tree_fill(TString reg_type, TSQLServer *db, QwRunlet &runlets, TString mapdi
         }
     }
 
-    /* Fill the QwData vectors from QwDetector objects. */
+    /* Fill the QwData std::vectors from QwDetector objects. */
     for(UInt_t j = 0; j < good_runlets.size(); j++) {
         /* Fill runlet data. */
         runlets.get_data_for_runlet(j, runlet_data);

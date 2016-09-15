@@ -16,7 +16,7 @@ QwRunlet::QwRunlet(TSQLServer* db_pointer) {
  * Generate query to get the runlet level data out of temporary table. offoff
  * is used because it is backwards compatible with pass4b.
  */
-TString QwRunlet::runlet_query(vector<TString> runlist, Bool_t runavg, Bool_t slugavg, Bool_t wienavg) {
+TString QwRunlet::runlet_query(std::vector<TString> runlist, Bool_t runavg, Bool_t slugavg, Bool_t wienavg) {
     TString query;
     query = "SELECT\n";
     query += "runlet_id\n";
@@ -87,7 +87,7 @@ TString QwRunlet::wien_query(void) {
  * Instead, you do 3 of the JOINs once, and just JOIN this temporary table to
  * your data.
  */
-TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality, TString db_name) {
+TString QwRunlet::runlet_temp_table_create(TString reg_type, std::vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality, TString db_name) {
     /* query holds the MySQL query in a TString. */
     TString query;
     /*
@@ -154,7 +154,7 @@ TString QwRunlet::runlet_temp_table_create(TString reg_type, vector<TString> run
 }
 
 /* Generate query to create temporary table for unregressed values. */
-TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality, TString db_name) {
+TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, std::vector<TString> runlist, TString target, Bool_t ignore_quality, Int_t run_quality, TString db_name) {
     /* query holds the MySQL query in a TString. */
     TString query;
     /*
@@ -226,10 +226,10 @@ TString QwRunlet::runlet_temp_table_unreg_create(TString reg_type, vector<TStrin
 }
 
 /* Method to get runs from the temporary table. */
-vector<Int_t> QwRunlet::get_runs(void) {
+std::vector<Int_t> QwRunlet::get_runs(void) {
     TString query = run_query();
     TSQLStatement *stmt = db->Statement(query, 100);
-    vector<Int_t> run_number;
+    std::vector<Int_t> run_number;
 
     if((db!=0) && db->IsConnected()) {
         if(stmt->Process()) {
@@ -248,10 +248,10 @@ vector<Int_t> QwRunlet::get_runs(void) {
 }
 
 /* Method to get slugs from the temporary table. */
-vector<Int_t> QwRunlet::get_slugs(void) {
+std::vector<Int_t> QwRunlet::get_slugs(void) {
     TString query = slug_query();
     TSQLStatement *stmt = db->Statement(query, 100);
-    vector<Int_t> slug;
+    std::vector<Int_t> slug;
 
     if((db!=0) && db->IsConnected()) {
         if(stmt->Process()) {
@@ -270,10 +270,10 @@ vector<Int_t> QwRunlet::get_slugs(void) {
 }
 
 /* Method to get wiens from the temporary table. */
-vector<Int_t> QwRunlet::get_wiens(void) {
+std::vector<Int_t> QwRunlet::get_wiens(void) {
     TString query = wien_query();
     TSQLStatement *stmt = db->Statement(query, 100);
-    vector<Int_t> wien;
+    std::vector<Int_t> wien;
 
     if((db!=0) && db->IsConnected()) {
         if(stmt->Process()) {
@@ -298,13 +298,13 @@ vector<Int_t> QwRunlet::get_wiens(void) {
 void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t runavg, Bool_t slugavg, Bool_t wienavg, Bool_t ignore_quality, Int_t run_quality)
 {
     // create the fist temp table
-    cout << "creating temp runlet tables" << endl;
+    std::cout << "creating temp runlet tables" << std::endl;
     TString query;
     TSQLStatement *stmt;
 
     const Int_t num_regs = reg_types.num_detectors();
     for(Int_t i = 0; i < num_regs; i++) {
-        cout << reg_types.detector(i) << endl;
+        std::cout << reg_types.detector(i) << std::endl;
 
         TString db_name = db->GetDB();
         query = runlet_temp_table_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality, run_quality, db_name);
@@ -313,7 +313,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
             stmt->Process();
             delete stmt;
         }
-        else cout << "Failed to connect to the database while creating runlet temp table" << endl;
+        else std::cout << "Failed to connect to the database while creating runlet temp table" << std::endl;
         
         query = runlet_temp_table_unreg_create(reg_types.detector(i), runlist.ret_detector(), target, ignore_quality, run_quality, db_name);
         stmt = db->Statement(query, 100);
@@ -321,10 +321,10 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
             stmt->Process();
             delete stmt;
         }
-        else cout << "Failed to connect to the database while creating runlet unreg temp table" << endl;
+        else std::cout << "Failed to connect to the database while creating runlet unreg temp table" << std::endl;
     }
 
-    cout << "querying runlet data" << endl;
+    std::cout << "querying runlet data" << std::endl;
     query = runlet_query(runlist.ret_detector(), runavg, slugavg, wienavg);
     stmt = db->Statement(query, 100);
 
@@ -359,29 +359,29 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
                 /* Fill ihwp. */
                 if(temp_ihwp_setting == "in") ihwp_setting.push_back(1);
                 else if(temp_ihwp_setting == "out") ihwp_setting.push_back(0);
-                else cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message: "
-                    + temp_ihwp_setting << endl;
+                else std::cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message: "
+                    + temp_ihwp_setting << std::endl;
 
                 /* Fill phwp. */
                 if(temp_phwp_setting == "in") phwp_setting.push_back(1);
                 else if(temp_phwp_setting == "out") phwp_setting.push_back(0);
                 else if(temp_phwp_setting == "") phwp_setting.push_back(-1);
-                else cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message: "
-                    + temp_phwp_setting << endl;
+                else std::cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message: "
+                    + temp_phwp_setting << std::endl;
 
                 /* Fill wien reversal. */
                 if(temp_wien_reversal == "normal") wien_reversal.push_back(0);
                 else if(temp_wien_reversal == "reverse") wien_reversal.push_back(1);
                 else {
-                    cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message:\nwien_reversal" + temp_wien_reversal << endl;
+                    std::cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message:\nwien_reversal" + temp_wien_reversal << std::endl;
                     wien_reversal.push_back(2);
                 }
 
                 /* Fill precession reversal. */
                 if(temp_precession_reversal == "normal") precession_reversal.push_back(0);
                 else if(temp_precession_reversal == "reverse") precession_reversal.push_back(1);
-                else cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message: "
-                    + temp_precession_reversal << endl;
+                else std::cout << "Please contact Wade Duvall at wsduvall@jlab.org with the following error message: "
+                    + temp_precession_reversal << std::endl;
 
                 /* Fill qtor current. */
                 qtor_current.push_back(temp_qtor_current);
@@ -428,7 +428,7 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
                         }
                     }
                 }
-                else cout << "FAILBOAT" << endl;
+                else std::cout << "FAILBOAT" << std::endl;
 
                 /* Fill the run quality id. */
                 runlet_quality_id.push_back((Int_t)temp_runlet_quality_id);
@@ -456,7 +456,7 @@ void QwRunlet::branch(TTree* tree, QwValues &values) {
 }
 
 /* Method to return runlet id. */
-vector<Int_t> QwRunlet::get_runlets(void) {
+std::vector<Int_t> QwRunlet::get_runlets(void) {
     return runlet_id;
 }
 

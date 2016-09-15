@@ -7,7 +7,7 @@
 
 class QwLumiDetSlope : public QwDetectorSlope {
     public:
-        QwLumiDetSlope(TString, TString, TString, TString, vector<Int_t>, TSQLServer*, Bool_t, Bool_t, Bool_t);
+        QwLumiDetSlope(TString, TString, TString, TString, std::vector<Int_t>, TSQLServer*, Bool_t, Bool_t, Bool_t);
         TString query(void);
 };
 

@@ -11,13 +11,13 @@ class QwParse {
         Int_t num_detectors(void);
         TString detector(Int_t);
         TString id_type(Int_t);
-        vector<TString> ret_detector();
+        std::vector<TString> ret_detector();
     private:
         /* Path to mapfile. */
         TString mapfile;
         /* Detector name and type (corresponding to MySQL) */
-        vector<TString> detectors;
-        vector<TString> type;
+        std::vector<TString> detectors;
+        std::vector<TString> type;
 };
 
 #endif
