@@ -245,7 +245,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
       if (trigscint_branch) trigscint_branch->GetEntry(i);
 
       // weight of this event, or 1 if the weight is not set (for data)
-      double w = (fEvent->fCrossSection<1e-30)? fEvent->fCrossSection: 1;
+      double w = (fEvent->fCrossSection<0.0)? fEvent->fCrossSection: 1;
 
       bool prompt_mdp1 = false;
       bool prompt_mdm1 = false;

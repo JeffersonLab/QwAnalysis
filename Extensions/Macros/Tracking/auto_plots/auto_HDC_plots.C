@@ -240,7 +240,7 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 		event_branch->GetEntry(i);
 
 		// cross section weight for each event, or 1 for data
-		double w = (fEvent->fCrossSection<1e-30)? fEvent->fCrossSection: 1;
+		double w = (fEvent->fCrossSection<0.0)? fEvent->fCrossSection: 1;
 
 		//get number of hits
 

@@ -543,7 +543,7 @@ void auto_vdc(Int_t runnum, Bool_t isFirst100K = kFALSE)
     if (i%10000 == 0) cout << "Processing event " << i << "..." << endl;
     chain->GetEntry(i);
 
-    double w = (event->fCrossSection<1e-30)? event->fCrossSection: 1;
+    double w = (event->fCrossSection<0.0)? event->fCrossSection: 1;
 
     for (int j = 0; j < event->GetNumberOfHits(); j++) {
       const QwHit* hit = event->GetHit(j);

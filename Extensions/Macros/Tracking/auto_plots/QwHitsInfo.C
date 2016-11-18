@@ -129,7 +129,7 @@ void QwHits_Region (TChain * event_tree)
                 event_branch->GetEntry(i);
 
 		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
-		double w = (fEvent->fCrossSection<1e-30)? fEvent->fCrossSection: 1;
+		double w = (fEvent->fCrossSection<0.0)? fEvent->fCrossSection: 1;
 
                 //get the number of Hits
                 int nHits = fEvent->GetNumberOfHits();
@@ -229,7 +229,7 @@ void QwHits_Package (TChain * event_tree)
                 event_branch->GetEntry(i);
 
 		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
-		double w = (fEvent->fCrossSection<1e-30)? fEvent->fCrossSection: 1;
+		double w = (fEvent->fCrossSection<0.0)? fEvent->fCrossSection: 1;
 
                 //get the number of Hits
                 int nHits = fEvent->GetNumberOfHits();
@@ -333,7 +333,7 @@ void QwHits_Direction (TChain * event_tree)
                 event_branch->GetEntry(i);
 
 		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
-		double w = (fEvent->fCrossSection<1e-30)? fEvent->fCrossSection: 1;
+		double w = (fEvent->fCrossSection<0.0)? fEvent->fCrossSection: 1;
 
                 //get the number of Hits
                 int nHits = fEvent->GetNumberOfHits();
@@ -432,7 +432,7 @@ void QwHits_Element (TChain * event_tree)
                 event_branch->GetEntry(i);
 
 		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
-		double w = (fEvent->fCrossSection<1e-30)? fEvent->fCrossSection: 1;
+		double w = (fEvent->fCrossSection<0.0)? fEvent->fCrossSection: 1;
 
                 //get the number of Hits
                 int nHits = fEvent->GetNumberOfHits();
@@ -557,7 +557,7 @@ void NQwTracks (TChain * event_tree)
                 event_branch->GetEntry(i);
 
 		//Get weight for this event, and set to 1 if fCrossSection is zero (for data)
-		double w = (fEvent->fCrossSection<1e-30)? fEvent->fCrossSection: 1;
+		double w = (fEvent->fCrossSection<0.0)? fEvent->fCrossSection: 1;
 
 		h6->Fill(fEvent->GetNumberOfTracks(),w);
 	}
