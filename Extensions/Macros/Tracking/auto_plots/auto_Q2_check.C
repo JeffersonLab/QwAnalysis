@@ -126,15 +126,15 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
    gStyle->SetPalette(1);
 
    // Define our histograms
-   TH1F* angle=new TH1F("Scattering Angle","ScatteringAngle",100,0,15);
-   TH1F* q2=new TH1F("Q2","Q2",100,0,0.12);
-   TH1F* q2_0=new TH1F("Q2_0","Q2_0",100,0,0.12);
-   TH1F* angle_1=new TH1F("Scattering Angle in Package 1","ScatteringAngle in Package 1",100,0,15);
-   TH1F* angle_2=new TH1F("Scattering Angle in Package 2","ScatteringAngle in Package 2",100,0,15);
-   TH1F* q2_1=new TH1F("Q2 distribution in Package 1","Q2 distribution in Package 1",100,0,0.12);
-   TH1F* q2_2=new TH1F("Q2 distribution in Package 2","Q2 distribution in Package 2",100,0,0.12);
-   TH1F* q2_0_1=new TH1F("Q2_0 distribution in Package 1","Q2_0 distribution in Package 1",100,0,0.12);
-   TH1F* q2_0_2=new TH1F("Q2_0 distribution in Package 2","Q2_0 distribution in Package 2",100,0,0.12);
+   TH1F* angle=new TH1F("angle","ScatteringAngle",100,0,15);
+   TH1F* q2=new TH1F("q2","Q2",100,0,0.12);
+   TH1F* q2_0=new TH1F("q2_0","Q2_0",100,0,0.12);
+   TH1F* angle_1=new TH1F("angle_1","ScatteringAngle in Package 1",100,0,15);
+   TH1F* angle_2=new TH1F("angle_2","ScatteringAngle in Package 2",100,0,15);
+   TH1F* q2_1=new TH1F("q2_1","Q2 distribution in Package 1",100,0,0.12);
+   TH1F* q2_2=new TH1F("q2_2","Q2 distribution in Package 2",100,0,0.12);
+   TH1F* q2_0_1=new TH1F("q2_0_1","Q2_0 distribution in Package 1",100,0,0.12);
+   TH1F* q2_0_2=new TH1F("q2_0_2","Q2_0 distribution in Package 2",100,0,0.12);
 
    TH1F* p1_theta=new TH1F("p1_theta","Theta Direction mismatch, Package 1",200,-0.05,0.05);
    TH1F* p2_theta=new TH1F("p2_theta","Theta Direction mismatch, Package 2",200,-0.05,0.05);
@@ -245,7 +245,7 @@ void auto_Q2_check(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
       if (trigscint_branch) trigscint_branch->GetEntry(i);
 
       // weight of this event, or 1 if the weight is not set (for data)
-      double w = fEvent->fCrossSection? fEvent->fCrossSection: 1;
+      double w = (fEvent->fCrossSection<1e-30)? fEvent->fCrossSection: 1;
 
       bool prompt_mdp1 = false;
       bool prompt_mdm1 = false;
@@ -764,6 +764,8 @@ That is all folks in terms of the ROOT tree :D
     q2_2->GetXaxis()->SetTitle("Q2: (GeV/c)^2");
     q2_2->SetTitle(Form("Q2 (version 1) in Package 2  octant %d",md_2));
 
+    //gPad->Modified();
+    //gPad->Update();
     c->SaveAs(outputPrefix+"q2.png");
     c->SaveAs(outputPrefix+"q2.C");
 }
