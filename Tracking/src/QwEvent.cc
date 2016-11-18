@@ -20,7 +20,9 @@ ClassImp(QwKinematics);
 Double_t QwEvent::fBeamEnergy = 1.165 * Qw::GeV;
 
 QwEvent::QwEvent()
-: fPrimaryQ2(fKinElasticWithLoss.fQ2)
+: fScatteringAngle(0.0),fScatteringVertexZ(0.0),fScatteringVertexR(0.0),
+  fCrossSection(-1.0),fPreScatteringEnergy(0.0),fOriginVertexEnergy(0.0),
+  fPrimaryQ2(0.0)
 {
   // Reset the event header
   fEventHeader = 0;
