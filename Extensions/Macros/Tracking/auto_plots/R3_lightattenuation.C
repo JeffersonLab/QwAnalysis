@@ -271,7 +271,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   for(int i = 0; i < max_events; i++)
 	{
-	  if(i % 1000 == 0) cout <<"events processed so far:" << i << endl;
+	  if(i % 10000 == 0) cout <<"events processed so far:" << i << endl;
 
 	  if (branch_event)
             branch_event->GetEntry(i);

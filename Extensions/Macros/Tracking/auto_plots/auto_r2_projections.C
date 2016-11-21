@@ -153,7 +153,7 @@ void auto_r2_projections(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_st
     //DSA  below kludge for testing
     //    for(int i=start;i<100000;++i){
 
-      if(i%1000==0) cout << "package 1 events processed so far: " << i << endl;
+      if(i%10000==0) cout << "package 1 events processed so far: " << i << endl;
       
       event_branch->GetEntry(i);
       maindet_branch->GetEntry(i);
