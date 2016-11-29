@@ -11,7 +11,7 @@ chown -f $USER:c-qweak $masterlist $derivedlist
 rm -f ${QW_ROOTFILES}/Qweak_[0-9]*.root
 
 # Loop over all files we want to analyze
-inputdir=/cache/mss/hallc/qweak/misc/$USER/rootfiles
+inputdir=/cache/hallc/qweak/misc/$USER/rootfiles
 for file in $inputdir/myTrackingRun_*_tracking.root ; do
   md5=`basename $file | md5sum | awk '{print$1}' | tr 'abcdef' 'ABCDEF'`
 
@@ -19,8 +19,8 @@ for file in $inputdir/myTrackingRun_*_tracking.root ; do
   run=`grep $md5 $masterlist | awk '{print$1}'`
   # If the run wasn't listed yet
   if [ -z $run ] ; then
-    # Hopefully we don't get collisions in 32k runs
-    run=`echo "ibase=16; $md5 % 8000" | bc`
+    # Hopefully we don't get collisions in 5k runs
+    run=`echo "ibase=16; $md5 % 5000" | bc`
     echo -e "$run\t$md5\t$file" >> $masterlist
   fi
 

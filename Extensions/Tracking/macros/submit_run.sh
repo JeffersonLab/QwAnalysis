@@ -55,6 +55,7 @@ else
   BASE=${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml
 fi
 sed -f ${SED} ${BASE} > ${XML}
+rm -f ${SED}
 
 echo "Job: ${XML}"
 jsub -xml  ${XML}
