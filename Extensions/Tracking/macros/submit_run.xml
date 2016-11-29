@@ -2,7 +2,7 @@
  <Email email="%USER%@jlab.org" request="false" job="false"/>
  <Project name="qweak"/>
  <Track name="one_pass"/>
- <Name name="Qweak_%RUN%"/>
+ <Name name="Qweak_%RUN%_%MACROS%"/>
  <OS name="centos65"/>
  <TimeLimit unit="minutes" time="4000"/>
  <DiskSpace space="13000" unit="MB"/>
@@ -27,8 +27,8 @@
   echo "------"
   echo "Started at `date`"
   echo \
-  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN% %OTHER%
-  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN% %OTHER%
+  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN% --macros=%MACROS% %OTHER%
+  $QWANALYSIS/Extensions/Tracking/macros/process_run.sh --run=%RUN% --macros=%MACROS% %OTHER%
   echo "Finished at `date`"
 ]]></Command>
  <Job>

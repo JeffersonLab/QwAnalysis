@@ -10,6 +10,7 @@ TIME=`date +%H%M%S`
 
 RUN=""
 PASS=""
+MACROS="all"
 OTHER=""
 while [ $# -ge 1 ] ; do
 	case $1 in
@@ -21,6 +22,11 @@ while [ $# -ge 1 ] ; do
 	--pass=*)
 		PASS=${1/--pass=/}
 		echo "Analyzing pass ${PASS}..."
+		shift
+		;;
+	--macros=*)
+		MACROS=${1/--macros=/}
+		echo "Analyzing macros ${MACROS}..."
 		shift
 		;;
 	*)
@@ -47,6 +53,7 @@ echo "s|%DATE%|${DATE}|g"	>> ${SED}
 echo "s|%TIME%|${TIME}|g"	>> ${SED}
 echo "s|%PASS%|${PASS}|g"	>> ${SED}
 echo "s|%RUN%|${RUN}|g"		>> ${SED}
+echo "s|%MACROS%|${MACROS}|g"	>> ${SED}
 echo "s|%OTHER%|${OTHER}|g"	>> ${SED}
 
 if [ "$PASS" == "sim" ] ; then

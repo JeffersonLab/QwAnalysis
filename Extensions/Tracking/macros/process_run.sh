@@ -73,8 +73,13 @@ do
           ## This flag skips running the macros and regenerating the index page 
           ## if all you want to is to regenerate the run webpage
       --macros=*)
-          ONLY_SPECIFIED_MACROS=kTRUE
           MACROS_TO_RUN=`echo $i | sed 's/--macros=//'`
+          if [ "$MACROS_TO_RUN" == "all" ] ; then
+            ONLY_SPECIFIED_MACROS=kFALSE
+            MACROS_TO_RUN=""
+          else
+            ONLY_SPECIFIED_MACROS=kTRUE
+          fi
           ;;
           ## This flag skips running the macros and regenerating the index page
           ## if all you want to is to regenerate the run webpage
