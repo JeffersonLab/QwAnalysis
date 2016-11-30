@@ -63,6 +63,9 @@ do
       --run=*)
 	  RUNNUM=`echo $i | sed 's/--run=//'`
 	  ;;
+      --pass=*)
+	  PASSNUM=`echo $i | sed 's/--pass=//'`
+	  ;;
       --first100k)
 	  FIRST100K=kTRUE
 	  FIRST100KMESSAGE="(First 100k analysis)"
@@ -108,6 +111,13 @@ done
 if [ x${RUNNUM} ==  "x" ]
 then
    echo "Did not provide a run number! Provide it with --run=run_number"
+   exit -1;
+fi
+
+# Pass number is a REQUIRED parameter, complain!
+if [ x${PASSNUM} ==  "x" ]
+then
+   echo "Did not provide a pass number! Provide it with --pass=pass_number"
    exit -1;
 fi
 
@@ -189,6 +199,8 @@ cd ${BASEDIR}
 ## Create the log directory
 mkdir -p ${LOGDIR}
 
+echo "Adding pass information"
+WEBDIR=${WEBDIR}/pass${PASSNUM}
 echo "WEBDIR is now pointing to $WEBDIR"
 ## Create the web directory
 mkdir -p ${WEBDIR}/run_$RUNNUM
@@ -203,7 +215,7 @@ DATE=`date +%Y%m%d`
 TIME=`date +%H%M%S`
 
 ANALYSISDATE=$(date +"%Y-%m-%d %H:%M")
-## First create the web page 
+## First create the web page
 RUNPAGE="${WEBDIR}/run_$RUNNUM/run_$RUNNUM.html"
 echo "RUNPAGE is $RUNPAGE"
 # The body of the page
@@ -212,6 +224,7 @@ cat ${TEMPLATES}/run_page > $RUNPAGE
 cat ${TEMPLATES}/footer_run >> $RUNPAGE
 ## Then make the substitutions to make it relevant
 sed -i -e "s|%%RUNNUM%%|$RUNNUM|g" $RUNPAGE
+sed -i -e "s|%%PASSNUM%%|$PASSNUM|g" $RUNPAGE
 sed -i -e "s|%%ROOTDATE%%|$ROOTDATE|g"  $RUNPAGE
 sed -i -e "s|%%ANALYSISDATE%%|$ANALYSISDATE|g"  $RUNPAGE
 sed -i -e "s|%%FIRST100KMESSAGE%%|${FIRST100KMESSAGE}|g" $RUNPAGE
@@ -229,9 +242,8 @@ done
 if [ -f $PREVRUNPAGE ]
 then
     sed -i -e "s|Previous Run|<a href=\"../$PREVRUNLINK\">Run $PREVRUN</a>|" $RUNPAGE
-    sed -i -e "s|Next Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $PREVRUNPAGE
-    sed -i -e "s|<!--prev|<a href=\"../$PREVRUNLINK|" $RUNPAGE
-    sed -i -e "s|prev-->|\"><- Run $PREVRUN</a>|" $RUNPAGE
+    sed -i -e "s|<!--prevrun|<a href=\"../$PREVRUNLINK|" $RUNPAGE
+    sed -i -e "s|prevrun-->|\">\&larr; Run $PREVRUN</a>|" $RUNPAGE
 fi
 
 NEXTRUN=$RUNNUM
@@ -244,10 +256,41 @@ do
 done
 if [ -f $NEXTRUNPAGE ]
 then
-    sed -i -e "s|Previous Run|<a href=\"../run_$RUNNUM/run_$RUNNUM.html\">Run $RUNNUM</a>|" $NEXTRUNPAGE
     sed -i -e "s|Next Run|<a href=\"../run_$NEXTRUN/run_$NEXTRUN.html\">Run $NEXTRUN</a>|" $RUNPAGE
-    sed -i -e "s|<!--next|<a href=\"../$NEXTRUNLINK|" $RUNPAGE
-    sed -i -e "s|next-->|\">Run $NEXTRUN -></a>|" $RUNPAGE
+    sed -i -e "s|<!--nextrun|<a href=\"../$NEXTRUNLINK|" $RUNPAGE
+    sed -i -e "s|nextrun-->|\">Run $NEXTRUN \&rarr;</a>|" $RUNPAGE
+fi
+
+
+## Make links to other passes
+PREVPASS=$PASSNUM
+PREVPASSPAGE=$WEBDIR/not_there
+until [ -f $PREVPASSPAGE -o $PREVPASS -lt 1 ]
+do
+    let "PREVPASS -= 1"
+    PREVPASSPAGE=$WEBDIR/../pass$PREVPASS/run_$RUNNUM/run_$RUNNUM.html
+    PREVPASSLINK=../pass$PREVPASS/run_$RUNNUM/run_$RUNNUM.html
+done
+if [ -f $PREVPASSPAGE ]
+then
+    sed -i -e "s|Previous Pass|<a href=\"../$PREVPASSLINK\">Pass $PREVPASS</a>|" $RUNPAGE
+    sed -i -e "s|<!--prevpass|<a href=\"../$PREVPASSLINK|" $RUNPAGE
+    sed -i -e "s|prevpass-->|\">\&larr; Pass $PREVPASS</a>|" $RUNPAGE
+fi
+
+NEXTPASS=$PASSNUM
+NEXTPASSPAGE=$WEBDIR/not_there
+until [ -f $NEXTPASSPAGE -o $NEXTPASS -gt 20000 ]
+do
+    let "NEXTPASS += 1"
+    NEXTPASSPAGE=$WEBDIR/../pass$NEXTPASS/run_$RUNNUM/run_$RUNNUM.html
+    NEXTPASSLINK=../pass$NEXTPASS/run_$RUNNUM/run_$RUNNUM.html
+done
+if [ -f $NEXTPASSPAGE ]
+then
+    sed -i -e "s|Next Pass|<a href=\"../$NEXTPASSLINK\">Pass $NEXTPASS</a>|" $RUNPAGE
+    sed -i -e "s|<!--nextpass|<a href=\"../$NEXTPASSLINK|" $RUNPAGE
+    sed -i -e "s|nextpass-->|\">Pass $NEXTPASS \&rarr;</a>|" $RUNPAGE
 fi
 
 

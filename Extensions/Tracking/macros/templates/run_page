@@ -23,23 +23,29 @@
 
 <table border="0" width="100%">
 <tr>
-  <td><h2><-Previous Run</td></h2>
-  <td><h1 align="center">Run %%RUNNUM%% %%FIRST100KMESSAGE%%</h1></td>
-  <td><h2 align="right">Next Run-></td></h2>
-  <td><h2 align="right"><a href="../index.html">^Runlist^</a></td></h2>
+  <td width="20%"><h2 align="left"><!--prevpassprevpass--></h2></td>
+  <td width="40%"><h1 align="center">Pass %%PASSNUM%%</h1></td>
+  <td width="20%"><h2 align="right"><!--nextpassnextpass--></h2></td>
+  <td width="20%"><h2 align="right"><a href="../../index.html">&uarr;&uarr; Passlist &uarr;&uarr;</a></h2></td>
+</tr>
+<tr>
+  <td width="20%"><h2 align="left"><!--prevrunprevrun--></h2></td>
+  <td width="40%"><h1 align="center">Run %%RUNNUM%% %%FIRST100KMESSAGE%%</h1></td>
+  <td width="20%"><h2 align="right"><!--nextrunnextrun--></h2></td>
+  <td width="20%"><h2 align="right"><a href="../index.html">&uarr; Runlist &uarr;</a></h2></td>
 </tr>
 </table> 
 
 <table class="runpage-info" width="100%">
 <tr>
-	<td>Links</td>
+  <td>Links</td>
   <td>Start Run: %%STARTDATE%%</td>
-	<td>Links</td>
+  <td>Links</td>
 </tr>
 <tr>
-	<td><a href="./">Directory List</a></td>
-	<td>End Run: %%ENDDATE%%</td>
-	<td><a href="./">Directory List</a></td>
+  <td><a href="./">Directory List</a></td>
+  <td>End Run: %%ENDDATE%%</td>
+  <td><a href="./">Directory List</a></td>
 </tr>
 <tr>
   <td><a href="#Q2">Q2</a></td>
@@ -62,9 +68,9 @@
   <td><a href="#ts">Trigger Scint</a></td>
 </tr>
 <tr>
-	<td><a href="#hdc">HDCs</a></td>
+  <td><a href="#hdc">HDCs</a></td>
   <td></td>
-	<td><a href="#lumi">Lumis</a></td>
+  <td><a href="#lumi">Lumis</a></td>
 </tr>
 <tr>
   <td><a href="#QwHits">QwHits</a></td>
@@ -81,9 +87,13 @@
 
 <!-- New Topic -->
 
-
-<a name="Q2"></a>
-<center><h2>Q2 and Scattering Angle</h2></center>
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#Q2prevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#Q2prevrun--></h4></td>
+  <td width="60%"><a name="Q2"></a><h2 align="center">Q2 and Scattering Angle</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#Q2nextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#Q2nextpass--></h4></td>
+</tr></table>
 
 <center><p> 
 Q^2 and Theta for valid bridged tracks (all cuts are on). Left column is the scattering angle and the right 
@@ -97,9 +107,13 @@ The mean values and the error are given in the text file below the plot.
 
 <!-- New Topic -->
 
-
-<a name="BeamPositionQ2"></a>
-<center><h2>Q2 vs. X and Y Beam Position Plots</h2></center>
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#BeamPositionQ2prevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#BeamPositionQ2prevrun--></h4></td>
+  <td width="60%"><a name="BeamPositionQ2"></a><h2 align="center">Q2 vs. X and Y Beam Position Plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#BeamPositionQ2nextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#BeamPositionQ2nextpass--></h4></td>
+</tr></table>
 
 <center><p>
 All plots illustrate Q2 vs. beam position for x and y position (global) of the rastered beam.
@@ -118,10 +132,13 @@ the plots.
 
 <!-- New Topic -->
 
-
-<a name="Chi"></a>
-<center><h2>HDC Log(Chi) plots </h2></center>
-
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#Chiprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#Chiprevrun--></h4></td>
+  <td width="60%"><a name="Chi"></a><h2 align="center">HDC Log(Chi) plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#Chinextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#Chinextpass--></h4></td>
+</tr></table>
 
 <center><p>
 The log(Chi) values for each HDC plane (Region 2) are plotted.  <br>
@@ -151,8 +168,13 @@ From left to right the order is total package, X plane, U plane, V plane.</p></c
 <!-- New Topic -->
 
 
-<a name="Residual"></a>
-<center><h2>HDC Residuals</h2></center>
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#Residualprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#Residualprevrun--></h4></td>
+  <td width="60%"><a name="Residual"></a><h2 align="center">HDC Residuals</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#Residualnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#Residualnextpass--></h4></td>
+</tr></table>
 
 <center><p> The first two plots are for package 1 and package 2 respectively, for all 12 planes going 1-6 across the top and 7-12 across the bottom.<br>
 The X planes are red, the U planes are blue and the V planes are green.  <br>
@@ -190,12 +212,15 @@ RMS/sqrt(N).
 
 <!-- New Topic -->
 
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#hdcprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#hdcprevrun--></h4></td>
+  <td width="60%"><a name="hdc"></a><h2 align="center">Horizontal Drift Chamber Plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#hdcnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#hdcnextpass--></h4></td>
+</tr></table>
 
-<a name="hdc"></a>
-<center><h2>Horizontal Drift Chamber Plots</h2></center>
 <center><p>
-
-
 These plots graph the drift time and drift distance in Region 2 for each set of  planes of wires: x,u,v.  <br>
 Package 1 is plotted on the left and package 2 on the right.  <br>
 In both, the drift distance is across the top and the drift time is across the bottom.
@@ -225,11 +250,15 @@ These plots graph the wire hit patterns for each plane of each HDC chamber for a
 
 <!-- New Topic -->
 
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#QwHitsprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#QwHitsprevrun--></h4></td>
+  <td width="60%"><a name="QwHits"></a><h2 align="center">QwHits Plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#QwHitsnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#QwHitsnextpass--></h4></td>
+</tr></table>
 
-<a name="QwHits"></a>
-<center><h2>QwHits plots</h2></center>
 <center><p>
-
 The first plot is the QwHits in each region: 2 == Region 2, 
 3 == Region 3, 4 == Trigger Scintillator, 5 == scanner. <br>
 The second plot is the QwHits in each package. <br>
@@ -265,9 +294,13 @@ This is a plot of the log of the number of bridged tracks per event.
 
 <!-- New Topic -->
 
-
-<a name="OctantDetermination"></a>
-<center><h2>Octant Determination Plots</h2></center>
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#OctantDeterminationprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#OctantDeterminationprevrun--></h4></td>
+  <td width="60%"><a name="OctantDetermination"></a><h2 align="center">Octant Determination Plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#OctantDeterminationnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#OctantDeterminationnextpass--></h4></td>
+</tr></table>
 
 <center><p>
 The first two plots graph the main detector ADC signal (both PMTs summed) 
@@ -303,11 +336,13 @@ analyzer graphed in the center.
 </div>
 </p></center>
 
-
-<a name="vdc"></a>
-
-
-<center><h2>Vertical Drift Chamber Plots</h2></center>
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#vdcprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#vdcprevrun--></h4></td>
+  <td width="60%"><a name="vdc"></a><h2 align="center">Vertical Drift Chamber Plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#vdcnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#vdcnextpass--></h4></td>
+</tr></table>
 
 <center><p>
 The plots in this section are for all VDC hits (no requirement that they be used in valid tracks).<br> 
@@ -364,11 +399,15 @@ This plot shows the drift time distributions for the VDCs (all hits).
 
 <!-- New Topic -->
 
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#R3TreelinesMatchUpprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#R3TreelinesMatchUpprevrun--></h4></td>
+  <td width="60%"><a name="R3TreelinesMatchUp"></a><h2 align="center">R3 match up of the treelines</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#R3TreelinesMatchUpnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#R3TreelinesMatchUpnextpass--></h4></td>
+</tr></table>
 
-<a name="R3TreelinesMatchUp"></a>
-<center><h2>R3 match up of the treelines</h2></center>
 <center><p>
-
 These plots are to investigate how well the treelines in each plane
 match up with each other.  They are of the slope and the Chi^2 values
 of ALL (no cuts as of 04-15-2014) the treelines in the file.  <br> This is
@@ -507,9 +546,14 @@ by the summary in a text file.
 
 <!-- New Topic -->
 
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#R3Offsetsprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#R3Offsetsprevrun--></h4></td>
+  <td width="60%"><a name="R3Offsets"></a><h2 align="center">R3 offset plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#R3Offsetsnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#R3Offsetsnextpass--></h4></td>
+</tr></table>
 
-<a name="R3Offsets"></a>
-<center><h2>R3 offset plots</h2></center>
 <center><p>
 These plots are looking at the offsets in direction (in the real world, momentum)
 of the Theta (top) and Phi (bottom) angles.  The plots from left to right are package 0 (both), 1,
@@ -522,9 +566,14 @@ of the Theta (top) and Phi (bottom) angles.  The plots from left to right are pa
 
 <!-- New Topic -->
 
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#tsprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#tsprevrun--></h4></td>
+  <td width="60%"><a name="ts"></a><h2 align="center">Trigger Scintillator Plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#tsnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#tsnextpass--></h4></td>
+</tr></table>
 
-<a name="ts"></a>
-<center><h2>Trigger Scintillator Plots</h2></center>
 <center><p>
 Graphs the two trigger scintillator scaler values vs time (event number).
 </p></center>
@@ -533,9 +582,14 @@ Graphs the two trigger scintillator scaler values vs time (event number).
 
 <!-- New Topic -->
 
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#lumiprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#lumiprevrun--></h4></td>
+  <td width="60%"><a name="lumi"></a><h2 align="center">Luminosity Detector Plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#luminextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#luminextpass--></h4></td>
+</tr></table>
 
-<a name="lumi"></a>
-<center><h2>Luminosity Detector Plots</h2></center>
 <center><p>
 Graph of all 8 dslumi rates vs. time (mps counter)
 </p></center>
@@ -553,9 +607,14 @@ Graphs all 4 dslumi rates ratios vs. time on one canvas
 
 <!-- New Topic -->
 
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#QTORprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#QTORprevrun--></h4></td>
+  <td width="60%"><a name="QTOR"></a><h2 align="center">QTOR current vs. time Plots</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#QTORnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#QTORnextpass--></h4></td>
+</tr></table>
 
-<a name="QTOR"></a>
-<center><h2>QTOR current vs. time Plots</h2></center>
 <center><p>
 Graphs the QTOR current vs event number.
 </p></center>
@@ -565,11 +624,15 @@ Graphs the QTOR current vs event number.
 
 <!-- New Topic -->
 
+<table border="0" width="100%"><tr>
+  <td width="10%"><h4 align="left"><!--prevpass#NumTracksprevpass--></h4></td>
+  <td width="10%"><h4 align="left"><!--prevrun#NumTracksprevrun--></h4></td>
+  <td width="60%"><a name="NumTracks"></a><h2 align="center">Number of Good Events in Various Categories</h2></td>
+  <td width="10%"><h4 align="right"><!--nextrun#NumTracksnextrun--><h4></td>
+  <td width="10%"><h4 align="right"><!--nextpass#NumTracksnextpass--></h4></td>
+</tr></table>
 
-<a name="NumTracks"></a>
-<center><h2>Number of Good Events in Various Categories</h2></center>
 <center><p>
-
 Graph the number of events in this run and the number of good events for 
 Hits, Treelines, Partial Tracks, and Tracks.
 Goal of this is to try and see where we might be losing good tracks.
