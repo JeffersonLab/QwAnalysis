@@ -56,7 +56,7 @@ echo "s|%RUN%|${RUN}|g"		>> ${SED}
 echo "s|%MACROS%|${MACROS}|g"	>> ${SED}
 echo "s|%OTHER%|${OTHER}|g"	>> ${SED}
 
-if [ "$PASS" == "sim" ] ; then
+if [ $RUN -lt 5000 ] ; then
   BASE=${QWANALYSIS}/Extensions/Tracking/macros/submit_sim.xml
 else
   BASE=${QWANALYSIS}/Extensions/Tracking/macros/submit_run.xml
