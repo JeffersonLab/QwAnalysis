@@ -9,7 +9,7 @@
 // reconstruction by "imaging" the Main Detector (hence the name of the script)
 //
 //  It is only for the MD "imaged" by Region 3 package 2.
-//  An essentially identical script, auto_MD_image_pack2.C, does the same
+//  An essentially identical script, auto_MD_image_pack1.C, does the same
 //  thing for package 1.
 //
 //  Yes, this is inelegant; but the original script did one package
@@ -94,11 +94,12 @@ void auto_MD_image(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
   fout.open(outputPrefix+"md_image_p2.txt");
   fout2.open(outputPrefix+"md_attenuation_p2.txt");
 
+
   QwEvent* fEvent=0;
 
 // How many events are in this rootfile?
 
-  //get octant number for package two
+  //get octant number for package one
   int package =2;
   int md_number = DetermineOctantRegion3(event_tree, package);
   cout << "octant number = " << md_number << "  package = 2" << endl; 
@@ -168,10 +169,10 @@ void auto_MD_image(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
       for(int num_p=0; num_p < fEvent->GetNumberOfPartialTracks(); num_p++)
 	{
-	  pdataplus = mdp_t->GetValue();
-	  pdataminus = mdm_t->GetValue();
-	  padcp = mdp->GetValue();
-	  padcm = mdm->GetValue();
+	  if (mdp_t) pdataplus = mdp_t->GetValue();
+	  if (mdm_t) pdataminus = mdm_t->GetValue();
+	  if (mdp) padcp = mdp->GetValue();
+	  if (mdm) padcm = mdm->GetValue();
 
 	  if(pdataplus == 0 && pdataminus == 0)
 	    {
@@ -192,7 +193,7 @@ void auto_MD_image(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
   Double_t adcmmean = adcmped->GetMean();
 
   //  for short-test purposes only 
-  //   for(int i = 0; i < 105000; i++)
+  //    for(int i = 0; i < 105000; i++)
   for(int i = 0; i < nevents; i++)
 	{
 	  if(i % 100000 == 0) cout <<"events processed so far:" << i << endl;
@@ -220,10 +221,10 @@ void auto_MD_image(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	      x = xx;
 	      y = yy;
 
-	      Double_t adcpdata = mdp->GetValue();
-	      Double_t adcmdata = mdm->GetValue();
-	      Double_t tdcpdata = mdp_t->GetValue();
-	      Double_t tdcmdata = mdm_t->GetValue();
+	      Double_t adcpdata = mdp? mdp->GetValue(): 0;
+	      Double_t adcmdata = mdm? mdm->GetValue(): 0;
+	      Double_t tdcpdata = mdp_t? mdp_t->GetValue(): 0;
+	      Double_t tdcmdata = mdm_t? mdm_t->GetValue(): 0;
 	      Double_t weight = adcpdata + adcmdata;
 
 	      if (adcpdata!=0.0 && adcmdata!=0.0 && tdcpdata<-10 && tdcmdata <-10)
@@ -304,7 +305,7 @@ void auto_MD_image(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
   Double_t effvalue = 0;
   Double_t effmean;
 
-  for (Int_t w = 0;w < size;w = w + 1)
+  for (Int_t w = 0; w < size; w = w + 1)
     {
       effvalue = effvalue + efficiency[w];
       product = xpos[w] * efficiency[w];
@@ -514,7 +515,7 @@ TCanvas  *fulls = new TCanvas("FULLS","Full Profiles", 10, 10, 800, 800);
       nslopem2 = mslope2 / p;
     }
 
-  fout2 << "Run \t Pack. \t Octant\t gja_p    \t gja_m    \t slope_p1 \t slope_p2 \t slope_m1 \t slope_m2" << endl;
+  fout2 << "Run \t Pack. \t Octant\t gja_p    \t gja_m    \t slope_p2 \t slope_p2 \t slope_m1 \t slope_m2" << endl;
 
   fout2 << runnum << " \t " << package << " \t " << md_number << " \t " <<  gjap << " \t " << gjam << " \t " << nslopep1 << " \t " << nslopep2 << " \t " << nslopem1 << " \t " << nslopem2 << endl; 
 
@@ -544,3 +545,4 @@ int DetermineOctantRegion3(TChain* event_tree, int package)
 	  delete h;
 	  return oct;
 }
+

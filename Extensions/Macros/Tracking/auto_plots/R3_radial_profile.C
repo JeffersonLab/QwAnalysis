@@ -105,7 +105,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   int ped_mdm = 270;
   int ped_mdp = 250;
 
-  TString outputPrefix(Form("Radial_MD%d_",run_number,md_number));
+  TString outputPrefix(Form("Radial_MD_pkg%d_",package));
 
   TString file_name = "";
   file_name += gSystem->Getenv ( "QW_ROOTFILES" );
@@ -186,11 +186,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   TH1D* h_1f=new TH1D("project run","project run",240,280,400);
   TH1D* md_adc = new TH1D("md_adc", Form("Run %d Summed MD%d ADC (pedestal subtracted)",run_number, md_number),1000, 0, 6000);
   TH1D* md_adc_center = new TH1D("md_adc_center", Form("Run %d Summed MD%d ADC (bar center, ped. sub.)",run_number, md_number),1000, 0, 6000);
-  TH1D* md_adc_loose = new TH1D("md_adc_center", Form("Run %d Summed MD%d ADC (>= 1TDC), ped. sub.)",run_number, md_number),1000, 0, 6000);
+  TH1D* md_adc_loose = new TH1D("md_adc_loose", Form("Run %d Summed MD%d ADC (>= 1TDC), ped. sub.)",run_number, md_number),1000, 0, 6000);
   TH1D* adcph = new TH1D("ADCP", Form("Run %d  MD%d+ ADC (pedestal subtracted)",run_number, md_number), 1650, 0, 3500);
   TH1D* adcmh = new TH1D("ADMP", Form("Run %d  MD%d- ADC (pedestal subtracted)",run_number, md_number), 1650, 0, 3500);
-  TH1D* adcphz = new TH1D("ADCP", Form("Run %d  MD%d+ ADC (pedestal subtracted, zoom)",run_number, md_number), 250, 0, 250);
-  TH1D* adcmhz = new TH1D("ADMP", Form("Run %d  MD%d- ADC (pedestal subtracted, zoom)",run_number, md_number), 250, 0, 250);
+  TH1D* adcphz = new TH1D("ADCPZ", Form("Run %d  MD%d+ ADC (pedestal subtracted, zoom)",run_number, md_number), 250, 0, 250);
+  TH1D* adcmhz = new TH1D("ADMPZ", Form("Run %d  MD%d- ADC (pedestal subtracted, zoom)",run_number, md_number), 250, 0, 250);
   TH1D* adcpthresh = new TH1D("ADCPTHRESH", Form("Run %d MD%d ADC+, no TDC",run_number,md_number), 200, 0, 250);
   TH1D* adcmthresh = new TH1D("ADCMTHRESH", Form("Run %d MD%d ADC-, no TDC",run_number,md_number), 200, 0, 250);
   TH1D* tdcph = new TH1D("TDCP", "TDCP data", 1650, 0, 0);
@@ -253,12 +253,16 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
   branch_event->SetAddress(&fEvent);
 
-  TLeaf* mdp=branch->GetLeaf(Form("md%dp_adc",md_number));
-  TLeaf* mdm=branch->GetLeaf(Form("md%dm_adc",md_number));
+  TLeaf* mdp = 0;
+  if (branch) mdp = branch->GetLeaf(Form("md%dp_adc",md_number));
+  TLeaf* mdm = 0;
+  if (branch) mdm = branch->GetLeaf(Form("md%dm_adc",md_number));
 
-  TLeaf* mdp_t=branch->GetLeaf(Form("md%dp_f1",md_number));
-  TLeaf* mdm_t=branch->GetLeaf(Form("md%dm_f1",md_number));
-  
+  TLeaf* mdp_t = 0;
+  if (branch) mdp_t = branch->GetLeaf(Form("md%dp_f1",md_number));
+  TLeaf* mdm_t = 0;
+  if (branch) mdm_t = branch->GetLeaf(Form("md%dm_f1",md_number));
+
 
   Int_t nevents=event_tree->GetEntries();
   Int_t r3_events =0;
@@ -280,14 +284,14 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   for (int i=0;i<10000;i++)
     {
       branch_event->GetEntry(i);
-      branch->GetEntry(i);
+      if (branch) branch->GetEntry(i);
 
       //      for(int num_p=0; num_p < fEvent->GetNumberOfPartialTracks(); num_p++)
       //	{
-          Double_t pdataplus = mdp_t->GetValue();
-	  Double_t pdataminus = mdm_t->GetValue();
-	  Double_t padcp = mdp->GetValue();
-	  Double_t padcm = mdm->GetValue();
+          Double_t pdataplus = mdp_t? mdp_t->GetValue(): 0;
+	  Double_t pdataminus = mdm_t? mdm_t->GetValue(): 0;
+	  Double_t padcp = mdp? mdp->GetValue(): 0;
+	  Double_t padcm = mdm? mdm->GetValue(): 0;
 
 	  if(pdataplus == 0 && pdataminus == 0)
 	    {
@@ -320,12 +324,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	{
 	  if(i % 100000 == 0) cout <<"events processed so far:" << i << endl;
 	  branch_event->GetEntry(i);
-	  branch->GetEntry(i);
-
-          Double_t pdataplus = mdp_t->GetValue();
-	  Double_t pdataminus = mdm_t->GetValue();
-	  Double_t padcp = mdp->GetValue();
-	  Double_t padcm = mdm->GetValue();
+	  if (branch) branch->GetEntry(i);
 
 	  Double_t xoffset, yoffset, xslope, yslope, x, y;
 	  //    weight = 0;
@@ -348,7 +347,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	    if(hit_d->GetRegion()==5 && hit_d->GetPlane()==md_number && hit_d->GetElement()==2 ) {
 	      if (hit_d->GetTimeNs()<-150 && hit_d->GetTimeNs()>-210) prompt_mdm++;
 	      if (hit_d->GetTimeNs()<=-210) early_hit++;
-	    }	    
+	    }
 	    if(hit_d->GetRegion()==4 && hit_d->GetPlane()==package && hit_d->GetElement()==0) {
 	      if (hit_d->GetTimeNs()>-140 && hit_d->GetTimeNs()<-135) prompt_ts++;
 	      if (hit_d->GetTimeNs()<=-140) early_hit++;
@@ -377,15 +376,23 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 	      x = xx;
 	      y = yy;
 
+              Double_t pdataplus = mdp_t? mdp_t->GetValue(): -100;
+	      Double_t pdataminus = mdm_t? mdm_t->GetValue(): -100;
+	      Double_t padcp = mdp? mdp->GetValue(): 500+y;
+	      Double_t padcm = mdm? mdm->GetValue(): 500-y;
+
 	      Double_t m = padcm;
 	      Double_t p = padcp;
+	      Double_t p_t = pdataplus;
+	      Double_t m_t = pdataminus;
+
 	      Double_t weight = 1.0;
-	      Double_t adcpdata = mdp->GetValue();
-	      Double_t adcmdata = mdm->GetValue();
-	      Double_t tdcpdata = mdp_t->GetValue();
-	      Double_t tdcmdata = mdm_t->GetValue();
-	      int p_t = pdataplus;
-	      int m_t = pdataminus;
+
+	      Double_t adcpdata = mdp? mdp->GetValue(): 500+y;
+	      Double_t adcmdata = mdm? mdm->GetValue(): 500-y;
+	      Double_t tdcpdata = mdp_t? mdp_t->GetValue(): -100;
+	      Double_t tdcmdata = mdm_t? mdm_t->GetValue(): -100;
+
 	      if (pe==true) {
 		p = p/pe_convert[2*md_number-1];
 		m = m/pe_convert[2*(md_number-1)];

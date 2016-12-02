@@ -244,20 +244,21 @@ void LightWeighting (int runnum, bool is100k)
   //create a vector of vectors of TH1D histogram pointer
   //lw = light weighting
   //p = pedestal
-  TCanvas* c_q2_proj = new TCanvas ("c_q2_proj","Q2 vs. position on bar", 700,800);
-  TCanvas* c_lw_proj = new TCanvas ("c_lw_proj","Light yield vs. position on bar", 700,800);
-  TCanvas* c_sa_proj = new TCanvas ("c_sa_proj","Scattering Angle vs. position on bar", 700,800);
-  TCanvas* c_q2_lw = new TCanvas ("c_q2_lw", "Q2 with light wieghting and no pedestal", 700,800);
-  TCanvas* c_q2 = new TCanvas ("c_q2", "Q2", 700,800);
-  TCanvas* c_q2_lw_p = new TCanvas ("c_q2_lw_p","Q2 value with light wieghting and pedestal", 700,800);
+  TCanvas* c_q2_proj = new TCanvas ("c_q2_proj","Q2 vs. position on bar", 700,600);
+  TCanvas* c_lw_proj = new TCanvas ("c_lw_proj","Light yield vs. position on bar", 700,600);
+  TCanvas* c_sa_proj = new TCanvas ("c_sa_proj","Scattering Angle vs. position on bar", 700,600);
+
+  TCanvas* c_q2 = new TCanvas ("c_q2", "Q2", 700,600);
+  TCanvas* c_q2_lw = new TCanvas ("c_q2_lw", "Q2 with light wieghting and no pedestal", 700,600);
+  TCanvas* c_q2_lw_p = new TCanvas ("c_q2_lw_p","Q2 value with light wieghting and pedestal", 700,600);
 
   //divide all the canvases so that pkg one and two are next to each other
   c_q2_proj->Divide(0,2);
   c_lw_proj->Divide(0,2);
   c_sa_proj->Divide(0,2);
-  c_q2_lw->Divide(2,0);
-  c_q2->Divide(2,0);
-  c_q2_lw_p->Divide(2,0);
+  c_q2->Divide(2,2);
+  c_q2_lw->Divide(2,2);
+  c_q2_lw_p->Divide(2,2);
 
   for (size_t pkg =1; pkg < h_q2.size(); pkg ++)
   {
@@ -276,14 +277,28 @@ void LightWeighting (int runnum, bool is100k)
     h_sa_prof[pkg]->SetLineColor(kRed);
     h_sa_prof[pkg]->Draw("same");
 
-    c_q2_lw->cd(pkg);
-    h_q2_lw[pkg]->Draw();
-
+    gPad->SetLogy(0);
     c_q2->cd(pkg);
     h_q2[pkg]->Draw();
+    gPad->SetLogy(1);
+    c_q2->cd(pkg+2);
+    h_q2[pkg]->Draw();
 
+    gPad->SetLogy(0);
+    c_q2_lw->cd(pkg);
+    h_q2_lw[pkg]->Draw();
+    gPad->SetLogy(1);
+    c_q2_lw->cd(pkg+2);
+    h_q2_lw[pkg]->Draw();
+
+    gPad->SetLogy(0);
     c_q2_lw_p->cd(pkg);
     h_q2_lw_p[pkg]->Draw();
+    gPad->SetLogy(1);
+    c_q2_lw_p->cd(pkg+2);
+    h_q2_lw_p[pkg]->Draw();
+
+    gPad->SetLogy(0);
   }
 
   //save the canvas as a png file - right now it goes to the $QWSCRATCH/tracking/www/ directory
@@ -293,10 +308,10 @@ void LightWeighting (int runnum, bool is100k)
   c_lw_proj->SaveAs(Prefix+"Light_yield_vs_position_on_bar.C");
   c_sa_proj->SaveAs(Prefix+"Scattering_angle_vs_position_on_bar.png");
   c_sa_proj->SaveAs(Prefix+"Scattering_angle_vs_position_on_bar.C");
-  c_q2_lw->SaveAs(Prefix+"Q2_with_light_weighting_and_NO_pedestal.png");
-  c_q2_lw->SaveAs(Prefix+"Q2_with_light_weighting_and_NO_pedestal.C");
   c_q2->SaveAs(Prefix+"Q2.png");
   c_q2->SaveAs(Prefix+"Q2.C");
+  c_q2_lw->SaveAs(Prefix+"Q2_light_weighting_NO_pedestal.png");
+  c_q2_lw->SaveAs(Prefix+"Q2_light_weighting_NO_pedestal.C");
   c_q2_lw_p->SaveAs(Prefix+"Q2_light_weighting_and_pedestal.png");
   c_q2_lw_p->SaveAs(Prefix+"Q2_light_weighting_and_pedestal.C");
 

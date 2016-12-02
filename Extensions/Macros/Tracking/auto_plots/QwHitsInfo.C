@@ -394,7 +394,10 @@ void QwHits_Element (TChain * event_tree)
 		for (int w = 0 ; w < 3; w++)
 		{
 	        	//define the histograms 1 through 4 - one for each plain and on for the all of them
-       		 	h4[q][w]= new TH1D (Form("h4[%d][%d]",q,w),Form("QwHits - Element for Region %d, Package %d",q,w),33,-0.5,32.5);
+			Int_t nbins = (q==3)? 282: 33;
+			Double_t minbin = -0.5;
+			Double_t maxbin = nbins - 0.5;
+       			h4[q][w]= new TH1D (Form("h4[%d][%d]",q,w),Form("QwHits - Element for Region %d, Package %d",q,w),nbins,minbin,maxbin);
 			//h4[region][package]
 		}
 	}

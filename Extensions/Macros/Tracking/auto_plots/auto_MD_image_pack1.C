@@ -169,10 +169,10 @@ void auto_MD_image(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 
       for(int num_p=0; num_p < fEvent->GetNumberOfPartialTracks(); num_p++)
 	{
-	  pdataplus = mdp_t->GetValue();
-	  pdataminus = mdm_t->GetValue();
-	  padcp = mdp->GetValue();
-	  padcm = mdm->GetValue();
+	  if (mdp_t) pdataplus = mdp_t->GetValue();
+	  if (mdm_t) pdataminus = mdm_t->GetValue();
+	  if (mdp) padcp = mdp->GetValue();
+	  if (mdm) padcm = mdm->GetValue();
 
 	  if(pdataplus == 0 && pdataminus == 0)
 	    {
@@ -221,10 +221,10 @@ void auto_MD_image(Int_t runnum, Bool_t isFirst100K = kFALSE, int event_start=-1
 	      x = xx;
 	      y = yy;
 
-	      Double_t adcpdata = mdp->GetValue();
-	      Double_t adcmdata = mdm->GetValue();
-	      Double_t tdcpdata = mdp_t->GetValue();
-	      Double_t tdcmdata = mdm_t->GetValue();
+	      Double_t adcpdata = mdp? mdp->GetValue(): 0;
+	      Double_t adcmdata = mdm? mdm->GetValue(): 0;
+	      Double_t tdcpdata = mdp_t? mdp_t->GetValue(): 0;
+	      Double_t tdcmdata = mdm_t? mdm_t->GetValue(): 0;
 	      Double_t weight = adcpdata + adcmdata;
 
 	      if (adcpdata!=0.0 && adcmdata!=0.0 && tdcpdata<-10 && tdcmdata <-10)

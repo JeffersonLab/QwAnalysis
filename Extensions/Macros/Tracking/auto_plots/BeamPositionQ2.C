@@ -80,9 +80,11 @@ void BeamPositionQ2(int runnum, bool is100k)
 
       // Pull out the raw adc position data
       TBranch* beamline_branch = event_tree->GetBranch("beamline");
+      TLeaf* raster_posx = 0;
+      TLeaf* raster_posy = 0;
       if (beamline_branch) {
-        TLeaf* raster_posx = beamline_branch->GetLeaf("raster_posx_adc_raw");
-        TLeaf* raster_posy = beamline_branch->GetLeaf("raster_posy_adc_raw");
+        raster_posx = beamline_branch->GetLeaf("raster_posx_adc_raw");
+        raster_posy = beamline_branch->GetLeaf("raster_posy_adc_raw");
       } else {
         cout << "Error: no beamline branch found (this script does not support simulation files)." << endl;
         return;
@@ -92,17 +94,17 @@ void BeamPositionQ2(int runnum, bool is100k)
       slow_tree->Add(Form("$QW_ROOTFILES/Qweak_%d.root",runnum));
 
       // Pull out the raster widths for x and y
-      TBranch* rasterX = slow_tree->GetBranch("EHCFR_LIXWidth");
-      TLeaf* rasterX_leaf = rasterX->GetLeaf("EHCFR_LIXWidth");
+      TBranch* rasterX = slow_tree? slow_tree->GetBranch("EHCFR_LIXWidth"): 0;
+      TLeaf* rasterX_leaf = rasterX? rasterX->GetLeaf("EHCFR_LIXWidth"): 0;
 
-      TBranch* rasterY = slow_tree->GetBranch("EHCFR_LIYWidth");
-      TLeaf* rasterY_leaf = rasterY->GetLeaf("EHCFR_LIYWidth");
-
-      slow_tree->GetEntry();
+      TBranch* rasterY = slow_tree? slow_tree->GetBranch("EHCFR_LIYWidth"): 0;
+      TLeaf* rasterY_leaf = rasterY? rasterY->GetLeaf("EHCFR_LIYWidth"): 0;
 
       // Actually pull raster size as float
-      float RasterX_size = float(rasterX_leaf->GetValue());
-      float RasterY_size = float(rasterY_leaf->GetValue());
+      int n = slow_tree->GetEntry();
+
+      float RasterX_size = (n > 0)? float(rasterX_leaf->GetValue()): 4.0;
+      float RasterY_size = (n > 0)? float(rasterY_leaf->GetValue()): 4.0;
 
       // Draw histograms of position data -- do not draw
       TH1D h_posx("h_posx","X-Position",100,1000.0,2000.0);
@@ -150,7 +152,7 @@ void BeamPositionQ2(int runnum, bool is100k)
       fitx.resize(3);
 
       // Create X and Y Position TProfiles, titles on axis, fit them
-      for (int j  = 0; j < Q2BeamXPositionTProfile.size(); j ++)
+      for (size_t j  = 0; j < Q2BeamXPositionTProfile.size(); j ++)
       {
           Q2BeamXPositionTProfile[j] = new TProfile(Form("Q2BeamXPositionTProfile[%d]",j), Form("Q^2 vs X Beam Position for %s",package[j].c_str()), bin_size,(-1/2)*RasterX_size,(1/2)*RasterX_size, min_Q2, max_Q2);
           Q2BeamXPositionTProfile[j]->GetYaxis()->SetTitle("Q^2 (m(GeV)^2)");
@@ -162,7 +164,7 @@ void BeamPositionQ2(int runnum, bool is100k)
        Q2BeamYPositionTProfile.resize(3);
        fity.resize(3);
 
-       for (int j  = 0; j < Q2BeamYPositionTProfile.size(); j ++)
+       for (size_t j  = 0; j < Q2BeamYPositionTProfile.size(); j ++)
        {
 
           Q2BeamYPositionTProfile[j]= new TProfile(Form("Q2BeamYPositionTProfile[%d]",j), Form("Q^2 vs Y Beam Position for %s",package[j].c_str()), bin_size, (-1/2)*RasterY_size, (1/2)*RasterY_size, min_Q2, max_Q2);
@@ -253,8 +255,8 @@ void BeamPositionQ2(int runnum, bool is100k)
 
 //-------------Draw Things--------------------
 
-      TCanvas* Q2BeamXPositionTCanvas = new TCanvas("Q2BeamXPositionTCanvas", "Q^2 vs. x position", 450, 350);
-      TCanvas* Q2BeamYPositionTCanvas = new TCanvas("Q2BeamYPositionTCanvas", "Q^2 vs. y position", 450, 350);
+      TCanvas* Q2BeamXPositionTCanvas = new TCanvas("Q2BeamXPositionTCanvas", "Q^2 vs. x position", 900, 400);
+      TCanvas* Q2BeamYPositionTCanvas = new TCanvas("Q2BeamYPositionTCanvas", "Q^2 vs. y position", 900, 400);
 
       Q2BeamXPositionTCanvas->Divide(3);
       Q2BeamYPositionTCanvas->Divide(3);

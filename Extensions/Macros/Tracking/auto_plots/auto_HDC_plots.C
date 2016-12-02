@@ -97,9 +97,9 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 	TH1D* T3 = new TH1D ("T3","Hokie 4: fTimeNS",100,-100,400);
 	TH1D* T4 = new TH1D ("T4","Hokie 5: fTimeNS",100,-100,400);
 	TH1D* T5 = new TH1D ("T5","Hokie 2: fTimeNS-Log Scale",100,-100,1600);
-	TH1D* T6 = new TH1D ("T6","Hokie 2: fTimeNS-Log Scale",100,-100,1600);
-	TH1D* T7 = new TH1D ("T7","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
-	TH1D* T8 = new TH1D ("T8","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
+	TH1D* T6 = new TH1D ("T6","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
+	TH1D* T7 = new TH1D ("T7","Hokie 4: fTimeNS-Log Scale",100,-100,1600);
+	TH1D* T8 = new TH1D ("T8","Hokie 5: fTimeNS-Log Scale",100,-100,1600);
 
 	//Define the drift time histos for full run
 	TH1D* S1 = new TH1D ("S1","Hokie 2: fTimeNS",100,-100,400);
@@ -107,9 +107,9 @@ void auto_HDC_plots(int runnum, Bool_t isFirst100K = kFALSE){
 	TH1D* S3 = new TH1D ("S3","Hokie 4: fTimeNS",100,-100,400);
 	TH1D* S4 = new TH1D ("S4","Hokie 5: fTimeNS",100,-100,400);
 	TH1D* S5 = new TH1D ("S5","Hokie 2: fTimeNS-Log Scale",100,-100,1600);
-	TH1D* S6 = new TH1D ("S6","Hokie 2: fTimeNS-Log Scale",100,-100,1600);
-	TH1D* S7 = new TH1D ("S7","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
-	TH1D* S8 = new TH1D ("S8","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
+	TH1D* S6 = new TH1D ("S6","Hokie 3: fTimeNS-Log Scale",100,-100,1600);
+	TH1D* S7 = new TH1D ("S7","Hokie 4: fTimeNS-Log Scale",100,-100,1600);
+	TH1D* S8 = new TH1D ("S8","Hokie 5: fTimeNS-Log Scale",100,-100,1600);
 
 
 	//Create and Divide canvases
