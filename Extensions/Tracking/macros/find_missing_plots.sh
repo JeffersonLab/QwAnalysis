@@ -2,7 +2,7 @@
 
 echo "Generating list of all possible files..."
 list=`find /group/qweak/www/html/tracking/pass7/run_* -type f | \
- sed 's|.*/||' | cut -d_ -f2- | grep -v sed | grep -v ^.nfs | grep -v ^Radial | grep -v html | \
+ sed 's|.*/||' | cut -d_ -f2- | grep -v sed | grep -v ^.nfs | grep -v html | \
  sort | uniq`
 for file in ${list} ; do
   echo ${file}
