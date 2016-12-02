@@ -36,6 +36,7 @@ echo "WEBDIR is pointing to ${WEBDIR}"
 ## Path to all extensions
 QWEXTENSIONS=${QWANALYSIS}/Extensions
 echo -e "QWEXTENSIONS is ${QWEXTENSIONS} \n\n"
+
 ## The default should be analyze the full run and not the first 100K
 FIRST100K=kFALSE
 
@@ -200,13 +201,15 @@ cd ${BASEDIR}
 mkdir -p ${LOGDIR}
 
 echo "Adding pass information"
+mkdir -p ${WEBDIR}/pass${PASSNUM}
+PASSLIST=`find ${WEBDIR}/ -maxdepth 1 -name "pass*" -type d`
 WEBDIR=${WEBDIR}/pass${PASSNUM}
 echo "WEBDIR is now pointing to $WEBDIR"
 ## Create the web directory
 mkdir -p ${WEBDIR}/run_$RUNNUM
 
-ROOTFILE=`ls ${QW_ROOTFILES}/Qweak_$RUNNUM.*root | head -n 1`
-if [ -f $ROOTFILE ]
+ROOTFILE=`find ${QW_ROOTFILES}/ -name "Qweak_$RUNNUM.*root" 2> /dev/null | head -n 1`
+if [ -f /$ROOTFILE ]
 then
     ROOTDATE=$(stat -c %y $ROOTFILE | cut -f1 -d".")
 fi
@@ -239,6 +242,7 @@ do
     PREVRUNPAGE=$WEBDIR/run_$PREVRUN/run_$PREVRUN.html
     PREVRUNLINK=run_$PREVRUN/run_$PREVRUN.html
 done
+echo "PREVRUN = $PREVRUN"
 if [ -f $PREVRUNPAGE ]
 then
     sed -i -e "s|Previous Run|<a href=\"../$PREVRUNLINK\">Run $PREVRUN</a>|" $RUNPAGE
@@ -254,6 +258,7 @@ do
     NEXTRUNPAGE=$WEBDIR/run_$NEXTRUN/run_$NEXTRUN.html
     NEXTRUNLINK=run_$NEXTRUN/run_$NEXTRUN.html
 done
+echo "NEXTRUN = $NEXTRUN"
 if [ -f $NEXTRUNPAGE ]
 then
     sed -i -e "s|Next Run|<a href=\"../run_$NEXTRUN/run_$NEXTRUN.html\">Run $NEXTRUN</a>|" $RUNPAGE
@@ -263,34 +268,34 @@ fi
 
 
 ## Make links to other passes
-PREVPASS=$PASSNUM
+PREVPASS=`echo "$PASSLIST" | grep -B1 "$PASSNUM\$" | head -n 1 | rev | cut -f1 -d/ | rev`
+echo "PREVPASS = $PREVPASS"
 PREVPASSPAGE=$WEBDIR/not_there
-until [ -f $PREVPASSPAGE -o $PREVPASS -lt 1 ]
-do
-    let "PREVPASS -= 1"
-    PREVPASSPAGE=$WEBDIR/../pass$PREVPASS/run_$RUNNUM/run_$RUNNUM.html
-    PREVPASSLINK=../pass$PREVPASS/run_$RUNNUM/run_$RUNNUM.html
-done
+if [ ! $PREVPASS == pass$PASSNUM ]
+then
+    PREVPASSPAGE=$WEBDIR/../$PREVPASS/run_$RUNNUM/run_$RUNNUM.html
+    PREVPASSLINK=../$PREVPASS/run_$RUNNUM/run_$RUNNUM.html
+fi
 if [ -f $PREVPASSPAGE ]
 then
-    sed -i -e "s|Previous Pass|<a href=\"../$PREVPASSLINK\">Pass $PREVPASS</a>|" $RUNPAGE
+    sed -i -e "s|Previous Pass|<a href=\"../$PREVPASSLINK\">Pass ${PREVPASS/pass/}</a>|" $RUNPAGE
     sed -i -e "s|<!--prevpass|<a href=\"../$PREVPASSLINK|" $RUNPAGE
-    sed -i -e "s|prevpass-->|\">\&larr; Pass $PREVPASS</a>|" $RUNPAGE
+    sed -i -e "s|prevpass-->|\">\&larr; Pass ${PREVPASS/pass/}</a>|" $RUNPAGE
 fi
 
-NEXTPASS=$PASSNUM
+NEXTPASS=`echo "$PASSLIST" | grep -A1 "$PASSNUM\$" | tail -n 1 | rev | cut -f1 -d/ | rev`
+echo "NEXTPASS = $NEXTPASS"
 NEXTPASSPAGE=$WEBDIR/not_there
-until [ -f $NEXTPASSPAGE -o $NEXTPASS -gt 20000 ]
-do
-    let "NEXTPASS += 1"
-    NEXTPASSPAGE=$WEBDIR/../pass$NEXTPASS/run_$RUNNUM/run_$RUNNUM.html
-    NEXTPASSLINK=../pass$NEXTPASS/run_$RUNNUM/run_$RUNNUM.html
-done
+if [ ! $NEXTPASS == pass$PASSNUM ]
+then
+    NEXTPASSPAGE=$WEBDIR/../$NEXTPASS/run_$RUNNUM/run_$RUNNUM.html
+    NEXTPASSLINK=../$NEXTPASS/run_$RUNNUM/run_$RUNNUM.html
+fi
 if [ -f $NEXTPASSPAGE ]
 then
-    sed -i -e "s|Next Pass|<a href=\"../$NEXTPASSLINK\">Pass $NEXTPASS</a>|" $RUNPAGE
+    sed -i -e "s|Next Pass|<a href=\"../$NEXTPASSLINK\">Pass ${NEXTPASS/pass/}</a>|" $RUNPAGE
     sed -i -e "s|<!--nextpass|<a href=\"../$NEXTPASSLINK|" $RUNPAGE
-    sed -i -e "s|nextpass-->|\">Pass $NEXTPASS \&rarr;</a>|" $RUNPAGE
+    sed -i -e "s|nextpass-->|\">Pass ${NEXTPASS/pass/} \&rarr;</a>|" $RUNPAGE
 fi
 
 

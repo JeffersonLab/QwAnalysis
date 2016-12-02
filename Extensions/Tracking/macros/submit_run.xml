@@ -2,7 +2,7 @@
  <Email email="%USER%@jlab.org" request="false" job="false"/>
  <Project name="qweak"/>
  <Track name="one_pass"/>
- <Name name="Qweak_%PASS%_%RUN%_%MACROS%"/>
+ <Name name="Qweak_pass%PASS%_run%RUN%_%MACROS%"/>
  <OS name="centos65"/>
  <TimeLimit unit="minutes" time="4000"/>
  <DiskSpace space="13000" unit="MB"/>
