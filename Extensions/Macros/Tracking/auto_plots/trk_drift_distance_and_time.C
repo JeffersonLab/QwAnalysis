@@ -256,7 +256,7 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 	dX->Draw();
         dX->Fit("fit","R");
         TF1* dx_fit = dX->GetFunction("fit");
-	dx_fit->SetLineColor(kRed);       
+	if (dx_fit) dx_fit->SetLineColor(kRed);
 
   	gPad->Update();
 	TPaveStats *xst = new TPaveStats();
@@ -274,7 +274,7 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 	dU->Draw();
         dU->Fit("fit","R");
         TF1* du_fit = dU->GetFunction("fit");
-        du_fit->SetLineColor(kBlue);
+        if (du_fit) du_fit->SetLineColor(kBlue);
 
   	gPad->Update();
 	TPaveStats *ust = new TPaveStats();
@@ -292,7 +292,7 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 	dV->Draw();
         dV->Fit("fit","R");
         TF1* dv_fit = dV->GetFunction("fit");
-	dv_fit->SetLineColor(kGreen);
+	if (dv_fit) dv_fit->SetLineColor(kGreen);
  
   	gPad->Update();
 	TPaveStats *vst = new TPaveStats();
@@ -343,7 +343,7 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 	dX2->Draw();
         dX2->Fit("fit","R");
         TF1* dx2_fit = dX2->GetFunction("fit");
-	dx2_fit->SetLineColor(kRed);
+	if (dx2_fit) dx2_fit->SetLineColor(kRed);
  
   	gPad->Update();
 	TPaveStats *x2st = new TPaveStats();
@@ -361,7 +361,7 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 	dU2->Draw();
         dU2->Fit("fit","R");
         TF1* du2_fit = dU2->GetFunction("fit");
-	du2_fit->SetLineColor(kBlue);
+	if (du2_fit) du2_fit->SetLineColor(kBlue);
   
   	gPad->Update();
 	TPaveStats *u2st = new TPaveStats();
@@ -379,7 +379,7 @@ void trk_drift_distance_and_time(int runnum, Bool_t isFirst100K = kFALSE)
 	dV2->Draw();
         dV2->Fit("fit","R");
         TF1* dv2_fit = dV2->GetFunction("fit");
-	dv2_fit->SetLineColor(kGreen);
+	if (dv2_fit) dv2_fit->SetLineColor(kGreen);
        
   	gPad->Update();
 	TPaveStats *v2st = new TPaveStats();
