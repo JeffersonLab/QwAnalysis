@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Generating list of all possible files..."
-list=`find /group/qweak/www/html/tracking/pass7/run_* -type f | \
+list=`find ${1:-/group/qweak/www/html/tracking/pass7}/run_* -type f | \
  sed 's|.*/||' | cut -d_ -f2- | grep -v sed | grep -v ^.nfs | grep -v html | \
  sort | uniq`
 for file in ${list} ; do
@@ -22,7 +22,7 @@ cat list_missing_plots.new list_missing_plots.old | sort | {
 } > list_missing_plots.txt
 
 echo "Looping over all runs..."
-for dir in /group/qweak/www/html/tracking/pass7/run_* ; do
+for dir in ${1:-/group/qweak/www/html/tracking/pass7}/run_* ; do
   run=`basename ${dir}`
   run=${run/run_/}
   missing=0
