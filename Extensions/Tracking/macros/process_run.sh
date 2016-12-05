@@ -13,29 +13,14 @@ umask 002
 ## SQLITE3 for database management (assume in path)
 SQLITE=sqlite3
 
-#setting QWSCRATCH to a saved variable
+# saving environment variables
 QWSCRATCH_SAVED=${QWSCRATCH}
+QW_ROOTFILES_SAVED=${QW_ROOTFILES}
+WEBDIR_SAVED=${WEBDIR}
+
 
 ## SQLITE3 database
 DBFILE=${QWSCRATCH_SAVED}/www/tracking_summaryruns.db
-
-## QW_ROOTFILES is passed as an environment variable
-## If it exists, store it and override the automatic variable later
-QW_ROOTFILES_SAVED=${QW_ROOTFILES}
-echo "Saved QW_ROOTFILES which was pointing to ${QW_ROOTFILES}."
-
-## Path to the directory for log files
-LOGDIR=${QWSCRATCH_SAVED}/tracking/log
-
-## Path to website directory
-WEBDIR_SAVED=${QWSCRATCH}/tracking/www
-WEBDIR=${WEBDIR_SAVED}
-echo "WEBDIR_SAVED is ${WEBDIR_SAVED}"
-echo "WEBDIR is pointing to ${WEBDIR}"
-
-## Path to all extensions
-QWEXTENSIONS=${QWANALYSIS}/Extensions
-echo -e "QWEXTENSIONS is ${QWEXTENSIONS} \n\n"
 
 ## The default should be analyze the full run and not the first 100K
 FIRST100K=kFALSE
@@ -53,6 +38,7 @@ FIRST100KMESSAGE=""
 ## Which script to run. If none specified, all are assummed
 MACROS_TO_RUN=""
 ONLY_SPECIFIED_MACROS=kFALSE
+
 
 ################################################################################
 ## Check for parameters
@@ -74,8 +60,6 @@ do
       --configfile=*)
 	  CONFIGFILE=`echo $i | sed 's/--configfile=//'`
 	  ;;
-          ## This flag skips running the macros and regenerating the index page 
-          ## if all you want to is to regenerate the run webpage
       --macros=*)
           MACROS_TO_RUN=`echo $i | sed 's/--macros=//'`
           if [ "$MACROS_TO_RUN" == "all" ] ; then
@@ -85,13 +69,14 @@ do
             ONLY_SPECIFIED_MACROS=kTRUE
           fi
           ;;
+      --quick)
           ## This flag skips running the macros and regenerating the index page
           ## if all you want to is to regenerate the run webpage
-      --quick)
 	  DOMACROS=0
 	  DOINDEXING=0
 	  ;;
       --index)
+          ## This flag skips running the macros and just regenerates the index page
 	  DOMACROS=0
 	  DOINDEXING=1
 	  ;;
@@ -122,7 +107,6 @@ then
    exit -1;
 fi
 
-
 # Source any configuration file for environmental variables
 if [ x${CONFIGFILE} != "x" ]
 then
@@ -134,28 +118,22 @@ then
   fi
 fi
 
-echo -e "\njust finished soucring the config file, where the following were definded"
-echo -e "QWANALYSIS is pointing to ${QWANALYSIS}."
-echo -e "QW_ROOTFILES is now pointing to ${QW_ROOTFILES}"
-echo -e "WEBDIR is now pointing to ${WEBDIR} \n"
-echo -e "Well... \n \n"
+#### Set environment variables
 
-## Source environment for QwAnalysis
-#source ${QWANALYSIS}/SetupFiles/SET_ME_UP.bash
+## Path to the directory for log files
+export LOGDIR=${LOGDIR:-${QWSCRATCH}/tracking/log}
 
-#here is where the variables are no longer right
-#echo -e "\n\njust ran the SET_ME_UP file"
-#echo -e "QWANALYSIS is pointing to ${QWANALYSIS}."
-#echo -e "QW_ROOTFILES is now pointing to ${QW_ROOTFILES}"
-#echo -e "WEBDIR is now pointing to ${WEBDIR} \n"
-#echo -e "Well... \n \n"
+## Path to website directory
+export WEBDIR=${WEBDIR:-${QWSCRATCH}/tracking/www}
 
-echo -e "\n\nQW_ROOTFILES is pointing to ${QW_ROOTFILES}."
-echo "WEBDIR_SAVED is still ${WEBDIR_SAVED}"
-echo "WEBDIR is now pointing to ${WEBDIR}"
-echo -e "QWEXTENSIONS is ${QWEXTENSIONS} \n\n"
+## Path to all extensions
+export QWEXTENSIONS=${EXTENSIONS:-${QWANALYSIS}/Extensions}
 
-export WEBDIR
+echo -e "\n\n"
+echo -e "QW_ROOTFILES set to ${QW_ROOTFILES}."
+echo -e "WEBDIR set to ${WEBDIR}"
+echo -e "QWEXTENSIONS set to ${QWEXTENSIONS}"
+echo -e "\n\n"
 
 ## Path to QwRoot to use
 QWROOT=${QWANALYSIS}/bin/qwroot
@@ -208,6 +186,56 @@ echo "WEBDIR is now pointing to $WEBDIR"
 ## Create the web directory
 mkdir -p ${WEBDIR}/run_$RUNNUM
 
+
+## Find all macros that need to run and run them
+if [ ${DOMACROS} ==  1 ]
+then
+    echo "Processing config files"
+    if [ ${ONLY_SPECIFIED_MACROS} == kFALSE ];
+    then
+      CONFIGS=`ls ${CONFIGDIR}/*.conf`
+    else
+      for config in ${MACROS_TO_RUN}
+      do
+        CONFIGS="${CONFIGS} `ls ${CONFIGDIR}/*${config}*.conf`"
+      done
+    fi
+
+    echo "Processing config files"
+    #for config in `ls ${CONFIGDIR}/*.conf`
+    for config in ${CONFIGS}
+    do
+        if [ -e "${config}.disable" ]
+        then
+            echo "${config} file disabled. Skipping!"
+        else
+            echo "Processing config: ${config}"
+
+            ## Parse the configuration file contents
+            MACRO=`awk -F= ' /macro/ {print $2}' ${config}`
+            FUNCTION=`awk -F= ' /function/ {print $2}' ${config}`
+            if [ -e ${MACROSDIR}/${MACRO} ]
+            then
+                INCLUDESDIR=`awk -F= ' /includesdir/ {print $2}' ${config}`
+                DIRECTORY==`awk -F= ' /directory/ {print $2}' ${config}`
+                COMPILE=`awk -F= ' /compile/ {print $2}' ${config}`
+
+                ## Now after the configuration file has been read, and the script is enabled, process the script
+                echo -e "MACROSDIR is ${MACROSDIR}"
+                echo -e "WEBDIR is ${WEBDIR}"
+                echo -e "MACRO is ${MACRO}"
+
+                echo "${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACROSDIR}/${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log"
+                nice  ${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACROSDIR}/${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log
+            else
+                echo "Macro ${MACROSDIR}/${MACRO} not found"
+            fi
+        fi
+    done
+fi
+
+
+## Create the run page
 ROOTFILE=`find ${QW_ROOTFILES}/ -name "Qweak_$RUNNUM.*root" 2> /dev/null | head -n 1`
 if [ -f /$ROOTFILE ]
 then
@@ -299,57 +327,13 @@ then
 fi
 
 
-## Find all macros that need to run and run them
-if [ ${DOMACROS} ==  1 ]
-then
-    echo "Processing config files"
-    if [ ${ONLY_SPECIFIED_MACROS} == kFALSE ];
-    then
-      CONFIGS=`ls ${CONFIGDIR}/*.conf`
-    else
-      for config in ${MACROS_TO_RUN}
-      do
-        CONFIGS="${CONFIGS} `ls ${CONFIGDIR}/*${config}*.conf`"
-      done
-    fi
-
-    echo "Processing config files"
-    #for config in `ls ${CONFIGDIR}/*.conf`
-    for config in ${CONFIGS}
-    do
-        if [ -e "${config}.disable" ]
-        then
-            echo "${config} file disabled. Skipping!"
-        else
-            echo "Processing config: ${config}"
-
-            ## Parse the configuration file contents
-            MACRO=`awk -F= ' /macro/ {print $2}' ${config}`
-            FUNCTION=`awk -F= ' /function/ {print $2}' ${config}`
-            if [ -e ${MACROSDIR}/${MACRO} ]
-            then
-                INCLUDESDIR=`awk -F= ' /includesdir/ {print $2}' ${config}`
-                DIRECTORY==`awk -F= ' /directory/ {print $2}' ${config}`
-                COMPILE=`awk -F= ' /compile/ {print $2}' ${config}`
-
-                ## Now after the configuration file has been read, and the script is enabled, process the script
-                echo -e "\n\nMACROSDIR is ${MACROSDIR}"
-                echo "WEBDIR is ${WEBDIR}"
-                echo -e "Running ${MACRO} \n\n"
-
-                echo "${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACROSDIR}/${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log"
-                nice  ${QWROOT} -l -b -q ${RUNMACRO}\(\"${MACROSDIR}/${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}_${DATE}_${TIME}.log
-            else
-                echo "Macro ${MACROSDIR}/${MACRO} not found"
-            fi
-        fi
-    done
-fi
-
-
 ## Format the index page
 if [ ${DOINDEXING} ==  1 ]
 then
     echo "Formatting the index page"
     ${BASEDIR}/utils/format_front_page.sh ${SQLITE} ${DBFILE} ${RUNNUM} ${WEBDIR} ${FIRST100K}
 fi
+
+
+## Remove all temporary sed files
+rm -f ${WEBDIR}/run_$RUNNUM/sed*
