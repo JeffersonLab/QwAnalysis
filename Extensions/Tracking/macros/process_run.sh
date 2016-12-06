@@ -327,6 +327,19 @@ then
 fi
 
 
+## Get run message
+if [ -z "$MESSAGE" -a -f ${QWSCRATCH}/work/logrun.txt ]; then
+    MESSAGE="`grep Run\ $RUNNUM: ${QWSCRATCH}/work/logrun.txt | sed -e 's/keyword=Run\ [0-9]*\://' | sed -e 's/<br>//'`"
+fi
+if [ -z "$MESSAGE" -a -f ${QWSCRATCH}/work/simrun.txt ]; then
+    MESSAGE="`grep Run\ $RUNNUM: ${QWSCRATCH}/work/simrun.txt | sed -e 's/keyword=Run\ [0-9]*\://' | sed -e 's/<br>//'`"
+fi
+if [ ! -z "$MESSAGE" ]
+then
+    sed -i -e "s|%%MESSAGE%%|${MESSAGE}|g" $RUNPAGE
+fi
+
+
 ## Format the index page
 if [ ${DOINDEXING} ==  1 ]
 then

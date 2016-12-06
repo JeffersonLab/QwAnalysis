@@ -39,12 +39,12 @@
 <table class="runpage-info" width="100%">
 <tr>
   <td>Links</td>
-  <td>Start Run: %%STARTDATE%%</td>
+  <td>Message: %%MESSAGE%%</td>
   <td>Links</td>
 </tr>
 <tr>
   <td><a href="./">Directory List</a></td>
-  <td>End Run: %%ENDDATE%%</td>
+  <td>Start Run: %%STARTDATE%%</td>
   <td><a href="./">Directory List</a></td>
 </tr>
 <tr>
