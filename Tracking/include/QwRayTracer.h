@@ -107,7 +107,7 @@ class QwRayTracer: public VQwBridgingMethod {
     /// Newton's method optimization variable
     int fOptimizationVariable;
     /// Optimization variable from position and direction
-    double GetOptimizationVariable(TVector3 &position, TVector3 &direction) {
+    double GetOptimizationVariable(const TVector3 &position, const TVector3 &direction) const {
       switch (fOptimizationVariable) {
         case 0: return position.Perp(); // perpendicular position at matching plane
         case 1: return direction.Theta(); // polar angle of direction at matching plane

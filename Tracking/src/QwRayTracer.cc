@@ -163,9 +163,9 @@ void QwRayTracer::ProcessOptions(QwOptions& options)
   fOptimizationVariable = options.GetValue<int>("QwRayTracer.optim_variable");
   fOptimizationResolution = options.GetValue<float>("QwRayTracer.optim_resolution");
   switch (fOptimizationVariable) {
-    case 0: fOptimizationResolution *= Qw::cm;
-    case 1: fOptimizationResolution *= Qw::rad;
-    default: fOptimizationResolution *= Qw::cm;
+    case 0: fOptimizationResolution *= Qw::cm; // position.Perp()
+    case 1: fOptimizationResolution *= Qw::rad; // direction.Theta()
+    default: fOptimizationResolution *= Qw::cm; // position.Perp()
   }
 }
 
@@ -182,8 +182,8 @@ const QwTrack* QwRayTracer::Bridge(
   // No track found yet
   QwTrack* track = 0;
 
-  // Estimate initial momentum from
-  Double_t momentum = EstimateInitialMomentum(front->GetMomentumDirection());
+  // Estimate initial momentum from front track
+  //Double_t momentum = EstimateInitialMomentum(front->GetMomentumDirection());
 
   // Start iteration from a smaller momentum than initial guess,
   // to avoid the gap in the momentum spectrum
@@ -192,7 +192,7 @@ const QwTrack* QwRayTracer::Bridge(
   // else
   //     momentum = 0.20 * Qw::GeV;
   //
-  momentum = fInitialMomentum;
+  Double_t momentum = fInitialMomentum;
 
   // Front track position and direction
   TVector3 start_position = front->GetPosition(fStartPosition);
@@ -245,9 +245,9 @@ const QwTrack* QwRayTracer::Bridge(
     position = start_position;
     direction = start_direction;
     iterations_rungekutta = IntegrateRK(position, direction, momentum, end_position.Z(), fIntegrationOrder, fIntegrationStep);
-    // update the difference
-    difference = GetOptimizationVariable(position,direction) - GetOptimizationVariable(end_position,end_direction);
 
+    // Update the difference
+    difference = GetOptimizationVariable(position,direction) - GetOptimizationVariable(end_position,end_direction);
   }
 
 
