@@ -1789,16 +1789,16 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
       QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
       // Get the position
-      double x = fTriggerScintillator_Detector_HitLocalExitPositionX;
-      double y = fTriggerScintillator_Detector_HitLocalExitPositionY;
+      double x = fTriggerScintillator_Detector_HitLocalPositionX;
+      double y = fTriggerScintillator_Detector_HitLocalPositionY;
 
       // Fill a vector with the hits for this track
       std::vector<QwHit> hits = CreateHitCerenkov(detectorinfo,x,y);
 
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++)
+      for (size_t hit = 0; hit < hits.size(); hit++)
         if (set_hit_numbers)
-          hits[i].SetHitNumber(hitcounter++);
+          hits[hit].SetHitNumber(hitcounter++);
 
       // Append this vector of hits to the QwHitContainer.
       hitlist->Append(hits);
@@ -1811,21 +1811,24 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   QwDebug << "Processing Cerenkov: "
       << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
   try {
-    detectorinfo = fDetectorInfo.in(kRegionIDCer).in(kPackage1).at(0);
-    for (int i = 0; i < fCerenkov_Detector_NbOfHits && i < 1; i++) {
+    for (int i = 0; i < fCerenkov_Detector_NbOfHits; i++) {
+
+      // Choose correct detector info to get the octant
+      if (fCerenkov_Detector_DetectorID[i] < fDetectorInfo.in(kRegionIDCer).in(kPackage1).size())
+        detectorinfo = fDetectorInfo.in(kRegionIDCer).in(kPackage1).at(fCerenkov_Detector_DetectorID[i]);
       QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
       // Get the position
-      double x = fCerenkov_Detector_HitLocalExitPositionX;
-      double y = fCerenkov_Detector_HitLocalExitPositionY;
+      double x = fCerenkov_Detector_HitLocalPositionX[i];
+      double y = fCerenkov_Detector_HitLocalPositionY[i];
 
       // Fill a vector with the hits for this track
       std::vector<QwHit> hits = CreateHitCerenkov(detectorinfo,x,y);
 
       // Set the hit numbers
-      for (size_t i = 0; i < hits.size(); i++)
+      for (size_t hit = 0; hit < hits.size(); hit++)
         if (set_hit_numbers)
-          hits[i].SetHitNumber(hitcounter++);
+          hits[hit].SetHitNumber(hitcounter++);
 
       // Append this vector of hits to the QwHitContainer.
       hitlist->Append(hits);
@@ -2594,15 +2597,15 @@ void QwTreeEventBuffer::ReserveVectors()
   fCerenkov_PMT_PMTTotalNbOfPEs.reserve(VECTOR_SIZE);
   fCerenkov_PMT_PMTLeftNbOfPEs.reserve(VECTOR_SIZE);
   fCerenkov_PMT_PMTRightNbOfPEs.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitLocalPositionZ.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitLocalExitPositionX.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitLocalExitPositionY.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitGlobalPositionX.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitGlobalPositionY.reserve(VECTOR_SIZE);
-//   fCerenkov_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitLocalPositionZ.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitLocalExitPositionX.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitLocalExitPositionY.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitGlobalPositionX.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitGlobalPositionY.reserve(VECTOR_SIZE);
+  fCerenkov_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
 
 
 }
@@ -2938,16 +2941,6 @@ void QwTreeEventBuffer::ClearVectors()
   fTriggerScintillator_Detector_HitGlobalPositionY = 0.0;
   fTriggerScintillator_Detector_HitGlobalPositionZ = 0.0;
 
-//   fTriggerScintillator_Detector_HitLocalPositionX.clear();
-//   fTriggerScintillator_Detector_HitLocalPositionY.clear();
-//   fTriggerScintillator_Detector_HitLocalPositionZ.clear();
-//   fTriggerScintillator_Detector_HitLocalExitPositionX.clear();
-//   fTriggerScintillator_Detector_HitLocalExitPositionY.clear();
-//   fTriggerScintillator_Detector_HitLocalExitPositionZ.clear();
-//   fTriggerScintillator_Detector_HitGlobalPositionX.clear();
-//   fTriggerScintillator_Detector_HitGlobalPositionY.clear();
-//   fTriggerScintillator_Detector_HitGlobalPositionZ.clear();
-
   fCerenkov_Detector_DetectorID.clear();
   fCerenkov_Detector_HasBeenHit = 0;
   fCerenkov_Detector_NbOfHits = 0;
@@ -2955,26 +2948,16 @@ void QwTreeEventBuffer::ClearVectors()
   fCerenkov_PMT_PMTTotalNbOfPEs.clear();
   fCerenkov_PMT_PMTLeftNbOfPEs.clear();
   fCerenkov_PMT_PMTRightNbOfPEs.clear();
-  
-  fCerenkov_Detector_HitLocalPositionX = 0.0;
-  fCerenkov_Detector_HitLocalPositionY = 0.0;
-  fCerenkov_Detector_HitLocalPositionZ = 0.0;
-  fCerenkov_Detector_HitLocalExitPositionX = 0.0;
-  fCerenkov_Detector_HitLocalExitPositionY = 0.0;
-  fCerenkov_Detector_HitLocalExitPositionZ = 0.0;
-  fCerenkov_Detector_HitGlobalPositionX = 0.0;
-  fCerenkov_Detector_HitGlobalPositionY = 0.0;
-  fCerenkov_Detector_HitGlobalPositionZ = 0.0;
-//   fCerenkov_Detector_HitLocalPositionX.clear();
-//   fCerenkov_Detector_HitLocalPositionY.clear();
-//   fCerenkov_Detector_HitLocalPositionZ.clear();
-//   fCerenkov_Detector_HitLocalExitPositionX.clear();
-//   fCerenkov_Detector_HitLocalExitPositionY.clear();
-//   fCerenkov_Detector_HitLocalExitPositionZ.clear();
-//   fCerenkov_Detector_HitGlobalPositionX.clear();
-//   fCerenkov_Detector_HitGlobalPositionY.clear();
-//   fCerenkov_Detector_HitGlobalPositionZ.clear();
 
+  fCerenkov_Detector_HitLocalPositionX.clear();
+  fCerenkov_Detector_HitLocalPositionY.clear();
+  fCerenkov_Detector_HitLocalPositionZ.clear();
+  fCerenkov_Detector_HitLocalExitPositionX.clear();
+  fCerenkov_Detector_HitLocalExitPositionY.clear();
+  fCerenkov_Detector_HitLocalExitPositionZ.clear();
+  fCerenkov_Detector_HitGlobalPositionX.clear();
+  fCerenkov_Detector_HitGlobalPositionY.clear();
+  fCerenkov_Detector_HitGlobalPositionZ.clear();
 }
 
 /**
@@ -3696,24 +3679,24 @@ void QwTreeEventBuffer::AttachBranches()
   if (strcmp(fTree->FindLeaf("Cerenkov.PMT.PMTRightNbOfPEs")->GetTypeName(),"vector<Int_t>") == 0)
     fTree->SetBranchAddress("Cerenkov.PMT.PMTRightNbOfPEs",
         &fCerenkov_PMT_PMTRightNbOfPEs);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
-//		&fCerenkov_Detector_HitLocalPositionX);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",
-//		&fCerenkov_Detector_HitLocalPositionY);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionZ",
-//		&fCerenkov_Detector_HitLocalPositionZ);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionX",
-//		&fCerenkov_Detector_HitLocalExitPositionX);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionY",
-//		&fCerenkov_Detector_HitLocalExitPositionY);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionZ",
-//		&fCerenkov_Detector_HitLocalExitPositionZ);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionX",
-//		&fCerenkov_Detector_HitGlobalPositionX);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionY",
-//		&fCerenkov_Detector_HitGlobalPositionY);
-//  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionZ",
-//		&fCerenkov_Detector_HitGlobalPositionZ);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
+		&fCerenkov_Detector_HitLocalPositionX);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",
+		&fCerenkov_Detector_HitLocalPositionY);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionZ",
+		&fCerenkov_Detector_HitLocalPositionZ);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionX",
+		&fCerenkov_Detector_HitLocalExitPositionX);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionY",
+		&fCerenkov_Detector_HitLocalExitPositionY);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionZ",
+		&fCerenkov_Detector_HitLocalExitPositionZ);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionX",
+		&fCerenkov_Detector_HitGlobalPositionX);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionY",
+		&fCerenkov_Detector_HitGlobalPositionY);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionZ",
+		&fCerenkov_Detector_HitGlobalPositionZ);
 
 }
 

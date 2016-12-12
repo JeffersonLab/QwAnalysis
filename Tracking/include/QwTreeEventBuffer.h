@@ -593,24 +593,24 @@ class QwTreeEventBuffer
     // Cerenkov
     Bool_t fCerenkov_HasBeenHit;
     Bool_t fCerenkov_Light;
-    vector <Int_t> fCerenkov_Detector_DetectorID;
     Int_t fCerenkov_Detector_HasBeenHit;
     Int_t fCerenkov_Detector_NbOfHits;
 
+    vector <Int_t> fCerenkov_Detector_DetectorID;
     vector <Int_t> fCerenkov_PMT_PMTTotalNbOfHits;
     vector <Float_t> fCerenkov_PMT_PMTTotalNbOfPEs;
     vector <Float_t> fCerenkov_PMT_PMTLeftNbOfPEs;
     vector <Float_t> fCerenkov_PMT_PMTRightNbOfPEs;
 
-    Float_t fCerenkov_Detector_HitLocalPositionX;
-    Float_t fCerenkov_Detector_HitLocalPositionY;
-    Float_t fCerenkov_Detector_HitLocalPositionZ;
-    Float_t fCerenkov_Detector_HitLocalExitPositionX;
-    Float_t fCerenkov_Detector_HitLocalExitPositionY;
-    Float_t fCerenkov_Detector_HitLocalExitPositionZ;
-    Float_t fCerenkov_Detector_HitGlobalPositionX;
-    Float_t fCerenkov_Detector_HitGlobalPositionY;
-    Float_t fCerenkov_Detector_HitGlobalPositionZ;
+    vector <Float_t> fCerenkov_Detector_HitLocalPositionX;
+    vector <Float_t> fCerenkov_Detector_HitLocalPositionY;
+    vector <Float_t> fCerenkov_Detector_HitLocalPositionZ;
+    vector <Float_t> fCerenkov_Detector_HitLocalExitPositionX;
+    vector <Float_t> fCerenkov_Detector_HitLocalExitPositionY;
+    vector <Float_t> fCerenkov_Detector_HitLocalExitPositionZ;
+    vector <Float_t> fCerenkov_Detector_HitGlobalPositionX;
+    vector <Float_t> fCerenkov_Detector_HitGlobalPositionY;
+    vector <Float_t> fCerenkov_Detector_HitGlobalPositionZ;
 
     // @}
     // end of the branch vectors
