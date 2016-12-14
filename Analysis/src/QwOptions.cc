@@ -21,6 +21,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <TROOT.h>
 
 // Globally defined instance of the options object
 QwOptions gQwOptions;
