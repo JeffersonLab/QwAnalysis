@@ -4,6 +4,7 @@
 // System headers
 #include <cxxabi.h>
 #include <cstdlib>
+using std::type_info;
 
 // Qweak headers
 #include "QwLog.h"

@@ -4,6 +4,7 @@
 // System headers
 #include <typeinfo>
 #include <unistd.h>
+using std::type_info;
 
 // ROOT headers
 #include "TFile.h"
