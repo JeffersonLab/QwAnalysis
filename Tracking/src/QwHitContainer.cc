@@ -1,8 +1,6 @@
 #include "QwHitContainer.h"
 
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwHitContainer)
-#endif
 
 #include <boost/bind.hpp>
 

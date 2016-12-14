@@ -99,9 +99,7 @@ private:
   static const Int_t fSoftwareNegativeHitElementID;
   static const Int_t fSoftwareSubtractHitElementID;
 
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-    ClassDef(MeanTime,0);
-  #endif
+  ClassDef(MeanTime,0);
 };
 
 
@@ -184,10 +182,7 @@ private:
 
   Bool_t    fDisableMatchHardwareMeanTime;
 
-
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-    ClassDef(MeanTimeContainer,0);
-  #endif
+  ClassDef(MeanTimeContainer,0);
 
 };
 

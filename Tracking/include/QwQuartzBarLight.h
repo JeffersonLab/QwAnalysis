@@ -92,9 +92,7 @@ class QwQuartzBarLight: public TObject {
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwQuartzBarLight& h);
 
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
     ClassDef(QwQuartzBarLight,1);
-  #endif
 };
 
 /// Output stream operator

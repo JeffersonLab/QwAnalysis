@@ -74,8 +74,7 @@ find_package(Boost COMPONENTS program_options filesystem system regex REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIR})
 
-# Create dictionaries for headers that contain "ClassDef" if ROOT version < 5.90
-if(ROOT_VERSION VERSION_LESS 5.90)
+# Create dictionaries for headers that contain "ClassDef"
 message("Generating evio dictionaries for ROOT ${ROOT_VERSION}...")
 foreach(file ${my_evio_headers})
   # Find the header files that have uncommented ClassDef lines
@@ -123,9 +122,6 @@ foreach(file ${my_project_headers})
     set(my_project_sources ${my_project_sources} ${dict}.cxx)
   endif()
 endforeach()
-else()
-message("No QwAnalysis dictionaries needed for ROOT ${ROOT_VERSION}.")
-endif()
 
 
 # Add target of QwSVNVersion.h

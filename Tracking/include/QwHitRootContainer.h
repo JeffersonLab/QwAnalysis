@@ -50,9 +50,7 @@ class QwHitRootContainer : public TObject {
   TClonesArray *GetHits() const { return fQwHits; };
   QwHit *GetHit (Int_t hitID) const ;
 
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-    ClassDef(QwHitRootContainer,1);
-  #endif
+  ClassDef(QwHitRootContainer,1);
 
 }; // class QwHitRootContainer
 

@@ -11,9 +11,7 @@
 //
 
 #include "QwDetectorInfo.h"
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwDetectorInfo)
-#endif
 
 // Qweak headers
 #include "QwParameterFile.h"

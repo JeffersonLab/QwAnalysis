@@ -20,9 +20,7 @@
 
 //Qweak Event Display Header
 #include "QwEventDisplay.h"  // Includes ROOT headers and common classes and variables for the event display
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwEventDisplay)     // Imports the new class object from the header
-#endif
 
 //Qweak Header Files
 #include "QwTreeEventBuffer.h"        // Create hit list from G4 Monte Carlo

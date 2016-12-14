@@ -7,9 +7,7 @@
  */
 
 #include "QwHitPattern.h"
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwHitPattern)
-#endif
 
 // Qweak headers
 #include "QwHit.h"

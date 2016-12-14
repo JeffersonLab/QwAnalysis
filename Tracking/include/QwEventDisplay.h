@@ -333,9 +333,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
   void GotoEvent();
   void DrawEvent();
 
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-    ClassDef(QwEventDisplay,1); // Define class object
-  #endif
+  ClassDef(QwEventDisplay,1); // Define class object
 };
 
 #endif //QWEVENTDISPLAY

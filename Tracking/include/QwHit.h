@@ -202,9 +202,7 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   Bool_t fIsUsed; //!                ///< Is this hit used in a tree line?
 
 
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-    ClassDef(QwHit,1);
-  #endif
+  ClassDef(QwHit,1);
 
 }; // class QwHit
 

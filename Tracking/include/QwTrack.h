@@ -147,9 +147,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     QwPartialTrack *fFront;     ///< Front partial track
     QwPartialTrack *fBack;      ///< Back partial track
 
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
     ClassDef(QwTrack,3);
-  #endif
 
 }; // class QwTrack
 

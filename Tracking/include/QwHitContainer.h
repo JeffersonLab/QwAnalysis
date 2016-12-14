@@ -74,9 +74,7 @@ class QwHitContainer: public std::list<QwHit>, public TObject {
   friend std::ostream& operator<< (std::ostream& stream, const QwHitContainer& hitlist);
 
 
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-    ClassDef(QwHitContainer,1);
-  #endif
+  ClassDef(QwHitContainer,1);
 };
 
 #endif

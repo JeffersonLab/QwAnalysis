@@ -8,9 +8,7 @@
  */
 
 #include "QwTreeLine.h"
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 ClassImp(QwTreeLine)
-#endif
 
 // System headers
 #include <cmath>

@@ -142,9 +142,7 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
 
   friend std::ostream& operator<< (std::ostream& stream, const QwHitPattern& hitpattern);
 
-  #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
-    ClassDef(QwHitPattern,1);
-  #endif
+  ClassDef(QwHitPattern,1);
 
 }; // class QwHitPattern
 
