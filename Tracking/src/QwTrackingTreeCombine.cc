@@ -47,6 +47,15 @@
 // Other Qweak modules
 #include "QwTrackingTreeSort.h"
 
+// Minuit2 headers
+#include <Minuit2/FCNBase.h>
+#include <Minuit2/MnPrint.h>
+#include <Math/Functor.h>
+#include <Fit/Fitter.h>
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+#include <TFitterMinuit.h>
+#endif
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTreeCombine::QwTrackingTreeCombine()
@@ -761,10 +770,12 @@ bool QwTrackingTreeCombine::TlCheckForX (
   // Bin 'resolution'
   // TODO This should be retrieved from the QwHitPattern stored inside the tree line
   int levels = 0;
+  static int levelsR2 = gQwOptions.GetValue<int> ( "QwTracking.R2.levels" );
+  static int levelsR3 = gQwOptions.GetValue<int> ( "QwTracking.R3.levels" );
   switch ( treeline->GetRegion() )
   {
-    case kRegionID2: levels = gQwOptions.GetValue<int> ( "QwTracking.R2.levels" ); break;
-    case kRegionID3: levels = gQwOptions.GetValue<int> ( "QwTracking.R3.levels" ); break;
+    case kRegionID2: levels = levelsR2; break;
+    case kRegionID3: levels = levelsR3; break;
     default: break;
   }
   double resolution = width / ( 1 << ( levels - 1 ) );
@@ -1396,21 +1407,26 @@ class MyFCN : public ROOT::Minuit2::FCNBase {
 
 		MyFCN(std::vector<QwHit*> fhits) : hits(fhits)  {}
 
+                double operator() (const double* array) const {
+                        const std::vector<double> fit(array, array + 4 * sizeof(array[0]));
+                        return operator()(fit);
+                }
+
 		double operator() (const std::vector<double> & fit) const {
 			double value = 0;
 			double chi2 = 0;
 			double resolution = hits[0]->GetDetectorInfo()->GetSpatialResolution();
 			double normalization = 1/(resolution*resolution);
 
-	
+
 			// Calculate the metric matrix
 			double dx_[12] = { 0.0 };
 			double l[3] = { 0.0 };
 			double h[3] = { 0.0 };
-			for (int i = 0; i < hits.size(); ++i)
+			for (size_t i = 0; i < hits.size(); ++i)
 				dx_[hits[i]->GetPlane() - 1] = hits[i]->GetDetectorInfo()->GetPlaneOffset();
 
-			for (int i = 0; i < 3; ++i)
+			for (size_t i = 0; i < 3; ++i)
 			{
 				h[i] = dx_[6 + i] == 0 ? dx_[9 + i] : dx_[6 + i];
 				l[i] = dx_[i] == 0 ? dx_[3 + i] : dx_[i];
@@ -1418,7 +1434,7 @@ class MyFCN : public ROOT::Minuit2::FCNBase {
 				dx_[6 + i] = dx_[9 + i] = h[i] - l[i];
 			}
 
-			for (int i=0; i<hits.size();i++)
+			for (size_t i=0; i<hits.size();i++)
 			{
 
 				double cosx = hits[i]->GetDetectorInfo()->GetDetectorRollCos();
@@ -1649,40 +1665,93 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
   // Calculate chi2^2,rewrite
   chi2 = 0.0;
   std::pair<int, double> worst_case(0, -0.01);
-  //Call the Minuit2 code to minimize chi2 
+
+  // Fit function
+  std::vector<QwHit*> test;
+  for (int i = 0; i < num_hits; ++i)
+    test.push_back(hits[i]);
+  // Load into object with operator()
+  MyFCN *fcn = new MyFCN(test);
+
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+
+  //Call the Minuit2 code to minimize chi2
   TFitterMinuit * minuit = new TFitterMinuit();
   minuit->SetPrintLevel(fDebug-1);
-  std::vector<QwHit*> test;
-
-  for (int i = 0; i < num_hits; ++i)
-  {
-     test.push_back(hits[i]); 
-  
-  }
-
-  MyFCN *fcn = new MyFCN(test);
   minuit->SetMinuitFCN(fcn);
-
-  minuit->SetParameter(0,"M",fit[1],1,0,0);
+  minuit->SetParameter(0,"M",   fit[1],1,0,0);
   minuit->SetParameter(1,"XOff",fit[0],100,0,0);
-  
-  minuit->SetParameter(2,"N",fit[3],1,0,0);
+  minuit->SetParameter(2,"N",   fit[3],1,0,0);
   minuit->SetParameter(3,"YOff",fit[2],100,0,0);
-       minuit->CreateMinimizer();
-        int iret = minuit->Minimize();
+  minuit->CreateMinimizer();
+  int iret = minuit->Minimize();
+  if (iret != 0) QwVerbose << "Minuit: old fit failed! " << iret << QwLog::endl;
 
+  std::vector<double> oldpars;
+  oldpars.push_back(minuit->GetParameter(0));
+  oldpars.push_back(minuit->GetParameter(1));
+  oldpars.push_back(minuit->GetParameter(2));
+  oldpars.push_back(minuit->GetParameter(3));
 
-  std::vector<double> test2;
-  test2.push_back(minuit->GetParameter(0));
-  test2.push_back(minuit->GetParameter(1));
-  test2.push_back(minuit->GetParameter(2));
-  test2.push_back(minuit->GetParameter(3));
-  
-  fit[0] = minuit->GetParameter(1);
-  fit[1] = minuit->GetParameter(0);
-  fit[2] = minuit->GetParameter(3);
-  fit[3] = minuit->GetParameter(2);
- 
+  double oldfit[4];
+  oldfit[0] = minuit->GetParameter(1);
+  oldfit[1] = minuit->GetParameter(0);
+  oldfit[2] = minuit->GetParameter(3);
+  oldfit[3] = minuit->GetParameter(2);
+
+  delete minuit;
+#endif
+
+  // Newer ROOT fitting interface
+  ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit2","Migrad");
+  ROOT::Math::MinimizerOptions::SetDefaultPrintLevel(-1);
+  // set the function
+  ROOT::Fit::Fitter fitter;
+  ROOT::Math::Functor functor(*fcn,4);
+  double values[4] = {fit[1], fit[0], fit[3], fit[2]};
+  fitter.SetFCN(functor,values);
+  // set initial values and step sizes
+  ROOT::Fit::FitConfig& config = fitter.Config();
+  config.ParSettings(0).Set("M",    fit[1], 1.0);
+  config.ParSettings(1).Set("XOff", fit[0], 100.0);
+  config.ParSettings(2).Set("N",    fit[3], 1.0);
+  config.ParSettings(3).Set("YOff", fit[2], 100.0);
+  // switch off debugging if requested
+  int prevLevel = gErrorIgnoreLevel;
+  if (fDebug < 2)  // switch off printing of info messages in Minuit2
+    gErrorIgnoreLevel = 1001;
+  // fit the data with custom gErrorIgnoreLevel
+  bool ok = fitter.FitFCN();
+  // restore previous debug level
+  gErrorIgnoreLevel = prevLevel;
+  // check status
+  if (!ok) QwVerbose << "Minuit: new fit failed!" << QwLog::endl;
+  // get the results
+  const ROOT::Fit::FitResult& result = fitter.Result();
+
+  std::vector<double> newpars;
+  newpars.push_back(result.Parameter(0));
+  newpars.push_back(result.Parameter(1));
+  newpars.push_back(result.Parameter(2));
+  newpars.push_back(result.Parameter(3));
+
+  double newfit[4]; double newerr[4];
+  fit[0] = newfit[0] = result.Parameter(1); newerr[0] = result.ParError(1);
+  fit[1] = newfit[1] = result.Parameter(0); newerr[1] = result.ParError(0);
+  fit[2] = newfit[2] = result.Parameter(3); newerr[2] = result.ParError(3);
+  fit[3] = newfit[3] = result.Parameter(2); newerr[3] = result.ParError(2);
+
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
+  // Compare when both old and new fit are present
+  if ((oldfit[0]-newfit[0])*(oldfit[0]-newfit[0])/newerr[0]/newerr[0]
+     +(oldfit[1]-newfit[1])*(oldfit[1]-newfit[1])/newerr[1]/newerr[1]
+     +(oldfit[2]-newfit[2])*(oldfit[2]-newfit[2])/newerr[2]/newerr[2]
+     +(oldfit[3]-newfit[3])*(oldfit[3]-newfit[3])/newerr[3]/newerr[3]>0.01) {
+    QwVerbose << "Old fit results: " << oldfit[0] << "," << oldfit[1] << "," << oldfit[2] << "," << oldfit[3] << " (" << fcn->operator()(oldpars) << ")" << QwLog::endl;
+    QwVerbose << "New fit results: " << newfit[0] << "," << newfit[1] << "," << newfit[2] << "," << newfit[3] << " (" << fcn->operator()(newpars) << ")" << QwLog::endl;
+    QwVerbose << "New fit errors:  " << newerr[0] << "," << newerr[1] << "," << newerr[2] << "," << newerr[3] << QwLog::endl;
+  }
+#endif
 
   for (int i = 0; i < num_hits; ++i)
   {
@@ -1725,15 +1794,14 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
     chi2 += normalization * residual * residual;
   }
 
- // Divide by degrees of freedom (number of hits minus two offsets, two slopes)
- // chi2 /= (num_hits - 4);
+  // Divide by degrees of freedom (number of hits minus two offsets, two slopes)
+  // chi2 /= (num_hits - 4);
 
   //this is the minuit calculated chi2
-  chi2 = fcn->operator()(test2);
- 
+  chi2 = fcn->operator()(newpars);
+
   // Return if we are done
   if (drop_worst_hit == false) {
-  delete minuit;
 
 
    return 0;
@@ -1870,7 +1938,6 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
   }
 
   chi2 = best_chi2;
-  delete minuit;
 
 
   return 0;
