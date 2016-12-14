@@ -21,6 +21,9 @@ else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support.")
 endif()
 
+# Remove some compiler warnings
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-warning -Wno-deprecated-declarations -Wno-nonnull-compare")
+
 # Add the project include directory
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}/include

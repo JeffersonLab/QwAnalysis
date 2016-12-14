@@ -351,7 +351,7 @@ LIBTOOL = $(LD)
 ifeq ($(ARCH),Linux)
 
 CXX            := $(GCC)
-CXXFLAGS       := -Wall -fPIC
+CXXFLAGS       := -Wall -fPIC -Wno-unknown-warning -Wno-misleading-indentation -Wno-deprecated-declarations -Wno-nonnull-compare
 OPTIM          := $(OPTIM)
 LD             = $(GCC)
 LDFLAGS	       = -Wl,-rpath,$(QW_LIB) -Wl,--no-as-needed
