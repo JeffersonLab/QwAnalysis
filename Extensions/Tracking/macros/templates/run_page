@@ -417,7 +417,7 @@ Reconstructed position of tracks at the main detector plane, for those tracks wi
 
 <p align="center">
 <a href="%%RUNNUM%%_Radial_MD_pkg1_hit_and_miss.png"><img src="%%RUNNUM%%_Radial_MD_pkg1_hit_and_miss.png" style="width: 49%;"></a>
-<a href="%%RUNNUM%%_Radial_MD_pkg2_hit_and_miss.png"><img src="%%RUNNUM%%_Radial_MD_pkg1_hit_and_miss.png" style="width: 49%;"></a>
+<a href="%%RUNNUM%%_Radial_MD_pkg2_hit_and_miss.png"><img src="%%RUNNUM%%_Radial_MD_pkg2_hit_and_miss.png" style="width: 49%;"></a>
 </p>
 
 <!-- New Topic -->
