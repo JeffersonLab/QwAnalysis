@@ -1408,7 +1408,7 @@ class MyFCN : public ROOT::Minuit2::FCNBase {
 		MyFCN(std::vector<QwHit*> fhits) : hits(fhits)  {}
 
                 double operator() (const double* array) const {
-                        const std::vector<double> fit(array, array + 4 * sizeof(array[0]));
+                        const std::vector<double> fit(array, array + 4);
                         return operator()(fit);
                 }
 
