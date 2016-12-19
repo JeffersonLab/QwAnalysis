@@ -70,15 +70,15 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   /// Copy constructor by object
   VQwSubsystem(const VQwSubsystem& orig)
   : MQwHistograms(orig),
+    fSystemName(orig.fSystemName),
+    fEventTypeMask(orig.fEventTypeMask),
+    fIsDataLoaded(orig.fIsDataLoaded),
+    fCurrentROC_ID(orig.fCurrentROC_ID),
+    fCurrentBank_ID(orig.fCurrentBank_ID),
     fPublishList(orig.fPublishList),
     fROC_IDs(orig.fROC_IDs),
     fBank_IDs(orig.fBank_IDs)
-  {
-    fSystemName = orig.fSystemName;
-    fIsDataLoaded = orig.fIsDataLoaded;
-    fCurrentROC_ID = orig.fCurrentROC_ID;
-    fCurrentBank_ID = orig.fCurrentBank_ID;
-  }
+  { }
 
   /// Default destructor
   virtual ~VQwSubsystem() { }
@@ -157,6 +157,8 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
   /// Optional geometry definition
   virtual Int_t LoadGeometryDefinition(TString mapfile) { return 0; };
+  /// Optional crosstalk definition
+  virtual Int_t LoadCrosstalkDefinition(TString mapfile) { return 0; };
   /// Optional event cut file
   virtual Int_t LoadEventCuts(TString mapfile) { return 0; };
 

@@ -79,6 +79,15 @@ class QwGeometry: public std::vector<QwDetectorInfo*> {
       std::sort(begin(),end(),compare());
     }
 
+    /// Get detectors by name
+    const QwGeometry name(const std::string& name) {
+      QwGeometry results;
+      for (const_iterator i = begin(); i != end(); i++)
+        if ((*i)->GetDetectorName() == name)
+          results.push_back(*i);
+      return results;
+    }
+
     /// Get detectors in given region
     const QwGeometry in(const EQwRegionID& r) const {
       QwGeometry results;

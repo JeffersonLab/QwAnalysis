@@ -36,6 +36,13 @@ class QwDetectorInfo: public TObject {
     // Load geometry information from parameter file
     void LoadGeometryDefinition(QwParameterFile* map);
 
+    // Load crosstalk information from parameter file
+    void LoadCrosstalkDefinition(QwParameterFile* map);
+
+    // Get/set name
+    std::string GetDetectorName() const { return fDetectorName; };
+    void SetDetectorName(const std::string& name) { fDetectorName = name; };
+
     // Get/set spatial resolution
     double GetSpatialResolution() const { return fSpatialResolution; };
     void SetSpatialResolution(const double res) { fSpatialResolution = res; };
@@ -302,13 +309,16 @@ class QwDetectorInfo: public TObject {
     double fPlaneOffset;        ///< Perpendicular distance from the first plane in the same direction
     int fNumberOfElements;	///< Total number of elements in this detector
     
+    std::map<int,int> fCrosstalk;//! ///< Sets of crosstalking elements, in a map for easy lookup
+
     std::vector<double> fEfficiency;//! ///< Efficiency of all elements
 
     QwTrackingTreeRegion* fTree;        ///< Search tree for this detector
 
   public:
+
     // Detector name
-    std::string fName;
+    std::string fDetectorName;
 
     // Reference channel index in list of reference channels (most prob. filled at load time)
     int fReferenceChannelIndex;

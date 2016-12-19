@@ -40,10 +40,13 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
   public:
 
     /// Constructor with name
-    VQwSubsystemTracking(TString name): VQwSubsystem(name) {
+    VQwSubsystemTracking(TString name)
+    : VQwSubsystem(name),
+      fTreeArrayIndex(0),fTreeArrayNumEntries(0),fF1TDCResolutionNS(0) {
       SetEventTypeMask(0xfffe); // do not accept 0x1
       fDetectorInfo.clear(); // clear detector info
     };
+
     /// Default destructor
     virtual ~VQwSubsystemTracking() {
       // Clear detector info objects
@@ -73,6 +76,8 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
 
     /// Load geometry definition for tracking subsystems
     Int_t LoadGeometryDefinition(TString mapfile);
+    /// Load crosstalk definition for tracking subsystems
+    Int_t LoadCrosstalkDefinition(TString mapfile);
 
     /// Get the hit list
     virtual void  GetHitList(QwHitContainer & grandHitContainer) = 0;

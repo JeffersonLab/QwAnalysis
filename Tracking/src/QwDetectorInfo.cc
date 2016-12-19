@@ -32,11 +32,14 @@ QwDetectorInfo::QwDetectorInfo(const std::string& name)
   fActiveWidthX(0),fActiveWidthY(0),fActiveWidthZ(0),
   fElementSpacing(0),fElementAngle(0),fElementAngleCos(0),fElementAngleSin(0),
   fElementOffset(0),fPlaneOffset(0),fNumberOfElements(0),fTree(0),
-  fName(name),fReferenceChannelIndex(0)
+  fDetectorName(name),fReferenceChannelIndex(0)
 {
 
 }
 
+/** Parse the geometry definition for this detector
+ * @param map Relevant fraction of the parameter file
+ */
 void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
 {
   std::string varvalue;
@@ -156,11 +159,55 @@ void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
     }
   }
 
-
   // A value of importance for region 2 only
   fPlaneOffset = fDetectorOriginY * fElementAngleCos + fDetectorOriginX * fElementAngleSin;
 }
 
+
+
+/** Parse the crosstalk definition for this detector
+ * @param map Relevant fraction of the parameter file
+ */
+void QwDetectorInfo::LoadCrosstalkDefinition(QwParameterFile* map)
+{
+  map->TrimWhitespace();
+  map->RewindToFileStart();
+  while (map->ReadNextLine()) {
+    std::string varname,varvalue;
+    if (! map->HasVariablePair("=",varname,varvalue)) continue;
+
+    if (varname == "crosstalk") {
+      std::string list = map->ConvertValue<string>(varvalue);
+      size_t begin = 0; // start of a 'element1,element2' pair
+      while (begin < list.size()) {
+        // find next space
+        size_t end = list.find(' ',begin);
+        // if no space, point to end of the line
+        if (end == std::string::npos) end = list.size();
+        // get the 'element1,element2' pair
+        std::string word = list.substr(begin,end-begin);
+        // find next comma
+        size_t comma = word.find(',');
+        // if no comma, stop
+        if (comma == std::string::npos) continue;
+#if defined(__GXX_EXPERIMENTAL_CXX0X) || __cplusplus >= 201103L
+        // get element1 and element2
+        int element1 = std::stoi(word.substr(0,comma));
+        int element2 = std::stoi(word.substr(comma+1,word.size()-comma-1));
+        fCrosstalk[element1] = element2;
+        fCrosstalk[element2] = element1;
+        QwOut << "crosstalk in " << GetDetectorName() << ": " << element1 << "," << element2 << QwLog::endl;
+#else
+        QwError << "QwDetectorInfo efficiency requires C++0x or C++11 support." << QwLog::endl;
+        QwMessage << "Recompile with CXXFLAGS += -std=c++0x or CXXFLAGS += -std=c++11." << QwLog::endl;
+        exit(-1);
+#endif
+        // continue
+        begin = end+1;
+      }
+    }
+  }
+}
 
 /** Get position of the detector
  * @return TVector3
@@ -232,7 +279,7 @@ void QwDetectorInfo::Print(Option_t *option) const
  */
 std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det)
 {
-  stream << det.fName << ": ";
+  stream << det.fDetectorName << ": ";
   stream << "type "    << det.fType  << ", ";
   stream << "package " << det.fPackage << ", ";
   stream << "region "  << det.fRegion << ", ";

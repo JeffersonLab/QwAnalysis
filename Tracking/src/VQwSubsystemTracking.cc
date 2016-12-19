@@ -90,3 +90,50 @@ Int_t VQwSubsystemTracking::LoadGeometryDefinition(TString filename)
 }
 
 
+Int_t VQwSubsystemTracking::LoadCrosstalkDefinition(TString filename)
+{
+  // Open parameter file
+  QwParameterFile* map = new QwParameterFile(filename.Data());
+
+  // Add detector map name to file
+  fDetectorMaps.insert(map->GetParamFileNameContents());
+
+  // Read preamble
+  QwParameterFile* preamble = map->ReadSectionPreamble();
+  preamble->TrimComment("!#");  // Remove everything after a '!' or '#' character
+  preamble->TrimWhitespace();   // Get rid of leading and trailing spaces
+
+  // Read detector sections
+  QwParameterFile* section;
+  std::string section_name;
+  while ((section = map->ReadNextSection(section_name))) {
+
+    // Find detector info object for this detector
+    QwGeometry detectors = fDetectorInfo.name(section_name);
+    if (detectors.size() != 1) {
+      QwWarning << "Warning: LoadCrosstalkDefinition detector name " << section_name
+                << " has " << detectors.size() << " matching detectors." << QwLog::endl;
+      QwMessage << "Options are:" << QwLog::endl;
+      QwMessage << fDetectorInfo << QwLog::endl;
+      exit(-1);
+    }
+    // Get the first (and only) match
+    QwDetectorInfo* detector = detectors[0];
+
+    // Load preamble parameters
+    detector->LoadCrosstalkDefinition(preamble);
+
+    // Load section parameters
+    detector->LoadCrosstalkDefinition(section);
+
+    // Delete object created by ReadNextSection
+    delete section;
+  }
+
+  // Delete QwParameterFile object
+  delete map;
+
+  return 0; // \todo why?
+}
+
+
