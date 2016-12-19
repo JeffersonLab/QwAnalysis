@@ -539,10 +539,7 @@ void QwTrackingWorker::ProcessEvent (
                   }
 
                   // Create a vector of hit patterns
-                  std::vector<QwHitPattern> patterns(numwires+1,QwHitPattern()); // wires are counted from 1
-                  if (patterns.at(0).GetNumberOfBins() == 0)
-                    for (size_t wire = 0; wire < patterns.size(); wire++)
-                      patterns.at(wire).SetNumberOfLevels(fLevelsR3);
+                  std::vector<QwHitPattern> patterns(numwires+1,QwHitPattern(fLevelsR3)); // wires are counted from 1
 
                   // Loop over the hits in the subhitlist
                   for (QwHitContainer::iterator hit  = subhitlist->begin();
@@ -560,7 +557,7 @@ void QwTrackingWorker::ProcessEvent (
 
                   // Print hit pattern, if requested
                   if (fShowEventPattern) {
-                    std::cout << "event pattern: " << std::endl;
+                    QwOut << "event pattern: " << QwLog::endl;
                     for (size_t wire = 0; wire < patterns.size(); wire++)
                       if (patterns.at(wire).HasHits())
                         QwMessage << wire << ":" << patterns.at(wire) << QwLog::endl;
