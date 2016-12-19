@@ -51,21 +51,30 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
     { };
     /// \brief Constructor with hit pattern depth
     QwHitPattern(const unsigned int levels)
-    : fLevels(0),fBins(0),fBinWidth(0),fPattern(0),fPatternHash(0) {
+    : fLevels(levels),fBins(0),fBinWidth(0),fPattern(0),fPatternHash(0)
+    {
       SetNumberOfLevels(levels);
       Reset();
     };
     /// \brief Copy constructor
     QwHitPattern(const QwHitPattern& pattern)
-    : VQwTrackingElement(pattern),QwObjectCounter<QwHitPattern>(pattern) {
-      *this = pattern;
+    : VQwTrackingElement(pattern),QwObjectCounter<QwHitPattern>(pattern),
+      fLevels(pattern.fLevels),
+      fBins(pattern.fBins),fBinWidth(pattern.fBinWidth)
+    {
+      fPattern = new unsigned char[fBins];
+      for (unsigned int bin = 0; bin < fBins; bin++)
+        fPattern[bin] = pattern.fPattern[bin];
+      fPatternHash =  new unsigned int[fBinWidth];
+      for (unsigned int hash = 0; hash < fBinWidth; hash++)
+        fPatternHash[hash] = pattern.fPatternHash[hash];
     };
 
     /// \brief Delete the hit pattern
     virtual ~QwHitPattern() {
       if (fLevels == 0) return;
-      if (fPatternHash) delete[] fPatternHash;
       if (fPattern)     delete[] fPattern;
+      if (fPatternHash) delete[] fPatternHash;
     };
 
     /// \brief Set the hit pattern depth
