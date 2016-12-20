@@ -73,7 +73,7 @@ class QwTrackingTreeCombine {
 		QwHit **hits, int n);
     void r3_TreelineFit (
 		double& slope, double& offset, double cov[3], double& chi,
-		QwHit **hits, int n, double z1, int wire_offset );
+		const std::vector<QwHit*> hits, double z1, int wire_offset );
 
 
     int selectx (double *xresult, double dist_cut, QwHit** hitarray, QwHit** ha);

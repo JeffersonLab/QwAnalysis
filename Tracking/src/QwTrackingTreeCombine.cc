@@ -456,13 +456,15 @@ void QwTrackingTreeCombine::r3_TreelineFit (
     double& offset,
     double  cov[3],
     double& chi,
-    QwHit **hits,
-    int n,
+    const std::vector<QwHit*> hits,
     double z1,
     int wire_offset )
 {
-  // Return if n is zero, no hits
-  if (n == 0) return;
+  // Return if size is zero, no hits
+  if (hits.size() == 0) return;
+
+  // Store size
+  size_t n = hits.size();
 
   // Declaration of matrices
   double A[n][2], G[n][n], AtGA[2][2];
@@ -1164,7 +1166,7 @@ int QwTrackingTreeCombine::TlMatchHits (
   double chi = 0.0;
   double slope = 0.0, offset = 0.0;
   double cov[3] = {0.0, 0.0, 0.0};
-  r3_TreelineFit ( slope, offset, cov, chi, treeline->fHits, nHits, z1, treeline->fR3Offset );
+  r3_TreelineFit ( slope, offset, cov, chi, treeline->GetListOfHits(), z1, treeline->fR3Offset );
   //    (returns slope, offset, cov, chi)
 
   //################

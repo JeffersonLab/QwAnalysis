@@ -335,7 +335,7 @@ QwTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
         // Fit a line to the hits
         double slope, offset, chi, cov[3];
-        TreeCombine->r3_TreelineFit (slope, offset, cov, chi, DetecHits, nhits, 0, -1);
+        TreeCombine->r3_TreelineFit (slope, offset, cov, chi, treeline->GetListOfHits(), 0, -1);
 
         // Store the determined offset, slope, and chi^2 into the tree line
         treeline->SetOffset(offset);
