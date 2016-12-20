@@ -225,6 +225,14 @@ class QwDetectorInfo: public TObject {
     EQwDirectionID GetDirection() const { return fDirection; };
     int GetPlane() const { return fPlane; };
 
+    // Get crosstalk element
+    int GetCrosstalkElement(int element) const {
+      if (fCrosstalk.count(element))
+        return fCrosstalk.at(element);
+      else
+        return -1;
+    }
+
     // Get element efficiency
     double GetElementEfficiency(int element) const {
       try {
