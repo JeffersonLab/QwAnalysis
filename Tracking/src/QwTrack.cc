@@ -215,11 +215,9 @@ void QwTrack::PrintPartialTracks(Option_t *option) const
 std::ostream& operator<< (std::ostream& stream, const QwTrack& t)
 {
   stream << "track: ";
-  if (t.GetRegion() != kRegionIDNull) {
-    stream << "(" << t.GetRegion() << "/" << "?UD"[t.GetPackage()] << ") ";
-    stream << "Start: " << t.fStartPosition << "/" << t.fStartDirection << std::endl;
-    stream << "End (goal): " << t.fEndPositionGoal << "/" << t.fEndDirectionGoal << std::endl;
-    stream << "End (actual): " << t.fEndPositionActual << "/" << t.fEndDirectionActual << std::endl;
-  }
+  stream << "(" << t.GetRegion() << "/" << "?UD"[t.GetPackage()] << ") ";
+  stream << "Start: " << t.fStartPosition << "/" << t.fStartDirection << std::endl;
+  stream << "End (goal): " << t.fEndPositionGoal << "/" << t.fEndDirectionGoal << std::endl;
+  stream << "End (actual): " << t.fEndPositionActual << "/" << t.fEndDirectionActual << std::endl;
   return stream;
 }
