@@ -113,6 +113,8 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     const std::vector<QwHit*>& GetListOfHits() const { return fQwHits; };
     //! \brief Clear the list of hits without deleting
     void ClearHits();
+    //! \brief Delete a single hit
+    void DeleteHit(const size_t i);
     //! \brief Delete the hits in the list
     void DeleteHits();
     // @}

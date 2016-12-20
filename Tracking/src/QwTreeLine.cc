@@ -203,6 +203,16 @@ void QwTreeLine::DeleteHits()
   ClearHits();
 }
 
+// Delete a single hit
+void QwTreeLine::DeleteHit(const size_t i)
+{
+  if (fQwHits.at(i)) {
+    delete fQwHits.at(i);
+    fQwHits.erase(fQwHits.begin()+i);
+    fNQwHits--;
+  }
+}
+
 // Add a single hit
 void QwTreeLine::AddHit(const QwHit* hit)
 {
