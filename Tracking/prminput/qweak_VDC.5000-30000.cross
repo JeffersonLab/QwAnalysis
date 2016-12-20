@@ -1,0 +1,19 @@
+# example of crosstalk definition below (commented out)
+
+[VDC_pkg1_front_u]
+
+[VDC_pkg1_front_v]
+
+[VDC_pkg1_back_u]
+
+[VDC_pkg1_back_v]
+
+[VDC_pkg2_front_u]
+#crosstalk = 189,191
+#crosstalk = 110,111
+
+[VDC_pkg2_front_v]
+
+[VDC_pkg2_back_u]
+
+[VDC_pkg2_back_v]

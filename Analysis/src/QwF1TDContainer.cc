@@ -132,6 +132,7 @@ QwF1TDC::QwF1TDC()
 
   fBuffer = new UInt_t[fWordsPerBuffer];
 
+  ResetCounters();
 }
 
 
@@ -185,6 +186,7 @@ QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
 
   fBuffer = new UInt_t[fWordsPerBuffer];
  
+  ResetCounters();
 }
 
 

@@ -64,8 +64,8 @@ class QwTrackingTreeMatch {
 
     //! Match the tree lines in two planes in region 3
     QwTreeLine* MatchRegion3 (
-	const QwTreeLine* frontlist,
-	const QwTreeLine* backlist);
+	QwTreeLine* frontlist,
+	QwTreeLine* backlist);
 
   private:
 

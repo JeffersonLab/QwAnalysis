@@ -108,6 +108,8 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     //! \brief Get the number of hits
     Int_t GetNumberOfHits() const { return fNQwHits; }
     //! \brief Get a specific hit
+    QwHit* GetHit(int i = 0);
+    //! \brief Get a specific hit (const version)
     const QwHit* GetHit(int i = 0) const;
     //! \brief Get the list of hits
     const std::vector<QwHit*>& GetListOfHits() const { return fQwHits; };
@@ -123,7 +125,7 @@ class QwTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTreeLine> 
     double GetChiWeight ();
 
     //! \brief Get the hit with the smallest drift distance
-    QwHit* GetBestWireHit (double offset = 0.0) const;
+    QwHit* GetBestWireHit (double offset = 0.0);
 
     void Print(const Option_t* options = 0) const;
     void PrintValid();

@@ -471,12 +471,13 @@ void QwTrackingTreeCombine::r3_TreelineFit (
   double AtGy[2], y[n], x[2];
 
   // Initialize the matrices and vectors
-  for ( int i = 0; i < n; i++ )
+  for (size_t i = 0; i < n; i++)
     A[i][0] = -1.0;
+
   //###########
   // Set Hits #
   //###########
-  for ( int i = 0; i < n; i++ )
+  for (size_t i = 0; i < n; i++)
   {
     if ( wire_offset == -1 )
     {
@@ -486,7 +487,7 @@ void QwTrackingTreeCombine::r3_TreelineFit (
     else
     {
       //A[i][1] = - ( i + wire_offset ); //used by Tl MatchHits
-      A[i][1]= -hits[i]->GetElement();
+      A[i][1] = -hits[i]->GetElement();
       y[i]    = -hits[i]->GetDriftPosition();
     }
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
@@ -494,27 +495,27 @@ void QwTrackingTreeCombine::r3_TreelineFit (
   }
 
   // Calculate right hand side: -A^T G y
-  for ( int k = 0; k < 2; k++ )
+  for (size_t k = 0; k < 2; k++)
   {
     double sum = 0.0;
-    for ( int i = 0; i < n; i++ )
-      sum += ( A[i][k] ) * G[i][i] * y[i];
+    for (size_t i = 0; i < n; i++)
+      sum += A[i][k] * G[i][i] * y[i];
     AtGy[k] = sum;
   }
   // Calculate the left hand side: A^T * G * A
-  for ( int j = 0; j < 2; j++ )
+  for (size_t j = 0; j < 2; j++)
   {
-    for ( int k = 0; k < 2; k++ )
+    for (size_t k = 0; k < 2; k++)
     {
       double sum = 0.0;
-      for ( int i = 0; i < n; i++ )
-        sum += ( A[i][j] ) * G[i][i] * A[i][k];
+      for (size_t i = 0; i < n; i++)
+        sum += A[i][j] * G[i][i] * A[i][k];
       AtGA[j][k] = sum;
     }
   }
 
   // Calculate inverse of A^T * G * A
-  double det = ( AtGA[0][0] * AtGA[1][1] - AtGA[1][0] * AtGA[0][1] );
+  double det = (AtGA[0][0] * AtGA[1][1] - AtGA[1][0] * AtGA[0][1]);
   double tmp = AtGA[0][0];
   AtGA[0][0] = AtGA[1][1] / det;
   AtGA[1][1] = tmp / det;
@@ -522,7 +523,7 @@ void QwTrackingTreeCombine::r3_TreelineFit (
   AtGA[1][0] /= -det;
 
   // Solve equation: x = (A^T * G * A)^-1 * (A^T * G * y)
-  for ( int k = 0; k < 2; k++ )
+  for (size_t k = 0; k < 2; k++)
     x[k] = AtGA[k][0] * AtGy[0] + AtGA[k][1] * AtGy[1];
   slope  = x[1];
   offset = x[0];
@@ -535,7 +536,7 @@ void QwTrackingTreeCombine::r3_TreelineFit (
   double sum = 0.0;
   if ( wire_offset == -1 )
   {
-    for ( int i = 0; i < n; i++ )
+    for (size_t i = 0; i < n; i++)
     {
       hits[i]->SetTreeLinePosition ( slope * ( hits[i]->GetWirePosition() - z1 ) + offset );
       hits[i]->CalculateTreeLineResidual();
@@ -545,13 +546,14 @@ void QwTrackingTreeCombine::r3_TreelineFit (
   }
   else
   {
-    for ( int i = 0; i < n; i++ )
+    for (size_t i = 0; i < n; i++)
     {
-      // 			hits[i]->SetWirePosition ( i + wire_offset ); // TODO element spacing
+      //hits[i]->SetWirePosition ( i + wire_offset ); // TODO element spacing
       //hits[i]->SetTrackPosition ( slope * ( i + wire_offset ) + offset );
       hits[i]->SetWirePosition (hits[i]->GetElement());
       hits[i]->SetTreeLinePosition ( slope * hits[i]->GetElement() + offset );
       hits[i]->CalculateTreeLineResidual();
+
       double residual = hits[i]->GetTreeLineResidual();
       sum += G[i][i] * residual * residual;
     }
@@ -1098,24 +1100,27 @@ int QwTrackingTreeCombine::TlMatchHits (
   // Loop over the hits with wires in this tree line
   int nHits = 0;
 
+  int tl_first = treeline->fR3Offset+treeline->fR3FirstWire;
+  int tl_last  = treeline->fR3Offset+treeline->fR3LastWire;
 
-  int tl_first=treeline->fR3Offset+treeline->fR3FirstWire;
-  int tl_last=treeline->fR3Offset+treeline->fR3LastWire;
+  // Keep track of crosstalk wires
+  std::vector<size_t> crosstalk_hits;
 
-
-  for ( QwHitContainer::iterator hit = hitlist->begin();
+  for (QwHitContainer::iterator hit = hitlist->begin();
       hit != hitlist->end() && nHits < tlayers; hit++ )
   {
     // 		int begin=0,end=0;
     // 		double track_resolution=hit->GetDetectorInfo()->GetTrackResolution();
     // 		double halfwidth=1.52;
-    int wire=hit->GetElement();
+    int wire = hit->GetElement();
 
-    if ( wire < tl_first || wire > tl_last){
+    if (wire < tl_first || wire > tl_last) {
       continue;
     }
-    if(hit->IsUsed()==false)
+
+    if (hit->IsUsed() == false)
       continue;
+
     // 		if ( wire < (tl_first - fMaxMissedWires+2)
     // 		|| wire > (tl_last + fMaxMissedWires-2)
     // 		        || hit->GetHitNumber() != 0 )
@@ -1143,13 +1148,21 @@ int QwTrackingTreeCombine::TlMatchHits (
     //############################
 
     goodhit->SetUsed ( true );
-    treeline->fHits[nHits] = new QwHit(goodhit);
-    treeline->AddHit (goodhit);
+    treeline->AddHit(goodhit);
+    // increment counter
+    nHits++;
 
     // Delete the hit from SelectLeftRightHit again so as to not leak memory
     delete goodhit;
 
-    nHits++;
+
+    // Check whether this wire in this detector is affected by crosstalk
+    int wire2 = hit->GetDetectorInfo()->GetCrosstalkElement(wire);
+    if (wire2 > 0) {
+      QwVerbose << "Potential crosstalk: wire " << wire << " with " << wire2
+                << " in det " << hit->GetDetectorInfo()->GetDetectorName() << QwLog::endl;
+      crosstalk_hits.push_back(treeline->GetNumberOfHits()-1);
+    }
   }
 
   // Warn when the number of wires between first and last is different from the
@@ -1166,21 +1179,95 @@ int QwTrackingTreeCombine::TlMatchHits (
   double chi = 0.0;
   double slope = 0.0, offset = 0.0;
   double cov[3] = {0.0, 0.0, 0.0};
-  r3_TreelineFit ( slope, offset, cov, chi, treeline->GetListOfHits(), z1, treeline->fR3Offset );
-  //    (returns slope, offset, cov, chi)
+  r3_TreelineFit(slope, offset, cov, chi, treeline->GetListOfHits(), z1, treeline->fR3Offset);
 
   //################
-  //SET PARAMATERS #
+  //SET PARAMETERS #
   //################
-
-  treeline->fOffset  = offset;
-  treeline->fSlope   = slope;     /* return track parameters: offset, slope, chi */
-  treeline->fChi     = chi;
+  treeline->SetOffset(offset);
+  treeline->SetSlope(slope);
+  treeline->SetChi(chi);
+  treeline->SetCov(cov);
   treeline->fNumHits = nHits;
-  treeline->SetCov ( cov );
 
   // Set the detector info pointer
-  treeline->SetDetectorInfo ( treeline->fHits[0]->GetDetectorInfo() );
+  treeline->SetDetectorInfo(treeline->GetHit(0)->GetDetectorInfo());
+
+  //####################
+  //DEAL WITH CROSSTALK#
+  //####################
+
+  // When there was a possibility for crosstalk in this treeline
+  if (crosstalk_hits.size() > 0) {
+
+    // Keep vector of indices to delete later
+    std::vector<size_t> delete_hits;
+
+    // Loop over all crosstalk hits
+    for (size_t i1 = 0; i1 < crosstalk_hits.size(); i1++) {
+      const QwHit* hit1 = treeline->GetHit(crosstalk_hits.at(i1));
+      const QwDetectorInfo* det1 = hit1->GetDetectorInfo();
+      int wire1 = hit1->GetElement();
+      int wire1_crosstalk = det1->GetCrosstalkElement(wire1);
+
+      // Loop over remaining crosstalk hits
+      for (size_t i2 = i1+1; i2 < crosstalk_hits.size(); i2++) {
+        const QwHit* hit2 = treeline->GetHit(crosstalk_hits.at(i2));
+        const QwDetectorInfo* det2 = hit2->GetDetectorInfo();
+        int wire2 = hit2->GetElement();
+        int wire2_crosstalk = det2->GetCrosstalkElement(wire2);
+
+        // If crosstalk wires match
+        if (wire1 == wire2_crosstalk && wire2 == wire1_crosstalk) {
+
+          // Get treeline residuals
+          double res1 = hit1->GetTreeLineResidual();
+          double res2 = hit2->GetTreeLineResidual();
+          QwVerbose << "Crosstalk: "
+                    << "wire1 " << wire1 << " res1 = " << res1 << " cm, "
+                    << "wire2 " << wire2 << " res2 = " << res2 << " cm"
+                    << QwLog::endl;
+
+          // Mark the hit with highest residual for deletion
+          if (res1 > res2) delete_hits.push_back(crosstalk_hits.at(i1));
+          else             delete_hits.push_back(crosstalk_hits.at(i2));
+        }
+      }
+    }
+
+    // Print original treeline
+    QwVerbose << "Original " << *treeline << QwLog::endl;
+
+    // Delete the hits marked for deletion
+    for (size_t i = 0; i < delete_hits.size(); i++) {
+      QwVerbose << "Deleting hit " << delete_hits.at(i) << " wire "
+                << treeline->GetHit(delete_hits.at(i))->GetElement()
+                << QwLog::endl;
+      treeline->DeleteHit(delete_hits.at(i));
+    }
+
+    // Redo the fit
+    r3_TreelineFit(slope, offset, cov, chi, treeline->GetListOfHits(), z1, treeline->fR3Offset);
+    treeline->SetOffset(offset);
+    treeline->SetSlope(slope);
+    treeline->SetChi(chi);
+    treeline->SetCov(cov);
+
+    // Print updated treeline
+    QwVerbose << "Updated  " << *treeline << QwLog::endl;
+  }
+
+  //################
+  //SET PARAMETERS #
+  //################
+  treeline->SetOffset(offset);
+  treeline->SetSlope(slope);
+  treeline->SetChi(chi);
+  treeline->SetCov(cov);
+  treeline->fNumHits = nHits;
+
+  // Set the detector info pointer
+  treeline->SetDetectorInfo(treeline->GetHit(0)->GetDetectorInfo());
 
   int ret = 1;  //need to set up a check that the missing hits is not greater than 1.
   if ( ! ret )

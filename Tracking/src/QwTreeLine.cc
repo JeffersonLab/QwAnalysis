@@ -229,6 +229,15 @@ void QwTreeLine::AddHitList(const std::vector<QwHit*> &hitlist)
 }
 
 // Get the hits from the TClonesArray to a QwHitContainer
+QwHit* QwTreeLine::GetHit(int i)
+{
+  if (fNQwHits == 0 ||  i >= fNQwHits)
+    return 0;
+  else
+    return fQwHits.at(i);
+}
+
+// Get the hits from the TClonesArray to a QwHitContainer (const version)
 const QwHit* QwTreeLine::GetHit(int i) const
 {
   if (fNQwHits == 0 ||  i >= fNQwHits)
@@ -263,19 +272,19 @@ double QwTreeLine::GetChiWeight ()
  * @param offset Optional offset to the position
  * @return Hit with smallest drift distance
  */
-QwHit* QwTreeLine::GetBestWireHit (double offset) const
+QwHit* QwTreeLine::GetBestWireHit (double offset)
 {
   double best_position = 9999.9;
   int best_hit = 0;
   // Get the best measured hit in the back
-  for (int hit = 0; hit < fNumHits; hit++) {
-    double position = fabs(fHits[hit]->GetDriftPosition() - offset);
+  for (int hit = 0; hit < GetNumberOfHits(); hit++) {
+    double position = fabs(GetHit(hit)->GetDriftPosition() - offset);
     if (position < best_position) {
       best_position = position;
       best_hit = hit;
     }
   }
-  return fHits[best_hit];
+  return GetHit(best_hit);
 }
 
 /**
