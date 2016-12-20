@@ -282,7 +282,7 @@ std::ostream& operator<< (std::ostream& stream, const QwHit& hit)
   stream << "dir "       << hit.fDirection << ", ";
   stream << "plane "     << hit.fPlane;
 
-  if (hit.fDetectorInfo) stream << " (detector " << hit.fDetectorInfo << "), ";
+  if (hit.fDetectorInfo) stream << " (det " << hit.fDetectorInfo->GetDetectorName() << "), ";
   else                   stream << ", ";
 
   stream << "element "  << hit.fElement;
@@ -298,6 +298,9 @@ std::ostream& operator<< (std::ostream& stream, const QwHit& hit)
     << "| = " << hit.fPartialTrackResidual/Qw::cm << " cm";
 
   if (hit.fAmbiguousElement) stream << " (?)";
+
+  if (hit.fDetectorInfo &&
+      hit.fDetectorInfo->GetCrosstalkElement(hit.fElement) > 0) stream << " (X)";
 
   return stream;
 }
