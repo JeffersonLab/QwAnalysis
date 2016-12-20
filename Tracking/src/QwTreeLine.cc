@@ -129,6 +129,8 @@ void QwTreeLine::Initialize()
     fHashArray[i] = 0;
   }
 
+  fAverageResidual = 0;
+
   fR3Offset = fR3FirstWire = fR3LastWire = 0;
 }
 
