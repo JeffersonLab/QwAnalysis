@@ -128,6 +128,8 @@ inline std::ostream& operator<< (std::ostream& stream, const QwEventHeader& h) {
  */
 class QwKinematics: public TObject {
   public:
+    QwKinematics()
+    : fP0(0),fPp(0),fQ2(0),fW2(0),fNu(0),fX(0),fY(0) { };
     virtual ~QwKinematics() { };
 
     double fP0;     ///< Incoming momentum \f$ p \f$

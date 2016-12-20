@@ -246,25 +246,25 @@ void QwEvent::CalculateKinematics(const QwTrack* track)
 void QwEvent::Print(Option_t* option) const
 {
   // Event header
-  //std::cout << *fEventHeader << std::endl;
+  QwOut << *fEventHeader << QwLog::endl;
   // Event kinematics
-  std::cout << "P0 = " << fKin.fP0 << " GeV/c" << std::endl;
-  std::cout << "PP = " << fKin.fPp << " GeV/c" << std::endl;
-  std::cout << "Q^2 = " << fKin.fQ2 << " (GeV/c)^2" << std::endl;
-//  std::cout << "weight = " << fCrossSectionWeight << std::endl;
-//  std::cout << "energy = " << fTotalEnergy/Qw::MeV << " MeV" << std::endl;
-//  std::cout << "momentum = " << fMomentum / Qw::MeV << " MeV" << std::endl;
-//  std::cout << "vertex position = " << fVertexPosition.Z()/Qw::cm << " cm" << std::endl;
-//  std::cout << "vertex momentum = " << fVertexMomentum.Z()/Qw::MeV << " MeV" << std::endl;
+  QwOut << "P0 = " << fKin.fP0 << " GeV/c" << QwLog::endl;
+  QwOut << "PP = " << fKin.fPp << " GeV/c" << QwLog::endl;
+  QwOut << "Q^2 = " << fKin.fQ2 << " (GeV/c)^2" << QwLog::endl;
+  //std::cout << "weight = " << fCrossSectionWeight << std::endl;
+  //std::cout << "energy = " << fTotalEnergy/Qw::MeV << " MeV" << std::endl;
+  //std::cout << "momentum = " << fMomentum / Qw::MeV << " MeV" << std::endl;
+  //std::cout << "vertex position = " << fVertexPosition.Z()/Qw::cm << " cm" << std::endl;
+  //std::cout << "vertex momentum = " << fVertexMomentum.Z()/Qw::MeV << " MeV" << std::endl;
 
   // Event content
-  std::cout << "Hits in this event:" << std::endl;
+  QwOut << "Hits in this event:" << QwLog::endl;
   PrintHits(option);
-  std::cout << "Tree lines in this event:" << std::endl;
+  QwOut << "Tree lines in this event:" << QwLog::endl;
   PrintTreeLines(option);
-  std::cout << "Partial tracks in this event:" << std::endl;
+  QwOut << "Partial tracks in this event:" << QwLog::endl;
   PrintPartialTracks(option);
-  std::cout << "Tracks in this event:" << std::endl;
+  QwOut << "Tracks in this event:" << QwLog::endl;
   PrintTracks(option);
 }
 
