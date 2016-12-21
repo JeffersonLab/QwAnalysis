@@ -83,6 +83,9 @@ Int_t VQwSubsystemTracking::LoadGeometryDefinition(TString filename)
     delete section;
   }
   
+  // Delete object created by ReadNextSection
+  delete preamble;
+
   // Delete QwParameterFile object
   delete map;
 
@@ -129,6 +132,9 @@ Int_t VQwSubsystemTracking::LoadCrosstalkDefinition(TString filename)
     // Delete object created by ReadNextSection
     delete section;
   }
+
+  // Delete object created by ReadNextSection
+  delete preamble;
 
   // Delete QwParameterFile object
   delete map;
