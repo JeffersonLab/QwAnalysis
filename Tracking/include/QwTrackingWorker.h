@@ -142,6 +142,9 @@ class QwTrackingWorker {
     QwTrackingTreeMatch*   fTreeMatch;   ///< Module that matches up VDC front and back treelines
     //@}
 
+    /// Internal list of search trees created by QwTrackingWorker
+    std::vector<QwTrackingTreeRegion*> fSearchTrees;
+
   private:
 
     // Disabled default constructor

@@ -186,6 +186,11 @@ QwTrackingWorker::~QwTrackingWorker ()
   if (fBridgingTrackFilter) delete fBridgingTrackFilter;
   if (fRayTracer)    delete fRayTracer;
 
+  // Delete search trees
+  for (size_t i = 0; i < fSearchTrees.size(); i++)
+    delete fSearchTrees[i];
+  fSearchTrees.clear();
+
   // Delete tracking modules
   if (fTreeSearch)  delete fTreeSearch;
   if (fTreeCombine) delete fTreeCombine;
@@ -376,7 +381,6 @@ void QwTrackingWorker::InitTree(const QwGeometry& geometry)
         QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
 
         /// Each element of search tree will point to a pattern database
-        // TODO leaking trees here
         QwTrackingTreeRegion* searchtree = thetree.inittree(filename.str(),
                                                levels,
                                                numlayers,
@@ -385,6 +389,8 @@ void QwTrackingWorker::InitTree(const QwGeometry& geometry)
                                                fRegenerate);
         if (fPrintPatternDatabase && region == kRegionID2) searchtree->PrintNodes();
         if (fPrintPatternDatabase && region == kRegionID3) searchtree->PrintTrees();
+        // Add tree to internal list for deletion
+        fSearchTrees.push_back(searchtree);
 
         // Set the detector identification
         searchtree->SetRegion(region);
