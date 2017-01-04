@@ -131,7 +131,7 @@ fi
 
 ###  Try to find MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR
 if [[ -e /etc/redhat-release && `awk '{printf"%s",$1}' /etc/redhat-release` == "CentOS" ]]; then
-    centos_base_path=/group/qweak/QwAnalysis/Linux_CentOS`awk '{printf"%s",$3}' /etc/redhat-release`-x86_64
+    centos_base_path=/group/qweak/QwAnalysis/Linux_CentOS`sed -r 's/CentOS.* ([0-9]+.[0-9]+).*/\1/' /etc/redhat-release`-x86_64
     centos_mysqlpp_inc=${centos_base_path}/MySQL++/local/include/mysql++
     centos_mysqlpp_lib=${centos_base_path}/MySQL++/local/lib
 else
