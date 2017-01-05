@@ -48,13 +48,31 @@ double drop_off_R3_hits = 0;  // percent of dropped hits to total hits in Region
 
 double missing_drift_time = 0.0; // [ns], set to 0 if no missing drift time
 
+
+// List of available cross section values
+std::vector<string> QwTreeEventBuffer::fAvailableCrossSections = {
+    "BornTotal",
+    "BornInelastic",
+    "BornQE",
+    "RadTotal",
+    "RadElastic",
+    "RadQE",
+    "RadDIS",
+    "RadTotalIntOnly",
+    "RadElasticIntOnly",
+    "RadQEIntOnly",
+    "RadDISIntOnly",
+    "RadElasticPeak",
+};
+
 //------------------------------------------------------------
 /**
  * Constructor with file name and spectrometer geometry
  * @param detector_info Detector geometry information vector
  */
 QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
-: fCurrentEvent(0),fOriginalEvent(0),fDetectorInfo(detector_info)
+: fCurrentEvent(0),fOriginalEvent(0),fDetectorInfo(detector_info),
+  fListCrossSections(false),fUseCrossSection(""),fCrossSection(0)
 {
   // Initialize
   fCurrentRunNumber = -1;
@@ -128,6 +146,12 @@ void QwTreeEventBuffer::DefineOptions(QwOptions& options)
   options.AddOptions("SimTracking options")("QwSimTracking.reconstruct-all",
                           po::value<bool>()->default_bool_value(true),
                           "attempt reconstruction of all events, regardless of software trigger");
+  options.AddOptions("SimTracking options")("QwSimTracking.list-cross-sections",
+                          po::value<bool>()->default_bool_value(false),
+                          "list which cross sections are available for fCrossSection");
+  options.AddOptions("SimTracking options")("QwSimTracking.use-cross-section",
+                          po::value<string>()->default_value(""),
+                          "specify which cross section to fill into fCrossSection");
 }
 
 /**
@@ -143,6 +167,14 @@ void QwTreeEventBuffer::ProcessOptions(QwOptions &options)
   fEnableR3Hits = options.GetValue<bool>("QwSimTracking.enable-r3-hits");
   fEnableResolution = options.GetValue<bool>("QwSimTracking.enable-resolution");
   fReconstructAllEvents = options.GetValue<bool>("QwSimTracking.reconstruct-all");
+
+  // Get the cross section to use
+  fUseCrossSection = options.GetValue<string>("QwSimTracking.use-cross-section");
+  if (fUseCrossSection.size()) AssignCrossSection();
+
+  // List cross sections when requested
+  fListCrossSections = options.GetValue<bool>("QwSimTracking.list-cross-sections");
+  if (fListCrossSections) ListCrossSections();
 }
 
 
@@ -221,6 +253,78 @@ unsigned int QwTreeEventBuffer::CloseFile()
   return 0;
 }
 
+/**
+ * List the available cross sections
+ */
+void QwTreeEventBuffer::ListCrossSections() {
+  QwOut << "Available cross sections:" << QwLog::endl;
+  for (size_t i = 0; i < fAvailableCrossSections.size(); i++) {
+    QwOut << fAvailableCrossSections.at(i) << QwLog::endl;
+  }
+}
+
+/**
+ * Assign the correct cross section pointer based on the setting in
+ * the flag fUseCrossSection
+ */
+void QwTreeEventBuffer::AssignCrossSection()
+{
+  // Get cross section when the flag is specified
+  std::vector<string>::iterator iter =
+      find(fAvailableCrossSections.begin(), fAvailableCrossSections.end(), fUseCrossSection);
+
+  if (iter != fAvailableCrossSections.end()) {
+    QwMessage << "Using cross section " << fUseCrossSection << QwLog::endl;
+    if (fUseCrossSection == "BornTotal") {
+      fCrossSection = &fPrimary_CrossSectionBornTotal;
+    }
+    if (fUseCrossSection == "BornInelastic") {
+      fCrossSection = &fPrimary_CrossSectionBornInelastic;
+    }
+    if (fUseCrossSection == "BornQE") {
+      fCrossSection = &fPrimary_CrossSectionBornQE;
+    }
+    if (fUseCrossSection == "RadTotal") {
+      fCrossSection = &fPrimary_CrossSectionRadTotal;
+    }
+    if (fUseCrossSection == "RadElastic") {
+      fCrossSection = &fPrimary_CrossSectionRadElastic;
+    }
+    if (fUseCrossSection == "RadQE") {
+      fCrossSection = &fPrimary_CrossSectionRadQE;
+    }
+    if (fUseCrossSection == "RadDIS") {
+      fCrossSection = &fPrimary_CrossSectionRadDIS;
+    }
+    if (fUseCrossSection == "RadTotalIntOnly") {
+      fCrossSection = &fPrimary_CrossSectionRadTotalIntOnly;
+    }
+    if (fUseCrossSection == "RadElasticIntOnly") {
+      fCrossSection = &fPrimary_CrossSectionRadElasticIntOnly;
+    }
+    if (fUseCrossSection == "RadQEIntOnly") {
+      fCrossSection = &fPrimary_CrossSectionRadQEIntOnly;
+    }
+    if (fUseCrossSection == "RadDISIntOnly") {
+      fCrossSection = &fPrimary_CrossSectionRadDISIntOnly;
+    }
+    if (fUseCrossSection == "RadElasticPeak") {
+      fCrossSection = &fPrimary_CrossSectionRadElasticPeak;
+    }
+  } else {
+    QwMessage << "Using default cross section." << QwLog::endl;
+    fCrossSection = &fPrimary_CrossSection;
+  }
+}
+
+/**
+ * Return the dereferenced cross section pointer
+ */
+Float_t QwTreeEventBuffer::GetCrossSection()
+{
+  if (fCrossSection) return *fCrossSection;
+  else return fPrimary_CrossSection;
+}
 
 /**
  * Read the next event
@@ -322,7 +426,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
            + fPrimary_OriginVertexPositionY*fPrimary_OriginVertexPositionY);
     fOriginalEvent->fPrimaryQ2 = fPrimary_PrimaryQ2;
     fOriginalEvent->fScatteringAngle = fPrimary_OriginVertexThetaAngle;
-    fOriginalEvent->fCrossSection = fPrimary_CrossSection;
+    fOriginalEvent->fCrossSection = GetCrossSection();
     fOriginalEvent->fPreScatteringEnergy = fPrimary_PreScatteringKineticEnergy;     
     fOriginalEvent->fOriginVertexEnergy =  fPrimary_OriginVertexKineticEnergy;
 
@@ -336,7 +440,7 @@ unsigned int QwTreeEventBuffer::GetSpecificEvent(const int eventnumber)
     fOriginalEvent->fKin.fY = (fOriginalEvent->fKin.fP0 - fOriginalEvent->fKin.fPp) / fOriginalEvent->fKin.fP0;
 
     // Assign the cross section to the reconstructed event for correct weighting
-    fCurrentEvent->fCrossSection = fPrimary_CrossSection;
+    fCurrentEvent->fCrossSection = GetCrossSection();
 
     for (size_t i=0; i<fCerenkov_PMT_PMTLeftNbOfPEs.size(); i++){
         fOriginalEvent->fMD_LeftNbOfPEs.push_back( fCerenkov_PMT_PMTLeftNbOfPEs.at(i) );
@@ -2969,8 +3073,34 @@ void QwTreeEventBuffer::AttachBranches()
   /// Attach to the primary branches
   fTree->SetBranchAddress("Primary.PrimaryQ2",
 		&fPrimary_PrimaryQ2);
+  fTree->SetBranchAddress("Primary.CrossSection",
+                &fPrimary_CrossSection);
   fTree->SetBranchAddress("Primary.CrossSectionWeight",
 		&fPrimary_CrossSectionWeight);
+  fTree->SetBranchAddress("Primary.CrossSectionBornTotal",
+                &fPrimary_CrossSectionBornTotal);
+  fTree->SetBranchAddress("Primary.CrossSectionBornInelastic",
+                &fPrimary_CrossSectionBornInelastic);
+  fTree->SetBranchAddress("Primary.CrossSectionBornQE",
+                &fPrimary_CrossSectionBornQE);
+  fTree->SetBranchAddress("Primary.CrossSectionRadTotal",
+                &fPrimary_CrossSectionRadTotal);
+  fTree->SetBranchAddress("Primary.CrossSectionRadElastic",
+                &fPrimary_CrossSectionRadElastic);
+  fTree->SetBranchAddress("Primary.CrossSectionRadQE",
+                &fPrimary_CrossSectionRadQE);
+  fTree->SetBranchAddress("Primary.CrossSectionRadDIS",
+                &fPrimary_CrossSectionRadDIS);
+  fTree->SetBranchAddress("Primary.CrossSectionRadTotalIntOnly",
+                &fPrimary_CrossSectionRadTotalIntOnly);
+  fTree->SetBranchAddress("Primary.CrossSectionRadElasticIntOnly",
+                &fPrimary_CrossSectionRadElasticIntOnly);
+  fTree->SetBranchAddress("Primary.CrossSectionRadQEIntOnly",
+                &fPrimary_CrossSectionRadQEIntOnly);
+  fTree->SetBranchAddress("Primary.CrossSectionRadDISIntOnly",
+                &fPrimary_CrossSectionRadDISIntOnly);
+  fTree->SetBranchAddress("Primary.CrossSectionRadElasticPeak",
+                &fPrimary_CrossSectionRadElasticPeak);
   fTree->SetBranchAddress("Primary.OriginVertexPositionX",
 		&fPrimary_OriginVertexPositionX);
   fTree->SetBranchAddress("Primary.OriginVertexPositionY",
@@ -2988,8 +3118,6 @@ void QwTreeEventBuffer::AttachBranches()
   fTree->SetBranchAddress("Primary.OriginVertexMomentumDirectionZ",
 		&fPrimary_OriginVertexMomentumDirectionZ);
 
-  fTree->SetBranchAddress("Primary.CrossSection",
-                &fPrimary_CrossSection);
   fTree->SetBranchAddress("Primary.OriginVertexThetaAngle",
                 &fPrimary_OriginVertexThetaAngle);
   fTree->SetBranchAddress("Primary.PreScatteringKineticEnergy",

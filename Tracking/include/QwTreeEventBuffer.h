@@ -120,13 +120,28 @@ class QwTreeEventBuffer
     /// \brief Get the partial tracks
     std::vector<boost::shared_ptr<QwPartialTrack> > CreatePartialTracks(EQwRegionID region) const;
 
-    ///\brief Print statistical information
+    /// \brief Print statistical information
     void PrintStatInfo(int r2good,int r3good, int ngoodtracks);
+
+    /// \brief List the available cross sections
+    void ListCrossSections();
+
+    /// \brief Assign the correct cross section pointer
+    void AssignCrossSection();
+
+    /// \brief Return the dereferenced cross section pointer
+    Float_t GetCrossSection();
 
   private:
 
     /// Flags
     bool fEnableR2Hits, fEnableR3Hits, fEnableResolution, fReconstructAllEvents;
+
+    /// Cross section flags
+    Float_t *fCrossSection;
+    bool fListCrossSections;
+    string fUseCrossSection;
+    static std::vector<string> fAvailableCrossSections;
 
     /// Set track counters
     static int fNumOfSimulated_ValidTracks;
@@ -236,6 +251,18 @@ class QwTreeEventBuffer
     Float_t fPrimary_PrimaryQ2;
     Float_t fPrimary_CrossSection;
     Float_t fPrimary_CrossSectionWeight;
+    Float_t fPrimary_CrossSectionBornTotal;
+    Float_t fPrimary_CrossSectionBornInelastic;
+    Float_t fPrimary_CrossSectionBornQE;
+    Float_t fPrimary_CrossSectionRadTotal;
+    Float_t fPrimary_CrossSectionRadElastic;
+    Float_t fPrimary_CrossSectionRadQE;
+    Float_t fPrimary_CrossSectionRadDIS;
+    Float_t fPrimary_CrossSectionRadTotalIntOnly;
+    Float_t fPrimary_CrossSectionRadElasticIntOnly;
+    Float_t fPrimary_CrossSectionRadQEIntOnly;
+    Float_t fPrimary_CrossSectionRadDISIntOnly;
+    Float_t fPrimary_CrossSectionRadElasticPeak;
     Float_t fPrimary_OriginVertexThetaAngle;
     Float_t fPrimary_OriginVertexPhiAngle;
     Float_t fPrimary_PreScatteringKineticEnergy;
