@@ -50,20 +50,7 @@ double missing_drift_time = 0.0; // [ns], set to 0 if no missing drift time
 
 
 // List of available cross section values
-std::vector<string> QwTreeEventBuffer::fAvailableCrossSections = {
-    "BornTotal",
-    "BornInelastic",
-    "BornQE",
-    "RadTotal",
-    "RadElastic",
-    "RadQE",
-    "RadDIS",
-    "RadTotalIntOnly",
-    "RadElasticIntOnly",
-    "RadQEIntOnly",
-    "RadDISIntOnly",
-    "RadElasticPeak",
-};
+std::vector<string> QwTreeEventBuffer::fAvailableCrossSections;
 
 //------------------------------------------------------------
 /**
@@ -107,6 +94,24 @@ QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
   fNumOfSimulated_TS_MD_Tracks = 0;
   
   LoadDriftTimeDistance();
+
+  // If fAvailableCrossSections hasn't been initialized, do it now
+  // (only C++11 has support for { } initializer lists, so this must be
+  // done explicitly)
+  if (fAvailableCrossSections.size() == 0) {
+    fAvailableCrossSections.push_back("BornTotal");
+    fAvailableCrossSections.push_back("BornInelastic");
+    fAvailableCrossSections.push_back("BornQE");
+    fAvailableCrossSections.push_back("RadTotal");
+    fAvailableCrossSections.push_back("RadElastic");
+    fAvailableCrossSections.push_back("RadQE");
+    fAvailableCrossSections.push_back("RadDIS");
+    fAvailableCrossSections.push_back("RadTotalIntOnly");
+    fAvailableCrossSections.push_back("RadElasticIntOnly");
+    fAvailableCrossSections.push_back("RadQEIntOnly");
+    fAvailableCrossSections.push_back("RadDISIntOnly");
+    fAvailableCrossSections.push_back("RadElasticPeak");
+  }
 }
 
 
