@@ -157,7 +157,7 @@ void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
       string str1 = word.substr(0,colon);
       string str2 = word.substr(colon+1,word.size()-colon-1);
       int element = std::atoi(str1.c_str());
-      double efficiency = std::atof(str2.c_str()));
+      double efficiency = std::atof(str2.c_str());
       SetElementEfficiency(element,efficiency);
 #endif
       // continue
