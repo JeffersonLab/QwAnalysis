@@ -13,6 +13,9 @@
 #include "QwDetectorInfo.h"
 ClassImp(QwDetectorInfo)
 
+// System headers
+#include <cstdlib>
+
 // Qweak headers
 #include "QwParameterFile.h"
 
@@ -150,9 +153,12 @@ void QwDetectorInfo::LoadGeometryDefinition(QwParameterFile* map)
       double efficiency = std::stod(word.substr(colon+1,word.size()-colon-1));
       SetElementEfficiency(element,efficiency);
 #else
-      QwError << "QwDetectorInfo efficiency requires C++0x or C++11 support." << QwLog::endl;
-      QwMessage << "Recompile with CXXFLAGS += -std=c++0x or CXXFLAGS += -std=c++11." << QwLog::endl;
-      exit(-1);
+      // get element and efficiency
+      string str1 = word.substr(0,colon);
+      string str2 = word.substr(colon+1,word.size()-colon-1);
+      int element = std::atoi(str1.c_str());
+      double efficiency = std::stod(str2.c_str()));
+      SetElementEfficiency(element,efficiency);
 #endif
       // continue
       begin = end+1;
@@ -198,9 +204,14 @@ void QwDetectorInfo::LoadCrosstalkDefinition(QwParameterFile* map)
         fCrosstalk[element2] = element1;
         QwOut << "crosstalk in " << GetDetectorName() << ": " << element1 << "," << element2 << QwLog::endl;
 #else
-        QwError << "QwDetectorInfo efficiency requires C++0x or C++11 support." << QwLog::endl;
-        QwMessage << "Recompile with CXXFLAGS += -std=c++0x or CXXFLAGS += -std=c++11." << QwLog::endl;
-        exit(-1);
+        // get element1 and element2
+        string str1 = word.substr(0,comma);
+        string str2 = word.substr(comma+1,word.size()-comma-1);
+        int element1 = std::atoi(str1.c_str());
+        int element2 = std::atoi(str2.c_str());
+        fCrosstalk[element1] = element2;
+        fCrosstalk[element2] = element1;
+        QwOut << "crosstalk in " << GetDetectorName() << ": " << element1 << "," << element2 << QwLog::endl;
 #endif
         // continue
         begin = end+1;
