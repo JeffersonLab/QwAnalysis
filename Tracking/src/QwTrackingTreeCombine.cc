@@ -1229,8 +1229,21 @@ int QwTrackingTreeCombine::TlMatchHits (
                     << QwLog::endl;
 
           // Mark the hit with highest residual for deletion
-          if (res1 > res2) delete_hits.push_back(crosstalk_hits.at(i1));
-          else             delete_hits.push_back(crosstalk_hits.at(i2));
+          if (res1 > res2) {
+            QwVerbose << "Will delete hit " << crosstalk_hits.at(i1)
+                      << " wire "
+                      << treeline->GetHit(crosstalk_hits.at(i1))->GetElement()
+                      << QwLog::endl;
+            delete_hits.push_back(crosstalk_hits.at(i1));
+            // skip this i1 hit by skipping all other i2 hits
+            i2 = crosstalk_hits.size();
+          } else {
+            QwVerbose << "Will delete hit " << crosstalk_hits.at(i2)
+                      << " wire "
+                      << treeline->GetHit(crosstalk_hits.at(i2))->GetElement()
+                      << QwLog::endl;
+            delete_hits.push_back(crosstalk_hits.at(i2));
+          }
         }
       }
     }
@@ -1238,10 +1251,21 @@ int QwTrackingTreeCombine::TlMatchHits (
     // Print original treeline
     QwVerbose << "Original " << *treeline << QwLog::endl;
 
-    // Delete the hits marked for deletion
-    for (size_t i = 0; i < delete_hits.size(); i++) {
-      QwVerbose << "Deleting hit " << delete_hits.at(i) << " wire "
+    // Delete the hits marked for deletion:
+    // but because the vector delete_hits can contain equal indices, we must
+    // be careful when deleting. We sort the indices to delete, then run them
+    // through unique, and then resize the vector to only include the sorted
+    // unique indices. Now we can delete from the end.
+    std::sort(delete_hits.begin(), delete_hits.end());
+    std::vector<size_t>::iterator uniques_end =
+        std::unique(delete_hits.begin(), delete_hits.end());
+    delete_hits.resize(std::distance(delete_hits.begin(),uniques_end));
+    for (int i = delete_hits.size() - 1; i >= 0; i--) { // signed int because of i >= 0
+      QwVerbose << "Deleting hit " << delete_hits.at(i)
+                << " wire "
                 << treeline->GetHit(delete_hits.at(i))->GetElement()
+                << " with res "
+                << treeline->GetHit(delete_hits.at(i))->GetTreeLineResidual()
                 << QwLog::endl;
       treeline->DeleteHit(delete_hits.at(i));
     }
