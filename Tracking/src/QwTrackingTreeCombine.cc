@@ -1765,30 +1765,29 @@ int QwTrackingTreeCombine::r2_PartialTrackFit (
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,90,0)
 
   //Call the Minuit2 code to minimize chi2
-  TFitterMinuit * minuit = new TFitterMinuit();
-  minuit->SetPrintLevel(fDebug-1);
-  minuit->SetMinuitFCN(fcn);
-  minuit->SetParameter(0,"M",   fit[1],1,0,0);
-  minuit->SetParameter(1,"XOff",fit[0],100,0,0);
-  minuit->SetParameter(2,"N",   fit[3],1,0,0);
-  minuit->SetParameter(3,"YOff",fit[2],100,0,0);
-  minuit->CreateMinimizer();
-  int iret = minuit->Minimize();
+  TFitterMinuit minuit;
+  minuit.SetPrintLevel(fDebug-1);
+  minuit.SetMinuitFCN(fcn);
+  minuit.SetParameter(0,"M",   fit[1],1,0,0);
+  minuit.SetParameter(1,"XOff",fit[0],100,0,0);
+  minuit.SetParameter(2,"N",   fit[3],1,0,0);
+  minuit.SetParameter(3,"YOff",fit[2],100,0,0);
+  minuit.CreateMinimizer();
+  int iret = minuit.Minimize();
   if (iret != 0) QwVerbose << "Minuit: old fit failed! " << iret << QwLog::endl;
 
   std::vector<double> oldpars;
-  oldpars.push_back(minuit->GetParameter(0));
-  oldpars.push_back(minuit->GetParameter(1));
-  oldpars.push_back(minuit->GetParameter(2));
-  oldpars.push_back(minuit->GetParameter(3));
+  oldpars.push_back(minuit.GetParameter(0));
+  oldpars.push_back(minuit.GetParameter(1));
+  oldpars.push_back(minuit.GetParameter(2));
+  oldpars.push_back(minuit.GetParameter(3));
 
   double oldfit[4];
-  oldfit[0] = minuit->GetParameter(1);
-  oldfit[1] = minuit->GetParameter(0);
-  oldfit[2] = minuit->GetParameter(3);
-  oldfit[3] = minuit->GetParameter(2);
+  oldfit[0] = minuit.GetParameter(1);
+  oldfit[1] = minuit.GetParameter(0);
+  oldfit[2] = minuit.GetParameter(3);
+  oldfit[3] = minuit.GetParameter(2);
 
-  delete minuit;
 #endif
 
   // Newer ROOT fitting interface
