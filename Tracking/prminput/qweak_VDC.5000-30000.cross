@@ -7,6 +7,7 @@
 [VDC_pkg1_back_u]
 
 [VDC_pkg1_back_v]
+crosstalk = 175,176
 
 [VDC_pkg2_front_u]
 #crosstalk = 189,191
@@ -17,3 +18,4 @@
 [VDC_pkg2_back_u]
 
 [VDC_pkg2_back_v]
+crosstalk = 113,114

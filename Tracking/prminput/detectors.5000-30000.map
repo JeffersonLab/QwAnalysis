@@ -21,7 +21,7 @@
  name = R3
  map = qweak_R3.map
  geom = qweak_VDC.geo
- #cross = qweak_VDC.cross
+ cross = qweak_VDC.cross
 
 [QwTriggerScintillator]
  name = TS
