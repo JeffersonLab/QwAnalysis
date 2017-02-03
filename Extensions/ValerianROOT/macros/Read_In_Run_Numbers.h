@@ -48,11 +48,16 @@ void Read_In_Run_Numbers(std::string file_name)
 {
   Int_t tmp;
 
+/*
+  TString filename = TString(gSystem->Getenv("QWANALYSIS"))
+      + "/Extensions/ValerianROOT/runlists/SpecialRuns/" + file_name;
+*/
+
   TString filename = TString(gSystem->Getenv("QWANALYSIS"))
       + "/Extensions/ValerianROOT/runlists/" + file_name;
 
   // debugging
-//  std::cout << "filename: " << filename << std::endl;
+  //  std::cout << "filename: " << filename << std::endl;
 
   // An input stream that contains run list
   ifstream runnum_data;

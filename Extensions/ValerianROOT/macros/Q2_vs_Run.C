@@ -45,6 +45,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <numeric> //needed for finding average of a vector
 
 //ValerianROOT macro includes
 //include for the functions used in all macros without being customized
@@ -64,6 +65,9 @@ void PrintToFile();
 
 //define TGraphErrors
 std::vector<std::vector<TGraphErrors*> > g_Q2_VS_RUN;  //[Q2 type][package]
+
+//define the Fit for the TGraph of type 4
+std::vector<TF1*> f_Q2_VS_RUN_TYPE4;  //[package]
 
 //define the muiltigraph
 std::vector<TMultiGraph*> mg_Q2_VS_RUN;  //[package]
@@ -86,7 +90,8 @@ Double_t FUDGEFACTOR_Q2 = 0.1;  //m(GeV)^2 the factor added on to the y axis for
 Double_t FUDGEFACTOR_RUN[2] = { 0.05, 0.25 };  // the percentage add on to the X axis for pretty plots
 
 // index of vector to what it is
-std::string INDEXTOQ2[NUMQ2TYPES] = { "with No Cuts", "with lightweighting",
+std::string INDEXTOQ2[NUMQ2TYPES] = {
+    "with No Cuts", "with lightweighting",
     "with lightweighting and Pedestal subtracted", "with Loss", "without Loss" };
 std::string INDEXTOPKG[NUMQ2TYPES] = { "Both", "1", "2" };
 
@@ -97,22 +102,41 @@ Double_t Q2_MAX[NUMPACKAGES] = { 0 };  //max q2 for a pkg
 //the pass number
 std::string PASS;
 
+//pass the runlist
+std::string FILENAME_PREFIX;
+
+//Fit int, are we ploting the fit or not
+Int_t i_FIT = 0;  //Fit 0 is no and 1 is yes
+
 void Q2_vs_Run(std::string pass, std::string filename)
 {
   PASS = pass;
+  FILENAME_PREFIX = filename.substr(0, filename.find("."));
 
   //Create TChain and give it a file
   TChain* Track_It = new TChain("TrackThat");
+
   Track_It->Add(
       Form(
           "/group/qweak/www/html/tracking/ValerianROOTFiles/Pass%s_TrackingRuns.root",
           PASS.c_str()));
 
+/*
+   Track_It->Add(
+      Form(
+          "/group/qweak/www/html/tracking/ValerianROOTFiles/Sim_Pass%s_TrackingRuns.root",
+          PASS.c_str()));
+*/
+
+
   //run the functions on interest
   Read_In_Run_Numbers(filename);
-  Loop_Through_Tree(Track_It);
-  Make_graphs();
-  Plot();
+  for (i_FIT = 0; i_FIT < 2; i_FIT++)
+  {
+    Loop_Through_Tree(Track_It);
+    Make_graphs();
+    Plot();
+  }
   PrintToFile();
 
   RUNNUMLIST.clear();
@@ -158,7 +182,7 @@ void Loop_Through_Tree(TChain* track_that)
   //creates memory address to store the address of a vector (we set to 0 at moment)
   std::vector<MyQ2Cut_t>* myQ2Cut = 0;
   std::vector<MyQ2Loss_t>* myQ2Loss = 0;
-  std::vector<MyQ2NoLoss_t>* myQ2NoLoss = 0;
+  std::vector < MyQ2NoLoss_t > *myQ2NoLoss = 0;
   //create and interger for the run number - as this is not a
   //stucture it does not need a pointer
   Int_t run;
@@ -543,32 +567,42 @@ void Make_graphs()
   /*  //debugging
    std::cout << "made it in the make graph function" << std::endl;*/
 
-//resize the vector of the tgraph to the number of q2 types
+  //resize the vector of the tgraph to the number of q2 types
   g_Q2_VS_RUN.resize(NUMQ2TYPES);
-//resize the muiltigraph to number of packages
+  //resize the muiltigraph to number of packages
   mg_Q2_VS_RUN.resize(NUMPACKAGES);
 
-//define legend
+  //resize the fit to the number of packages
+  f_Q2_VS_RUN_TYPE4.resize(NUMPACKAGES);
+
+  //define legend and resize to number of packages
   LEGEND.resize(NUMPACKAGES);
 
-//Make the TGraphs with the information we got in from looping through the tree
+  //Make the TGraphs with the information we got in from looping through the tree
   for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
   {
     /*    //debugging....
      std::cout << "Pkg: " << i_pkg << std::endl;*/
 
-//define legend
-    LEGEND[i_pkg] =
-        (i_pkg == 0) ?
-            new TLegend(0.89, 0.45, 0.99, 0.55) :
-            new TLegend(0.79, 0.35, 0.99, 0.65);
+    //define legend
+    /*
+     //If plotting all Q2 Types
+     LEGEND[i_pkg] =
+     (i_pkg == 0) ?
+     new TLegend(0.85, 0.45, 0.99, 0.55) :
+     new TLegend(0.79, 0.35, 0.99, 0.65);
+     */
+    //If only doing Q2 w/ loss and  Q2 w/o loss
+    LEGEND[i_pkg] = new TLegend(0.85, 0.45, 0.99, 0.55);
+
     LEGEND[i_pkg]->SetHeader("Q^{2} Type");
 
-//define the multigraph
-    mg_Q2_VS_RUN[i_pkg] = new TMultiGraph(Form("mg_Q2_VS_RUN[%d]", i_pkg),
+    //define the multigraph
+    mg_Q2_VS_RUN[i_pkg] = new TMultiGraph(
+        Form("mg_Q2_VS_RUN[%d]", i_pkg),
         Form("Q^{2} vs Run number for package %s", INDEXTOPKG[i_pkg].c_str()));
 
-//initalize the max and min values - Max very small, Min large so they must be replaced
+    //initalize the max and min values - Max very small, Min large so they must be replaced
     Q2_MAX[i_pkg] = -1e6;
     Q2_MIN[i_pkg] = 1e6;
 
@@ -576,23 +610,23 @@ void Make_graphs()
     {
       /*      //debugging....
        std::cout << "Type: " << i_type << std::endl;*/
-//resize the type tgraph vector
+      //resize the type tgraph vector
       g_Q2_VS_RUN[i_type].resize(NUMPACKAGES);
-//push back for many vectors involves pushing in vectors...
-//but I should be able to resize them I would think...
+      //push back for many vectors involves pushing in vectors...
+      //but I should be able to resize them I would think...
 
-//take the vectors and turn them into arrays so that TGraphErrors will play nice
-//with them by &(vector[0]) :)
-      g_Q2_VS_RUN[i_type][i_pkg] = new TGraphErrors(RUNNUMLIST.size(),
-          &(RUN_VAL[0]), &(Q2_VAL[i_type][i_pkg][0]), &(RUN_ERROR[0]),
-          &(Q2_ERROR[i_type][i_pkg][0]));
+      //take the vectors and turn them into arrays so that TGraphErrors will play nice
+      //with them by &(vector[0]) :)
+      g_Q2_VS_RUN[i_type][i_pkg] = new TGraphErrors(
+          RUNNUMLIST.size(), &(RUN_VAL[0]), &(Q2_VAL[i_type][i_pkg][0]),
+          &(RUN_ERROR[0]), &(Q2_ERROR[i_type][i_pkg][0]));
 
-//set the attributes of the graph
-//Q2 no cuts = black, filled circle
-//Q2 lightweighted = violet, filled square
-//Q2 lightweight and pediatal subtracted = green, filled hospital sign
-//Q2Loss = red, filled triangle point up
-//Q2NoLoss = blue, filled triangle point down
+      //set the attributes of the graph
+      //Q2 no cuts = black, filled circle
+      //Q2 lightweighted = violet, filled square
+      //Q2 lightweight and pediatal subtracted = green, filled hospital sign
+      //Q2Loss = red, filled triangle point up
+      //Q2NoLoss = blue, filled triangle point down
       switch (i_type)
       {
         case 0:  //Q2 no cuts
@@ -663,35 +697,69 @@ void Make_graphs()
 
           //set marker style - filled triangle pint up
           g_Q2_VS_RUN[i_type][i_pkg]->SetMarkerStyle(23);
+
+          if (i_FIT == 0)
+          // Don't plot fit
+          {
+            //fit this graph to a constant, and get the stats - EX0 intally
+            //g_Q2_VS_RUN[i_type][i_pkg]->Fit(
+            //    Form("f_Q2_VS_RUN_TYPE4[%d]", i_pkg), "N");
+            //f_Q2_VS_RUN_TYPE4[i_pkg]->SetLineColor(kBlue);
+            //g_Q2_VS_RUN[i_type][i_pkg]->Fit("pol0", "N");
+            //g_Q2_VS_RUN[i_type][i_pkg]->GetFunction("pol0")->SetLineColor(kBlue);
+          } else if (i_FIT == 1)
+          {
+            //define the fits and color it
+            f_Q2_VS_RUN_TYPE4[i_pkg] = new TF1(
+                Form("f_Q2_VS_RUN_TYPE4[%d]", i_pkg), "pol0");
+            f_Q2_VS_RUN_TYPE4[i_pkg]->SetLineColor(kBlue);
+            //fit this graph to a constant, and get the stats - EX0 intally
+            g_Q2_VS_RUN[i_type][i_pkg]->Fit(
+                Form("f_Q2_VS_RUN_TYPE4[%d]", i_pkg));
+            //f_Q2_VS_RUN_TYPE4[i_pkg]->SetLineColor(kBlue);
+            //g_Q2_VS_RUN[i_type][i_pkg]->Fit("pol0", "N");
+            //g_Q2_VS_RUN[i_type][i_pkg]->GetFunction("pol0")->SetLineColor(kBlue);
+          }
           break;
 
         default:
           break;
       }
-      if (!((i_type == 0 || i_type == 1 || i_type == 2) && i_pkg == 0))
+
+      //Fill the multigraphs
+      //For plotting all Q2 types
+//      if (!((i_type == 0 || i_type == 1 || i_type == 2) && i_pkg == 0))
+      //For ploting only Q2 w/ Loss and Q2 w/o loss
+//      if (i_type == 3 || i_type == 4)
+      //For ploting only Q2 w/o loss
+      if (i_type == 4)
       {
-//add this graph to the muitigraph
+        //add this graph to the muitigraph
         mg_Q2_VS_RUN[i_pkg]->Add(g_Q2_VS_RUN[i_type][i_pkg]);
 
-//add to the Legend
+        //add to the Legend
         LEGEND[i_pkg]->AddEntry(g_Q2_VS_RUN[i_type][i_pkg],
-            Form("Q^{2} %s", INDEXTOQ2[i_type].c_str()), "ep");
+                                Form("Q^{2} %s", INDEXTOQ2[i_type].c_str()),
+                                "ep");
 
-//get the min and max Q2 values
-        Q2_MAX[i_pkg] = std::max(Q2_MAX[i_pkg],
+        //get the min and max Q2 values
+        Q2_MAX[i_pkg] = std::max(
+            Q2_MAX[i_pkg],
             *std::max_element(Q2_VAL[i_type][i_pkg].begin(),
-                Q2_VAL[i_type][i_pkg].end()));
+                              Q2_VAL[i_type][i_pkg].end()));
 
-        Q2_MIN[i_pkg] = std::min(Q2_MIN[i_pkg],
+        Q2_MIN[i_pkg] = std::min(
+            Q2_MIN[i_pkg],
             *std::min_element(Q2_VAL[i_type][i_pkg].begin(),
-                Q2_VAL[i_type][i_pkg].end(), less_than_but_non_zero));
+                              Q2_VAL[i_type][i_pkg].end(),
+                              less_than_but_non_zero));
 
-/*
-        //debugging
-        std::cout << "Pkg: " << i_pkg << std::endl;
-        std::cout << "Q2_MIN: " << Q2_MIN[i_pkg] << std::endl;
-        std::cout << "Q2_MAX: " << Q2_MAX[i_pkg] << std::endl;
-*/
+        /*
+         //debugging
+         std::cout << "Pkg: " << i_pkg << std::endl;
+         std::cout << "Q2_MIN: " << Q2_MIN[i_pkg] << std::endl;
+         std::cout << "Q2_MAX: " << Q2_MAX[i_pkg] << std::endl;
+         */
       }
     }
   }
@@ -730,76 +798,178 @@ void Make_graphs()
  *********************************************************/
 void Plot()
 {
-//Canvas
-  std::vector<TCanvas*> c_q2;  //[pkg]
-  c_q2.resize(NUMPACKAGES);
-
-  for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
+  if (i_FIT == 0)  // Not ploting fit
   {
-    c_q2[i_pkg] = new TCanvas(Form("c_q2[%d]", i_pkg),
-        Form("Q^{2} vs run number for %s package", INDEXTOPKG[i_pkg].c_str()));
+    //Canvas
+    std::vector<TCanvas*> c_q2;  //[pkg]
+    c_q2.resize(NUMPACKAGES);
 
-//set title and axis lables
-    mg_Q2_VS_RUN[i_pkg]->SetTitle(
-        Form(
-            "Q^{2} vs Run number for %s package; Run number; Q^{2} (m(GeV^{2}))",
-            INDEXTOPKG[i_pkg].c_str()));
+    for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
+    {
+      c_q2[i_pkg] = new TCanvas(
+          Form("c_q2[%d]", i_pkg),
+          Form("Q^{2} vs run number for %s package",
+               INDEXTOPKG[i_pkg].c_str()));
 
-//Draw this wonderful data - A=Axis are drawn around the graph - P=Axis are drawn around the graph
-    mg_Q2_VS_RUN[i_pkg]->Draw("AP");
+      //set title and axis lables
+      mg_Q2_VS_RUN[i_pkg]->SetTitle(
+          Form(
+              "Q^{2} vs Run number for %s package; Run number; Q^{2} [m(GeV^{2})]",
+              INDEXTOPKG[i_pkg].c_str()));
 
-    /*    //debugging
-     std::cout << "Pkg: " << i_pkg << std::endl << " Min: " << Q2_MIN[i_pkg]
-     << std::endl << " Max: " << Q2_MAX[i_pkg] << std::endl;
-     std::cout << "Run Num Min: " << RUNNUMLIST.front()
-     << std::endl << "Run Num Max: " << RUNNUMLIST.back() << std::endl; */
+      //Draw this wonderful data - A=Axis are drawn around the graph - P=Axis are drawn around the graph
+      mg_Q2_VS_RUN[i_pkg]->Draw("AP");
 
-    mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(
-        Q2_MIN[i_pkg] - FUDGEFACTOR_Q2, Q2_MAX[i_pkg] + FUDGEFACTOR_Q2);
+      /*    //debugging
+       std::cout << "Pkg: " << i_pkg << std::endl << " Min: " << Q2_MIN[i_pkg]
+       << std::endl << " Max: " << Q2_MAX[i_pkg] << std::endl;
+       std::cout << "Run Num Min: " << RUNNUMLIST.front()
+       << std::endl << "Run Num Max: " << RUNNUMLIST.back() << std::endl; */
 
-    Double_t RunRange = Double_t(RUNNUMLIST.back() - RUNNUMLIST.front());
+      mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(
+          Q2_MIN[i_pkg] - FUDGEFACTOR_Q2, Q2_MAX[i_pkg] + FUDGEFACTOR_Q2);
+
+      Double_t RunRange = Double_t(RUNNUMLIST.back() - RUNNUMLIST.front());
+
+      /*
+       Double_t x_min = Double_t(RUNNUMLIST.front())
+       - RunRange * FUDGEFACTOR_RUN[0];
+       Double_t x_max = Double_t(RUNNUMLIST.back())
+       + RunRange * FUDGEFACTOR_RUN[1];
+
+       //debugging
+       std::cout << "Runlist vector size: " << RUNNUMLIST.size() << std::endl;
+       std::cout << "Runlist Min: " << RUNNUMLIST.front() << std::endl;
+       std::cout << "Runlist Max: " << RUNNUMLIST.back() << std::endl;
+
+       std::cout << "Run val vector size: " << RUN_VAL.size() << std::endl;
+       std::cout << "Run Val Min: " << RUN_VAL.front() << std::endl;
+       std::cout << "Run Val Max: " << RUN_VAL.back() << std::endl;
+
+       std::cout << "RunRange: " << RunRange << std::endl;
+       std::cout << "x_min: " << x_min << std::endl;
+       std::cout << "x_max: " << x_max << std::endl;
+
+       mg_Q2_VS_RUN[i_pkg]->GetXaxis()->SetLimits(x_min, x_max);
+       */
+
+      //   original
+      mg_Q2_VS_RUN[i_pkg]->GetXaxis()->SetLimits(
+          Double_t(RUNNUMLIST.front()) - RunRange * FUDGEFACTOR_RUN[0],
+          Double_t(RUNNUMLIST.back()) + RunRange * FUDGEFACTOR_RUN[1]);
 
 /*
-    Double_t x_min = Double_t(RUNNUMLIST.front())
-        - RunRange * FUDGEFACTOR_RUN[0];
-    Double_t x_max = Double_t(RUNNUMLIST.back())
-        + RunRange * FUDGEFACTOR_RUN[1];
-
-    //debugging
-    std::cout << "Runlist vector size: " << RUNNUMLIST.size() << std::endl;
-    std::cout << "Runlist Min: " << RUNNUMLIST.front() << std::endl;
-    std::cout << "Runlist Max: " << RUNNUMLIST.back() << std::endl;
-
-    std::cout << "Run val vector size: " << RUN_VAL.size() << std::endl;
-    std::cout << "Run Val Min: " << RUN_VAL.front() << std::endl;
-    std::cout << "Run Val Max: " << RUN_VAL.back() << std::endl;
-
-    std::cout << "RunRange: " << RunRange << std::endl;
-    std::cout << "x_min: " << x_min << std::endl;
-    std::cout << "x_max: " << x_max << std::endl;
-
-    mg_Q2_VS_RUN[i_pkg]->GetXaxis()->SetLimits(x_min, x_max);
+      //draw the legend
+      LEGEND[i_pkg]->Draw();
 */
 
-    //   original
-     mg_Q2_VS_RUN[i_pkg]->GetXaxis()->SetLimits(
-     Double_t(RUNNUMLIST.front()) - RunRange * FUDGEFACTOR_RUN[0],
-     Double_t(RUNNUMLIST.back()) + RunRange * FUDGEFACTOR_RUN[1]);
+      //move the axis label so can read everything
+      mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetTitleOffset(1.25);
 
+      //update the pad
+      gPad->Update();
 
-    //draw the legend
-    LEGEND[i_pkg]->Draw();
+      c_q2[i_pkg]->SaveAs(
+          Form(
+              "~/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/%s/Q2_vs_Run/Pass_%s_Q2_vs_Run_pkg_%s_%s.png",
+              PASS.c_str(), FILENAME_PREFIX.c_str(), PASS.c_str(),
+              INDEXTOPKG[i_pkg].c_str(), FILENAME_PREFIX.c_str()));
 
-    //move the axis label so can read everything
-    mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetTitleOffset(1.25);
+      c_q2[i_pkg]->SaveAs(
+          Form(
+              "~/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/%s/Q2_vs_Run/Pass_%s_Q2_vs_Run_pkg_%s_%s.C",
+              PASS.c_str(), FILENAME_PREFIX.c_str(), PASS.c_str(),
+              INDEXTOPKG[i_pkg].c_str(), FILENAME_PREFIX.c_str()));
+      c_q2[i_pkg]->Clear();
+      c_q2[i_pkg]->Close();
+    }
+  }
 
-    //update the pad
-    gPad->Update();
+  //Plot with fit
+  if (i_FIT == 1)
+  {
+    //Canvas
+    std::vector<TCanvas*> c_q2_fit;  //[pkg]
+    c_q2_fit.resize(NUMPACKAGES);
 
-    c_q2[i_pkg]->SaveAs(
-        Form(
-            "~/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/Pass_%s_Q2_vs_run_pkg_%s.png",
-            PASS.c_str(), PASS.c_str(), INDEXTOPKG[i_pkg].c_str()));
+    for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
+    {
+      c_q2_fit[i_pkg] = new TCanvas(
+          Form("c_q2_fit[%d]", i_pkg),
+          Form("Q^{2} vs run number for %s package",
+               INDEXTOPKG[i_pkg].c_str()));
+
+      //set title and axis lables
+      mg_Q2_VS_RUN[i_pkg]->SetTitle(
+          Form(
+              "Q^{2} vs Run number for %s package; Run number; Q^{2} [m(GeV^{2})]",
+              INDEXTOPKG[i_pkg].c_str()));
+
+      //Draw this wonderful data - A=Axis are drawn around the graph - P=Axis are drawn around the graph
+      mg_Q2_VS_RUN[i_pkg]->Draw("AP");
+
+      /*
+       //debugging
+       std::cout << "Pkg: " << i_pkg << std::endl << " Min: " << Q2_MIN[i_pkg]
+       << std::endl << " Max: " << Q2_MAX[i_pkg] << std::endl;
+       std::cout << "Run Num Min: " << RUNNUMLIST.front() << std::endl
+       << "Run Num Max: " << RUNNUMLIST.back() << std::endl;
+       */
+
+      mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetRangeUser(
+          Q2_MIN[i_pkg] - FUDGEFACTOR_Q2, Q2_MAX[i_pkg] + FUDGEFACTOR_Q2);
+
+      Double_t RunRange = Double_t(RUNNUMLIST.back() - RUNNUMLIST.front());
+
+      //   original
+      mg_Q2_VS_RUN[i_pkg]->GetXaxis()->SetLimits(
+          Double_t(RUNNUMLIST.front()) - RunRange * FUDGEFACTOR_RUN[0],
+          Double_t(RUNNUMLIST.back()) + RunRange * FUDGEFACTOR_RUN[1]);
+
+/*
+      //draw the legend
+      LEGEND[i_pkg]->Draw();
+*/
+
+      //move the axis label so can read everything
+      mg_Q2_VS_RUN[i_pkg]->GetYaxis()->SetTitleOffset(1.25);
+
+      //update the pad
+      gPad->Update();
+
+      //Add the fit on top
+      //https://root.cern.ch/root/html532/TGraph.html#TGraph:Fit
+      //gStyle->SetOptFit(0111); //Probality, Chi2/nDF, paramters, errors
+      f_Q2_VS_RUN_TYPE4[i_pkg]->Draw("same");  //("pol0")->Draw("same");
+      gPad->Update();
+
+      //do something with the stats so that they are colored like the lines
+      //I have no idea what this does I found it online...
+      TPaveStats* stats1 =
+          (TPaveStats*) g_Q2_VS_RUN[4][i_pkg]->GetListOfFunctions()->FindObject(
+              "stats");
+      stats1->SetTextColor(kBlue);
+
+      stats1->SetX1NDC(0.81);  //left
+      stats1->SetX2NDC(0.99);  //right
+      stats1->SetY1NDC(0.78);  //bottom
+      stats1->SetY2NDC(0.90);  //top
+
+      c_q2_fit[i_pkg]->SaveAs(
+          Form(
+              "~/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/%s/Q2_vs_Run/Pass_%s_Q2_vs_Run_withFit_pkg_%s_%s.png",
+              PASS.c_str(), FILENAME_PREFIX.c_str(), PASS.c_str(),
+              INDEXTOPKG[i_pkg].c_str(), FILENAME_PREFIX.c_str()));
+
+      c_q2_fit[i_pkg]->SaveAs(
+          Form(
+              "~/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/%s/Q2_vs_Run/Pass_%s_Q2_vs_Run_withFit_pkg_%s_%s.C",
+              PASS.c_str(), FILENAME_PREFIX.c_str(), PASS.c_str(),
+              INDEXTOPKG[i_pkg].c_str(), FILENAME_PREFIX.c_str()));
+
+      c_q2_fit[i_pkg]->Close();
+
+    }
   }
 
   return;
@@ -843,8 +1013,9 @@ void PrintToFile()
 //This won't work! why I have no idea
   fout.open(
       Form(
-          "/home/vmgray/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/Pass%s_Q2_vs_Run.txt",
-          PASS.c_str(), PASS.c_str()));
+          "/home/vmgray/qweak/QwAnalysis_trunk/Extensions/ValerianROOT/Pass%s_Analysis/%s/Q2_vs_Run/Pass_%s_Q2_vs_Run_%s.txt",
+          PASS.c_str(), FILENAME_PREFIX.c_str(), PASS.c_str(),
+          FILENAME_PREFIX.c_str()));
 
   if (!fout.is_open())
     cout << "File not opened" << endl;
@@ -874,7 +1045,36 @@ void PrintToFile()
 
   }
 
-  //Table to Q2 type number to what it is
+  //print out the average
+  for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
+  {
+    fout << "Average \t "
+    << INDEXTOPKG[i_pkg].c_str()
+    << " \t\t "
+    << std::accumulate(Q2_VAL[0][i_pkg].begin(), Q2_VAL[0][i_pkg].end(), 0.0) / Q2_VAL[0][i_pkg].size()
+    << " \t\t\t "
+    << std::accumulate(Q2_VAL[1][i_pkg].begin(), Q2_VAL[1][i_pkg].end(), 0.0) / Q2_VAL[1][i_pkg].size()
+    << " \t\t\t "
+    << std::accumulate(Q2_VAL[2][i_pkg].begin(), Q2_VAL[2][i_pkg].end(), 0.0) / Q2_VAL[2][i_pkg].size()
+    << " \t\t\t "
+    << std::accumulate(Q2_VAL[3][i_pkg].begin(), Q2_VAL[3][i_pkg].end(), 0.0) / Q2_VAL[3][i_pkg].size()
+    << " \t\t\t "
+    << std::accumulate(Q2_VAL[4][i_pkg].begin(), Q2_VAL[4][i_pkg].end(), 0.0) / Q2_VAL[4][i_pkg].size()
+    << std::endl;
+  }
+  fout << std::endl;
+
+  //Print the parameters for fit 4 Q2 without loss
+  for (int i_pkg = 0; i_pkg < NUMPACKAGES; i_pkg++)
+  {
+    fout << "Type 4 fit parameters: " << INDEXTOPKG[i_pkg].c_str() << " \t\t p0: "
+    << f_Q2_VS_RUN_TYPE4[i_pkg]->GetParameter(0) << " +/- "
+    << f_Q2_VS_RUN_TYPE4[i_pkg]->GetParError(0) << " \t\t Chi2: "
+    << f_Q2_VS_RUN_TYPE4[i_pkg]->GetChisquare() << " \t\t NDf: "
+    << f_Q2_VS_RUN_TYPE4[i_pkg]->GetNDF() << std::endl;
+  }
+
+//Table to Q2 type number to what it is
   fout << std::endl << std::endl;
   fout << "# \t \t Q2 type" << std::endl;
 
