@@ -51,8 +51,9 @@ std::vector<Double_t> ErlerErrProp::EvalCumulativeAsym(){
   for(Int_t i=0;i<dataSetN;i++){
     RhoMat[i][i]=1;
     for(Int_t j=0;j<i;j++){
-      RhoMat[i][j]=0.01;
-      RhoMat[j][i]=-0.01;
+      //  Note off-diagonal terms are kept to zero for now; 2016-11-13, pking.
+      RhoMat[i][j]= 0.0;
+      RhoMat[j][i]= 0.0;
     }
   }
   // Manually fill in the Pearson's correlation coefficient

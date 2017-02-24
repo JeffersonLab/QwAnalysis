@@ -38,20 +38,42 @@ class QwCalculator{
   void PrintCorrectionBreakdown();
   void PrintAcceltanceCorrectedAsym();
 
+  std::vector<Double_t> GetSystErrorList(){
+    return(syst_errors);
+  }
+
+  std::vector<Double_t> syst_errors;
+
   //Measured Asymmetry inputs
   Double_t A_raw; // unregressed asymmetry ppm 
   Double_t dA_raw_stat; // stat. error ppm
+
   Double_t Delta_A_reg; // regression correction ppm 
   Double_t dDelata_A_reg; // quadrature sum of dAmsr_reg,dAmsr_dpk and dAmsr_cuts  ppm
   
   Double_t A_msr; // ppm    
-  Double_t dAmsr_inpout; //ppm
   Double_t dAmsr_stat; // ppm
-  Double_t dAmsr_reg ; // ppm scheme dependance or "why-does-it-change-when-we-add-charge" and/or "whydoesitchangewhenweusetheTgtBPMvsapairofBPM" error
-  Double_t dAmsr_nonlin; // ppm
-  Double_t dAmsr_cuts;  // ppm
-  Double_t dAmsr_dpk;//ppm double peaking error on the regression slopes e-log 772
+
+  //  Double_t dAmsr_reg ; // ppm scheme dependance or "why-does-it-change-when-we-add-charge" and/or "whydoesitchangewhenweusetheTgtBPMvsapairofBPM" error
+  //  Double_t dAmsr_nonlin; // ppm
+  //  Double_t dAmsr_cuts;  // ppm
+  //  Double_t dAmsr_dpk;//ppm double peaking error on the regression slopes e-log 772
+
+  Double_t  A_BCM_norm;
+  Double_t  dA_BCM_norm;
+  Double_t  A_beam;
+  Double_t  dA_beam_schem;
+  Double_t  dA_beam_sens;
+  Double_t  A_BB;
+  Double_t  dA_BB;
+  Double_t  A_nonlin;
+  Double_t  dA_nonlin;
+  Double_t  A_bias;
+  Double_t  dA_bias;
+
+  Double_t Amsr_trans;  // ppm
   Double_t dAmsr_trans; // ppm
+
   Double_t dAmsr_syst ; // ppm (regression+nonlin.+cuts+transverse+dpk)
   
   //Blinder
@@ -59,8 +81,8 @@ class QwCalculator{
   Double_t BlindingFactor;
   
   //Additional transverse corrections
-  Double_t A_msr_trans; //ppm
-  Double_t dA_msr_trans;//ppm
+  //  Double_t A_msr_trans; //ppm
+  //  Double_t dA_msr_trans;//ppm
   
   //Polarization
   Double_t P; 
@@ -78,6 +100,9 @@ class QwCalculator{
   Double_t AccCorr;
   Double_t dAccCorr;
   
+  Double_t  R_q2;
+  Double_t  dR_q2;
+
   //EM+Det_bias+acceptance correction
   Double_t Exp_Bias_C;
   Double_t dExp_Bias_C;
@@ -111,6 +136,7 @@ class QwCalculator{
   Double_t pdAcc_C;//acceptance correction partial error on final asymmetry ppm
   Double_t asymmetry_correction_Exp_Bias_C; //effective exp. bias correction  ppm
   Double_t pdExp_Bias_C;//Exp. bias correction partial error on final asymmetry ppm
+  Double_t pdR_q2;
   
   Double_t asymmetry_correction_b[4];//correction from bkg contribution on final asymmetry
   Double_t pdb[4];//bkg contribution (asymmetry+dilution) error on final asymmetry
