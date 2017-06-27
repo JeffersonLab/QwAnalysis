@@ -181,7 +181,8 @@ search=(
     )
 export BOOST_INC_DIR=$(first_path_with_file $libname "${search[@]}" "${BOOST_INC_DIR}")
 
-libname=libboost_filesystem.a
+libname=libboost_filesystem.so
+[ "$OS" == "Darwin" ] && libname=${libname/.so/.dylib}
 search=(
     /usr/${lib}
     /usr/${lib}/x86_64-linux-gnu
