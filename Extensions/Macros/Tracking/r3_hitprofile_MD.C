@@ -327,8 +327,8 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   xangle->GetXaxis()->SetTitle("X
  angle  (radians)");
   xangle->Draw(); 
-  xangle->SaveAs(outputPrefix+"yangles.C"); 
-  c_xangle->SaveAs(outputPrefix+"yangles.pdf"); 
+  xangle->SaveAs(outputPrefix+"xangles.C"); 
+  c_xangle->SaveAs(outputPrefix+"xangles.pdf"); 
   
   c_yangle_v_y = new TCanvas("c_yangle_v_y", "Y angle vs Y", 10, 10, 700, 700);
   yangle_v_y->GetXaxis()->SetTitle("Y location  (cm)");

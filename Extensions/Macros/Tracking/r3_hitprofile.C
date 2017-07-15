@@ -49,6 +49,8 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   // means the front face of the Pb is 5.94 cm upstream of the center of the
   // MD, i.e. 5.94 cm less than the values in md_zpos
 
+  gROOT->SetBatch(kTRUE); // to turn off making plots to screen 
+
   Double_t md_zpos[9] = {0.0, 576.665,  576.705, 577.020, 577.425, 577.515,  577.955, 577.885, 577.060};
 
   Double_t Pb_zoffset = 5.94;
@@ -120,56 +122,17 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   else
     w_title="weighted";
 
-
-
-  TProfile2D* hp_2d;
-  hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"hp_2d ",240,0,0,480,0,0);
-
-  TH1D* h_1f=new TH1D("project run","project run",240,280,400);
-  TH1D* adcph = new TH1D("ADCP", "ADCP data", 400, 0, 4000);
-  TH1D* adcmh = new TH1D("ADCM", "ADCM data", 400, 0, 4000);
-  TH1D* tdcph = new TH1D("TDCP", "TDCP data", 1650, 0, 0);
-  TH1D* tdcmh = new TH1D("TDCM", "TDCM data", 1650, 0, 0);
   TH1D* adcpped = new TH1D("ADCPPED", "ADCP pedestal", 50, 0, 400);
   TH1D* adcmped = new TH1D("ADCMPED", "ADCM pedestal", 50, 0, 400);
 
-  TH1D* adc_sum = new TH1D("adc_sum", "summed ADC spectrum", 500, 0, 5000);
-  TH1D* adc_sum_tight = new TH1D("adc_sum_tight", "summed ADC spectrum, y= 10-20cm", 500, 0, 5000);
+  TH1D* yhits = new TH1D("yhits", Form("Y profile at Pb, Run %d, Oct. %d", run_number, md_number),220, -110, 110) ;
+  TH1D* xhits = new TH1D("xhits", Form("X profile at Pb, Run %d, Oct. %d", run_number, md_number), 60, 320, 350);
+  TH1D* yangle = new TH1D("yangle", Form("Y angles at Pb, Run %d, Oct. %d", run_number, md_number), 200, -0.2, 0.2);
+  TH1D* xangle = new TH1D("xangle", Form("X angles at Pb, Run %d, Oct. %d", run_number, md_number) , 40, 0.32, 0.52);
+  TH2F* hits = new TH2F("hits", Form("X vs Y at Pb, Run %d, Oct. %d", run_number, md_number),240, -120, 120, 100, 310,360);
 
-  TProfile* adcpp1;
-  TProfile* adcpp2;
-  TProfile* adcmp1;
-  TProfile* adcmp2;
-  TProfile* fulladcpp;
-  TProfile* fulladcmp;
-  TProfile* x1adcpp;
-  TProfile* x1adcmp;
-  TProfile* x2adcpp;
-  TProfile* x2adcmp;
-  TProfile* x3adcpp;
-  TProfile* xdistribution;
-  TProfile* ydistribution;
-
-
-  adcpp1 = new TProfile("ADCPP1", Form("Run %d  Oct. %d +PMT far end", run_number, md_number), 50, -100, 0);
-  adcpp2 = new TProfile("ADCPP2", Form("Run %d  Oct. %d +PMT near end", run_number, md_number), 50, 0, 100);
-  adcmp1 = new TProfile("ADCMP1", Form("Run %d  Oct. %d -PMT near end", run_number, md_number), 50, -100, 0);
-  adcmp2 = new TProfile("ADCMP2", Form("Run %d  Oct. %d -PMT far end", run_number, md_number), 50, 0, 100);
-  fulladcpp = new TProfile("FULLADCPP", Form("Linear Fit Run %d Octant %d positive PMT", run_number, md_number), 150, -105, 105);
-  fulladcmp = new TProfile("FULLADCMP", Form("LInear Fit Run %d Octant %d minus PMT", run_number, md_number), 150, -105, 105);
-  x1adcpp = new TProfile("X1P", "X1 ADCP profile", 200, -110, 110);
-  x1adcmp = new TProfile("X1M", "X1 ADCM profile", 200, -110, 110);
-  x2adcpp = new TProfile("X2P", "X2 ADCP profile", 200, -110, 110);
-  x2adcmp = new TProfile("X2M", "X2 ADCM profile", 200, -110, 110);
-  x3adcpp = new TProfile("X3P", "X3 ADCP profile", 200, -110, 110);
-  x3adcmp = new TProfile("X3M", "X3 ADCM profile", 200, -110, 110);
-  xdistribution = new TProfile("xdistribution","total ADC pulse height vs. x", 200, 300, 360);
-  ydistribution = new TProfile("ydistribution","total ADC pulse height vs. y", 200, -110, 110);
-
-  TH2F* hits = new TH2F("hits", Form("Run %d Octant %d Hit Chart", run_number, md_number), 400, -130, 130, 300, 320, 360);
-  TH2F* misses = new TH2F("misses", Form("Run %d Octant %d Miss Chart", run_number, md_number), 400, -130, 130, 300, 320, 360);
-
-  TGraph* effplot;
+  TH1D* adcpped = new TH1D("ADCPPED", "ADCP pedestal", 50, 0, 400);
+  TH1D* adcmped = new TH1D("ADCMPED", "ADCM pedestal", 50, 0, 400);
 
   TBranch* branch_event=event_tree->GetBranch("events");
   TBranch* branch     = event_tree->GetBranch("maindet");
@@ -184,6 +147,7 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 
 
   Int_t nevents=event_tree->GetEntries();
+  cout << "NUmber of events = " << nevents << endl; 
   if (max_events == -1)max_events = nevents; 
 
   Double_t dz = 0.0;
@@ -327,6 +291,11 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
 		//		hit_map[ix][iy][isx][isy]++;  //increment bin in hitmap
 		hit_map[ix][iy][isx]++;  //increment bin in hitmap
 		n_filled++;
+		yhits->Fill(y);
+		xhits->Fill(x);
+		yangle->Fill(yslopelocal);
+		xangle->Fill(xslopelocal);
+		hits->Fill(y,x);
 	      }
  
 	     } // Region 3 partial track in right octant
@@ -349,7 +318,39 @@ void project_root(int package=1,int md_number=1,int run_number=6327,int max_even
   cout <<  " number of tracks used = " << n_tracks_used << endl;
   cout <<  " entries added to hit_map = " << n_filled << endl;
   cout <<  " events in run = " << nevents << endl;
-  cout <<  " events enalyzed = " << max_events << endl;
+  cout <<  " events analyzed = " << max_events << endl;
+
+  c_yhits = new TCanvas("c_yhits", "Y profile", 10, 10, 700, 700);
+  yhits->GetXaxis()->SetTitle("Y location  (cm)");
+  yhits->Draw(); 
+  yhits->SaveAs(outputPrefix+"yhits.C"); 
+  c_yhits->SaveAs(outputPrefix+"yhits.pdf"); 
+
+  c_xhits = new TCanvas("x_yhits", "X profile", 10, 10, 700, 700);
+  yhits->GetXaxis()->SetTitle("X location  (cm)");
+  xhits->Draw(); 
+  xhits->SaveAs(outputPrefix+"xhits.C"); 
+  c_xhits->SaveAs(outputPrefix+"xhits.pdf"); 
+
+  c_yangle = new TCanvas("c_yangle", "Y Angles", 10, 10, 700, 700);
+  yangle->GetXaxis()->SetTitle("Y angle  (radians)");
+  yangle->Draw(); 
+  yangle->SaveAs(outputPrefix+"yangles.C"); 
+  c_yangle->SaveAs(outputPrefix+"yangles.pdf"); 
+
+  c_xangle = new TCanvas("c_xangle", "X angles", 10, 10, 700, 700);
+  xangle->GetXaxis()->SetTitle("X
+ angle  (radians)");
+  xangle->Draw(); 
+  xangle->SaveAs(outputPrefix+"xangles.C"); 
+  c_xangle->SaveAs(outputPrefix+"xangles.pdf"); 
+
+  c_hits = new TCanvas("c_hits", "X vs Y hits", 10, 10, 700, 700);
+  hits->GetXaxis()->SetTitle("Y location  (cm)");
+  hits->GetYaxis()->SetTitle("X location  (cm)");
+  hits->Draw("COLZ");
+  hits->SaveAs(outputPrefix+"hits.C"); 
+  c_hits->SaveAs(outputPrefix+"hits.pdf"); 
 
   return;
 };
