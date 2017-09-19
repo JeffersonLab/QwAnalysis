@@ -295,7 +295,7 @@ std::vector<Int_t> QwRunlet::get_wiens(void) {
  * This fuction creates all the temporary tables for use later. First, it loops
  * over all regression types,
  */
-void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t runavg, Bool_t slugavg, Bool_t wienavg, Bool_t ignore_quality, Int_t run_quality)
+void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t runavg, Bool_t slugavg, Bool_t wienavg, Bool_t ignore_quality, Bool_t transverse, Int_t run_quality)
 {
     // create the fist temp table
     std::cout << "creating temp runlet tables" << std::endl;
@@ -392,7 +392,15 @@ void QwRunlet::fill(QwParse &reg_types, QwParse &runlist, TString target, Bool_t
                  * normal = right flip
                  * reverse = left flip
                  */
-                if(temp_precession_reversal == "normal") {
+                if(transverse) {
+                    if(temp_ihwp_setting == "in") {
+                        sign_correction.push_back(1);
+                    }
+                    else if(temp_ihwp_setting == "out") {
+                        sign_correction.push_back(-1);
+                    }
+                }
+                else if(temp_precession_reversal == "normal") {
                     if(temp_wien_reversal == "normal") {
                         if(temp_ihwp_setting == "out") {
                             sign_correction.push_back(1);

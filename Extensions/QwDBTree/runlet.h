@@ -20,7 +20,7 @@ struct QwValues {
 class QwRunlet {
     public:
     QwRunlet(TSQLServer*);
-    void fill(QwParse&, QwParse&, TString, Bool_t, Bool_t, Bool_t, Bool_t, Int_t);
+    void fill(QwParse&, QwParse&, TString, Bool_t, Bool_t, Bool_t, Bool_t, Bool_t, Int_t);
     void fill_run(void);
     void branch(TTree*, QwValues&);
     std::vector<Int_t> get_runlets(void);

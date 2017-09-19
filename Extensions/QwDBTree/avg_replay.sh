@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#DB_ROOTFILES=~/db_rootfiles/
-DB_ROOTFILES=/group/qweak/www/html/private/db_rootfiles/
+DB_ROOTFILES=db_rootfiles/
+#DB_ROOTFILES=/group/qweak/www/html/private/db_rootfiles/
 
 for j in run1 run2 
 do

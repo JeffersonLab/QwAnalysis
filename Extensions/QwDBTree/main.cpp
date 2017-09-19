@@ -33,6 +33,7 @@ int main(Int_t argc, Char_t* argv[]) {
     Bool_t slugavg = kFALSE;            // disabled by default
     Bool_t wienavg = kFALSE;            // disabled by default
     Bool_t ignore_quality = kFALSE;     // disabled by default
+    Bool_t transverse = kFALSE;         // disabled by default
     TString slopes = "";                // disabled by default
     
     // Parse command line options.
@@ -50,6 +51,7 @@ int main(Int_t argc, Char_t* argv[]) {
         if(0 == strcmp("--slugavg", argv[i])) slugavg = kTRUE;
         if(0 == strcmp("--wienavg", argv[i])) wienavg = kTRUE;
         if(0 == strcmp("--ignore-quality", argv[i])) ignore_quality = kTRUE;
+        if(0 == strcmp("--transverse", argv[i])) transverse = kTRUE;
         if(0 == strcmp("--slope", argv[i])) slopes = argv[i+1];
     }
 
@@ -69,6 +71,8 @@ int main(Int_t argc, Char_t* argv[]) {
     else std::cout << "wienavg : disabled" << std::endl;
     if(ignore_quality) std::cout << "ignore data quality : enabled" << std::endl;
     else std::cout << "ignore data quality: disabled" << std::endl;
+    if(transverse) std::cout << "transverse : enabled" << std::endl;
+    else std::cout << "transverse: disabled" << std::endl;
     if(slopes == "") std::cout << "slopes : disabled" << std::endl;
     else std::cout << "slopes: " << slopes << std::endl;
 
@@ -91,7 +95,7 @@ int main(Int_t argc, Char_t* argv[]) {
      * ALL trees to use).
      */
     QwRunlet runlets(db);
-    runlets.fill(reg_types, runlist_str, target, runavg, slugavg, wienavg, ignore_quality, run_quality);
+    runlets.fill(reg_types, runlist_str, target, runavg, slugavg, wienavg, ignore_quality, transverse, run_quality);
 
     /* Run tree_fill to grab the remaining data from the database. */
     const Int_t num_regs = reg_types.num_detectors();
