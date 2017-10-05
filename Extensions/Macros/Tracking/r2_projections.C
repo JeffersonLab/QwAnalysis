@@ -182,6 +182,7 @@ void projections(int run=15121, int event_start=0,int event_end=-1,string prefix
 	p1_Chi_histo->Fill(pt->fChi);
 
 	double vertex_z=fEvent->GetScatteringVertexZ();
+	p1_vertex->Fill(vertex_z);
 
 	double vertex_z_test=pt->GetVertexZ();
 
