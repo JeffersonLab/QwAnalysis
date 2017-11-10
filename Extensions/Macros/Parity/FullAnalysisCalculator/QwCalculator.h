@@ -19,6 +19,8 @@
 
 using namespace std;
 
+const Int_t bkg_count = 5;
+
 class QwCalculator{
 
  public:
@@ -109,10 +111,10 @@ class QwCalculator{
 
   //Bacground Asymmetries and dilutions
 
-  Double_t Ab[4];//bkg asymmetry
-  Double_t dAb[4];//bkg asymmetry error
-  Double_t fb[4];//bkg dilution
-  Double_t dfb[4];//bkg dilution error
+  Double_t Ab[bkg_count];//bkg asymmetry
+  Double_t dAb[bkg_count];//bkg asymmetry error
+  Double_t fb[bkg_count];//bkg dilution
+  Double_t dfb[bkg_count];//bkg dilution error
   Double_t f_total;//total background dilution
 
     //Final output parameters
@@ -138,10 +140,10 @@ class QwCalculator{
   Double_t pdExp_Bias_C;//Exp. bias correction partial error on final asymmetry ppm
   Double_t pdR_q2;
   
-  Double_t asymmetry_correction_b[4];//correction from bkg contribution on final asymmetry
-  Double_t pdb[4];//bkg contribution (asymmetry+dilution) error on final asymmetry
-  Double_t pdAb[4];//bkg asymmetry partial error on final asymmetry
-  Double_t pdfb[4];//bkg dilution partial error on final asymmetry
+  Double_t asymmetry_correction_b[bkg_count];//correction from bkg contribution on final asymmetry
+  Double_t pdb[bkg_count];//bkg contribution (asymmetry+dilution) error on final asymmetry
+  Double_t pdAb[bkg_count];//bkg asymmetry partial error on final asymmetry
+  Double_t pdfb[bkg_count];//bkg dilution partial error on final asymmetry
   Double_t asymmetry_total_correction;//total corrections from polarization, backgrounds, EM rad and det. bias corrections
   Double_t dA_total_asymmetry_correction;//error on total corrections from polarization, backgrounds, EM rad and det. bias corrections
   Double_t dA_asymmetry_correction;

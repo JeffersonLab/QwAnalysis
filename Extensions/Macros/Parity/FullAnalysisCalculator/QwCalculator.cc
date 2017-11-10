@@ -11,8 +11,8 @@ Coppied from compute_LH2_asym.cc to construct the class QwComputePhysAsym() requ
 
 using namespace std;
 
-const Int_t bkg_count = 4;
-const Char_t *bkg_type[bkg_count] = {"Aluminum alloy windows","QTOR transport channel neutrals","Beamline bkg neutrals with W shutters installed","Non-signal electrons on detector"};
+//  const Int_t bkg_count = 5; //Now in QwCalculator.h
+const Char_t *bkg_type[bkg_count] = {"Aluminum alloy windows","QTOR transport channel neutrals","Beamline bkg neutrals with W shutters installed","Non-signal electrons on detector","Pion production"};
 
 QwCalculator::QwCalculator(){
   
@@ -31,7 +31,7 @@ void QwCalculator::SetTimeIndependentQtys(){
 
   //Blinder
   BlindingSign   = +1.; //
-  BlindingFactor = 0.0 ; //ppb 
+  //  BlindingFactor = 0.0 ; //ppb 
 
   //Additional transverse corrections
   //  A_msr_trans   =  0.0; //ppbuiop
@@ -49,6 +49,12 @@ void QwCalculator::SetTimeDependentQtys(QwReadFile &input){
 
   // Asign the asymmetry, polarization and background corrections
   //
+  BlindingFactor= input.GetNextToken(","); //ppb
+  if (BlindingFactor>60.0 || BlindingFactor<-60.0){
+    std::cerr << "Blinding factor out of range; probably a bad input table!"
+	      << std::endl;
+    exit(1);
+  }
   A_raw         = input.GetNextToken(","); //ppb
   dA_raw_stat   = input.GetNextToken(","); //ppb
   dAmsr_stat    = input.GetNextToken(","); //ppb
@@ -68,7 +74,7 @@ void QwCalculator::SetTimeDependentQtys(QwReadFile &input){
   Delta_A_reg   = A_BCM_norm + A_beam;
   dDelata_A_reg = TMath::Sqrt(TMath::Power(dA_BCM_norm,2)+TMath::Power(dA_beam_schem,2)+TMath::Power(dA_beam_sens,2));
 
-  A_msr         = A_raw + Delta_A_reg + A_BB + A_nonlin + Amsr_trans - A_bias;
+  A_msr         = A_raw + Delta_A_reg + A_BB + A_nonlin + Amsr_trans + A_bias;
 
 
   dAmsr_syst    = TMath::Sqrt(TMath::Power(dA_BCM_norm,2)+TMath::Power(dA_beam_schem,2)+TMath::Power(dA_beam_sens,2)+TMath::Power(dA_BB,2)+TMath::Power(dA_nonlin,2)+TMath::Power(dAmsr_trans,2)+TMath::Power(dA_bias,2));
@@ -105,7 +111,12 @@ void QwCalculator::SetTimeDependentQtys(QwReadFile &input){
   fb[3]       = input.GetNextToken(",");  
   dfb[3]      = input.GetNextToken(","); 
 
-
+  //b5:  Pion production
+  // From S. Wells email on 13June2017
+  Ab[4]       = -3000.0; //ppb
+  dAb[4]      = 3000.0; //ppb
+  fb[4]       = 1.7e-5;
+  dfb[4]      = 9.4e-5;
 
   //Detector Bias Correction (Q^2 light wieghting at the detector)
   DetCorr    = input.GetNextToken(",");
@@ -134,6 +145,8 @@ void QwCalculator::SetTimeDependentQtys(QwReadFile &input){
   f_total=0;
   for (Int_t i=0;i<bkg_count;i++)
     f_total+=fb[i];
+
+  std::cerr << "BlindingFactor = " << BlindingFactor << std::endl;
 }
 
 ////////////////////////
@@ -141,7 +154,8 @@ void QwCalculator::SetTimeDependentQtys(QwReadFile &input){
 ///////////////////////
 int QwCalculator::ComputePhysAsym()
 {
-  
+
+  std::cerr << "BlindingFactor = " << BlindingFactor << std::endl;
   //Start computing final LH2 asymmetry
   UnblindMeasuredAsymmetry();
   ComputeSignalAsymmetryPartialErrors();
@@ -188,7 +202,14 @@ void QwCalculator::ComputeSignalAsymmetryPartialErrors(){
   pdA_msr_syst = Exp_Bias_C * 1/P * 1/(1 - f_total) * dAmsr_syst;//measured asymmetry partial syst error on final asymmetry
 
   dA_signal_syst += TMath::Power(pdA_msr_syst,2);//add all the syst. error contributions quadratically
-  syst_errors.push_back(pdA_msr_syst);
+
+  syst_errors.push_back(Exp_Bias_C * 1/P * 1/(1 - f_total) * dA_BCM_norm);
+  syst_errors.push_back(Exp_Bias_C * 1/P * 1/(1 - f_total) * dA_beam_schem);
+  syst_errors.push_back(Exp_Bias_C * 1/P * 1/(1 - f_total) * dA_beam_sens);
+  syst_errors.push_back(Exp_Bias_C * 1/P * 1/(1 - f_total) * dA_BB);
+  syst_errors.push_back(Exp_Bias_C * 1/P * 1/(1 - f_total) * dA_nonlin);
+  syst_errors.push_back(Exp_Bias_C * 1/P * 1/(1 - f_total) * dAmsr_trans);
+  syst_errors.push_back(Exp_Bias_C * 1/P * 1/(1 - f_total) * dA_bias);
 
   pdA_msr      = TMath::Sqrt( TMath::Power(pdA_msr_stat,2) +  TMath::Power(pdA_msr_syst,2));//measured asymmetry partial error on final asymmetry
 
@@ -218,20 +239,21 @@ void QwCalculator::ComputeSignalAsymmetryPartialErrors(){
 
   dA_signal_syst += TMath::Power(pdDetCorr,2) + TMath::Power(pdEM_Rad_C,2) + TMath::Power(pdAcc_C,2) +  TMath::Power(pdR_q2,2);
 
-  for (Int_t i=0,j=1,k=2,l=3;i<bkg_count;i++,j=(i+1)%4,k=(i+2)%4,l=(i+3)%4){
-    //printf("%i %i %i %i \n",i,j,k,l);//checking permutations for 4 backgrounds
+  for (Int_t i=0,j=1,k=2,l=3,m=4;i<bkg_count;i++,j=(i+1)%5,k=(i+2)%5,l=(i+3)%5,m=(i+4)%5){
+    //printf("%i %i %i %i %i\n",i,j,k,l,m);//checking permutations for 4 backgrounds
     /* permutations for 4 backgrounds
-      i j k l
+      i j k l m
       -------
-      0 1 2 3
-      1 2 3 0
-      2 3 0 1
-      3 0 1 2
+      0 1 2 3 4
+      1 2 3 4 0
+      2 3 4 0 1
+      3 4 0 1 2
+      4 0 1 2 3
      */
     pdAb[i] = Exp_Bias_C * fb[i]/(1 - f_total) * dAb[i]; //bkg asymmetry partial error on final asymmetry
-    pdfb[i] = Exp_Bias_C * ( A_msr/P + ( -1 +  fb[j] +  fb[k] + fb[l] )*Ab[i] - Ab[j]*fb[j] - Ab[k]*fb[k] - Ab[l]*fb[l]) * dfb[i] * 1/TMath::Power(( 1 - f_total),2);//bkg dilution partial error on final asymmetry
-    syst_errors.push_back(pdAb[i]);
-    syst_errors.push_back(pdfb[i]);
+    pdfb[i] = Exp_Bias_C * ( A_msr/P + ( -1 +  fb[j] +  fb[k] + fb[l]  + fb[m])*Ab[i] - Ab[j]*fb[j] - Ab[k]*fb[k] - Ab[l]*fb[l]  - Ab[m]*fb[m]) * dfb[i] * 1/TMath::Power(( 1 - f_total),2);//bkg dilution partial error on final asymmetry
+    syst_errors.push_back(abs(pdAb[i]));
+    syst_errors.push_back(abs(pdfb[i]));
 
     //compute the partial error for each background = sqrt(pdAb[i]^2 + pdfb[i]^2)
     pdb[i]=TMath::Sqrt( TMath::Power(pdAb[i],2) + TMath::Power(pdfb[i],2) );//bkg contribution (asymmetry+dilution) error on final asymmetry
@@ -370,7 +392,7 @@ void QwCalculator::PrintErrorContributions(){
   printf("%20s = %3.4f ppb  \n","pdEM_Rad_C",pdEM_Rad_C);
   printf("%20s = %3.4f ppb  \n","pdAcc_C",pdAcc_C);
 
-  for (Int_t i=0,j=1,k=2,l=3;i<bkg_count;i++,j=(i+1)%4,k=(i+2)%4,l=(i+3)%4){
+  for (Int_t i=0;i<bkg_count;i++){
     printf("\n---------------------------------");
     printf("\n%s\n",bkg_type[i]);
     printf("---------------------------------\n");

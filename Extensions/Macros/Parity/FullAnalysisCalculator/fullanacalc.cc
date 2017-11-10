@@ -96,19 +96,39 @@ int main()
   size_t n_errors = StatErrors.at(0).size();
   Double_t c_total = 0.0;
   //  Double_t wt_factor = 3.28847; // based on stat error ratio
-  Double_t wt_factor = 6.05968; // based on c_total
+  Double_t wt_factor = 5.46181; //  Based on dA_bias = 2.0 and March24 inputs & formula
+  //Double_t wt_factor = 5.60382; // based on dA_bias = 2.0
+  //wt_factor = 5.62894; // based on dA_bias = 3.5
+  //wt_factor = 5.65916; //based on dA_bias = 4.7
+  //wt_factor = 5.09848; // based on dA_bias = 2.0 & Peng's new values
+  //wt_factor = 5.11952; // based on dA_bias = 3.5 & Peng's new values
+  //  wt_factor = 5.14482; //based on dA_bias = 4.7 & Peng's new values
   Double_t wt_error_term;
   Double_t err_sqr = 0.0;
+  Double_t total2_1, total2_2;
+  total2_1 =  TMath::Power(APVAll.at(1),2);
+  total2_2 =  TMath::Power(APVAll.at(4),2);
+  cout << "Error contributions terms"  << std::endl;
   for (size_t i=0; i<n_errors; i++){
+    cout << StatErrors.at(0).at(i) << "  " << StatErrors.at(1).at(i) << "  "
+	 << StatErrors.at(0).at(i)*StatErrors.at(1).at(i) << std::endl;
     c_total += StatErrors.at(0).at(i)*StatErrors.at(1).at(i);
+
+    total2_1 += TMath::Power(StatErrors.at(0).at(i),2);
+    total2_2 += TMath::Power(StatErrors.at(1).at(i),2);
 
     wt_error_term = StatErrors.at(0).at(i) + wt_factor*StatErrors.at(1).at(i);
     wt_error_term /= (1.0 + wt_factor);
 
     err_sqr += (wt_error_term*wt_error_term);
   }
+  std::cout << "recalculated weight: " << (total2_1 - c_total)/(total2_2 - c_total)
+	    << std::endl;
+
   cout << "c_total = " << c_total << endl;
 
+  cout << "avg using weight="<<wt_factor << ": " 
+       << (APVAll.at(0) + wt_factor*APVAll.at(3))/(1+wt_factor) << std::endl;
   cout << "combined syst error using weight="<<wt_factor << ": " << sqrt(err_sqr) << std::endl;
   cout << "stat error using weight="<<wt_factor << ": " 
        << sqrt( TMath::Power(APVAll.at(1),2) + TMath::Power(wt_factor,2)*TMath::Power(APVAll.at(4),2))/(1+wt_factor) << std::endl;
