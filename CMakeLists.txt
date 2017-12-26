@@ -77,27 +77,8 @@ include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIR})
 
 # Create dictionaries for headers that contain "ClassDef"
-message("Generating evio dictionaries for ROOT ${ROOT_VERSION}...")
-foreach(file ${my_evio_headers})
-  # Find the header files that have uncommented ClassDef lines
-  execute_process(COMMAND grep -l "[^/]ClassDef" ${file} OUTPUT_VARIABLE result)
-  if(result)
-    # Get path and filename without extension
-    get_filename_component(file_path ${file} PATH)
-    get_filename_component(file_name ${file} NAME_WE)
-    # Add dictionary target with possible LinkDef file
-    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dictionary)
-    set(dict ${CMAKE_CURRENT_BINARY_DIR}/dictionary/${file_name}Dict)
-    ROOT_GENERATE_DICTIONARY(
-      ${dict}
-      ${file}
-      OPTIONS -p)
-    # Add dictionary to evio sources
-    set(my_evio_sources ${my_evio_sources} ${dict}.cxx)
-  endif()
-endforeach()
 message("Generating QwAnalysis dictionaries for ROOT ${ROOT_VERSION}...")
-foreach(file ${my_project_headers})
+foreach(file ${my_evio_headers} ${my_project_headers})
   # Find the header files that have uncommented ClassDef lines
   execute_process(COMMAND grep -l "[^/]ClassDef" ${file} OUTPUT_VARIABLE result)
   if(result)
@@ -122,6 +103,8 @@ foreach(file ${my_project_headers})
     endif()
     # Add dictionary to project sources
     set(my_project_sources ${my_project_sources} ${dict}.cxx)
+    # Add pcm file to list
+    set(pcmfiles ${pcmfiles} ${dict}_rdict.pcm)
   endif()
 endforeach()
 
@@ -159,6 +142,9 @@ add_library(QwAnalysis SHARED ${CMAKE_CURRENT_BINARY_DIR}/include/QwSVNVersion.h
 target_link_libraries(QwAnalysis
   evio ${ROOT_LIBRARIES} ${MYSQLPP_LIBRARIES} ${Boost_LIBRARIES})
 install(TARGETS QwAnalysis DESTINATION ${CMAKE_SOURCE_DIR}/lib)
+
+# Install pcm files into lib
+install(FILES ${pcmfiles} DESTINATION ${CMAKE_SOURCE_DIR}/lib)
 
 # Add the target executables
 file(GLOB exefiles
