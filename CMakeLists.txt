@@ -104,7 +104,9 @@ foreach(file ${my_evio_headers} ${my_project_headers})
     # Add dictionary to project sources
     set(my_project_sources ${my_project_sources} ${dict}.cxx)
     # Add pcm file to list
+    if(ROOT_VERSION VERSION_GREATER 5.90)
     set(pcmfiles ${pcmfiles} ${dict}_rdict.pcm)
+    endif()
   endif()
 endforeach()
 
