@@ -4,7 +4,8 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class MeanTime+;
-#pragma link C++ class MeanTimeContainer+;
+#pragma link C++ class QwTrack+;
+#pragma link C++ class vector<QwTrack*>+;
 
 #endif
+
