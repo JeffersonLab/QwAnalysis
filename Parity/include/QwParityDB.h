@@ -16,7 +16,9 @@
 #include <typeinfo>
 
 // Third Party Headers
+#pragma GCC diagnostic ignored "-Wdeprecated"
 #include <mysql++.h>
+#pragma GCC diagnostic pop
 
 // ROOT headers
 #include "TString.h"
