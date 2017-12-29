@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # File for simrun description and run number file
-masterlist=/group/qweak/www/html/tracking/sim/simrun.list
-derivedlist=/group/qweak/www/html/tracking/sim/simrun.txt
+dir=${1:-/group/qweak/www/html/tracking/sim}
+masterlist=${dir}/simrun.list
+derivedlist=${dir}/simrun.txt
 touch $masterlist $derivedlist
 chmod -f g+w $masterlist $derivedlist
 chown -f $USER:c-qweak $masterlist $derivedlist

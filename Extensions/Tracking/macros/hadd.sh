@@ -1,10 +1,10 @@
 #!/bin/bash
 
-inputdir=/mss/home/$USER/rootfiles
+inputdir=${1:-/volatile/hallc/qweak/$USER/rootfiles}
 cachedir=/cache/hallc/qweak/misc/$USER/rootfiles
-mss=/mss/hallc/qweak/misc/$USER/rootfiles
+mss=${cachedir/cache/mss}
 
-for i in $inputdir/${1:-myTrackingRun_*} ; do
+for i in $inputdir/${2:-myTrackingRun_*} ; do
   echo "Processing directory $i ..."
   for tag in simulation tracking ; do
     echo "Concatenating $tag files ..."
@@ -31,6 +31,7 @@ for i in $inputdir/${1:-myTrackingRun_*} ; do
         echo "Merged $n $tag files in $i into `basename $out`"
       else
         echo "Warning: file $cachedir/$out already exists!"
+        echo "Remove with: rm $cachedir/$out"
       fi
 
       # Write to tape
@@ -44,6 +45,7 @@ for i in $inputdir/${1:-myTrackingRun_*} ; do
 
     else
       echo "Warning: $mss/$out already exists!"
+      echo "Remove with: jcache tapeRemove $mss/$out"
     fi
   done
 done

@@ -331,7 +331,7 @@ fi
 if [ -z "$MESSAGE" -a -f ${QWSCRATCH}/work/logrun.txt ]; then
     MESSAGE="`grep Run\ $RUNNUM: ${QWSCRATCH}/work/logrun.txt | sed -e 's/keyword=Run\ [0-9]*\://' | sed -e 's/<br>//'`"
 fi
-if [ -z "$MESSAGE" -a -f ${QWSCRATCH}/work/simrun.txt ]; then
+if [ -z "$MESSAGE" -a -f ${WEBDIR}/simrun.txt ]; then
     MESSAGE="`grep Run\ $RUNNUM: ${QWSCRATCH}/work/simrun.txt | sed -e 's/keyword=Run\ [0-9]*\://' | sed -e 's/<br>//'`"
 fi
 if [ ! -z "$MESSAGE" ]
